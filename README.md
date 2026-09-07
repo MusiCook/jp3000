@@ -33,7 +33,7 @@ tools/
   check.js            데이터 검사기
   append.py           문장 배치 추가 도구
 
-dist/               배포용. 이 폴더를 통째로 올린다
+dist/               배포용. Pages가 이 폴더를 그대로 내보낸다
   jp3000.html         합본 (이것만 열면 동작)
   manifest.webmanifest
   sw.js               오프라인 캐시
@@ -77,14 +77,28 @@ cd dist && python3 -m http.server 8000
 
 ## 배포
 
-GitHub Pages에 `dist` 폴더의 내용을 올린다.
+저장소는 `MusiCook/jp3000`, GitHub Pages는 `main` / `(root)` 로 켜져 있다.
+푸시하면 그대로 배포된다.
+
+```bash
+node tools/check.js          # 검사 — 반드시
+python3 tools/build.py       # dist/jp3000.html 재생성
+# 브라우저로 dist/jp3000.html 열어 확인
+
+git add -A
+git commit -m "무엇을 고쳤는지"
+git push
+```
+
+1~2분 뒤 반영된다.
 
 ```
-https://<아이디>.github.io/<저장소>/jp3000.html
+https://musicook.github.io/jp3000/dist/jp3000.html
 ```
 
 - 서비스 워커는 HTTPS에서만 동작한다
 - 파일을 새로 올리면 앱이 자동으로 받아두고 「새 내용이 있습니다」를 띄운다
+- **`dist/sw.js`의 캐시 이름을 올리지 않으면** 옛 화면이 계속 나올 수 있다
 
 ---
 

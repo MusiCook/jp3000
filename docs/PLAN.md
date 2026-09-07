@@ -382,14 +382,21 @@ sw.js
 icon-192.png  icon-512.png  icon-maskable-512.png  apple-touch-icon.png
 ```
 
+저장소 `MusiCook/jp3000` (Public), Pages는 `main` / `(root)` 로 설정되어 있다.
+프로젝트 전체가 그대로 올라가 있으므로 `dist`는 저장소 안의 한 폴더다.
+
+```bash
+git add -A
+git commit -m "무엇을 고쳤는지"
+git push
 ```
-1. 저장소 생성 (Public)
-2. dist 안의 파일을 올린다
-3. Settings → Pages → Branch를 main / (root) → Save
-4. https://아이디.github.io/저장소/jp3000.html
+
+```
+https://musicook.github.io/jp3000/dist/jp3000.html
 ```
 
 - **서비스 워커는 HTTPS에서만 동작한다.** GitHub Pages면 된다
+- **`sw.js`의 캐시 이름을 올리지 않으면** 브라우저가 옛 파일을 계속 쓴다. 배포 전 확인
 - 파일을 새로 올리면 앱이 자동으로 받아두고 「새 내용이 있습니다」를 띄운다
 - 홈 화면에 추가: 아이폰은 Safari 공유 → 홈 화면에 추가, 안드로이드·PC는 주소창 설치 아이콘
 
