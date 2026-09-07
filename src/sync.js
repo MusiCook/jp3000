@@ -75,9 +75,12 @@ async function pull(){
   try{ return s ? JSON.parse(s) : null; }catch(e){ return null; }
 }
 
-async function push(data){
+/* last 는 앱을 덮는 참에 보내는 것. 그때만 keepalive 를 쓴다.
+   keepalive 는 보낼 수 있는 양이 64KB로 묶여 있어, 문장이 3,000개로
+   늘면 진도가 그 언저리에 닿는다. 평소에는 쓰지 않는다 */
+async function push(data, last){
   const r = await fetch(DOC(acct.uid), {
-    method:'PATCH', keepalive:true,
+    method:'PATCH', keepalive:!!last,
     headers:{Authorization:'Bearer '+(await token()), 'Content-Type':'application/json'},
     body: JSON.stringify({fields:{
       data:{stringValue: JSON.stringify(data)},
@@ -259,7 +262,7 @@ on('bSyncPw', async function(){
 /* 앱을 덮을 때 밀린 것을 마저 올린다 */
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='hidden' && acct){
-    clearTimeout(timer); push(snap()).catch(()=>{});
+    clearTimeout(timer); push(snap(), true).catch(()=>{});
   }
 });
 
