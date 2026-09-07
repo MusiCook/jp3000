@@ -250,6 +250,18 @@ on('bSyncPw', async function(){
   }catch(e){ say(msg(e)); }
 });
 
+/* 전체 초기화. 서버에 둔 사본도 함께 지운다.
+   안 지우면 다음에 맞출 때 지운 진도가 그대로 되살아난다.
+   기기마다 사본이 있으므로 쓰는 기기 모두에서 초기화해야 깨끗해진다 */
+window.syncWipe = async function(){
+  clearTimeout(timer);
+  if(!acct) return;
+  try{
+    await fetch(DOC(acct.uid), {method:'DELETE',
+                                headers:{Authorization:'Bearer '+(await token())}});
+  }catch(e){}
+};
+
 /* ── 앱에 얹기 ─────────────────────────── */
 
 /* 진도가 저장될 때마다 조금 뒤에 올린다 */

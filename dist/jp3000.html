@@ -10024,6 +10024,8 @@ $('#bWipe').onclick=()=>{
       ST={v:3,lv:1,pg:0,r:{},done:{1:{},2:{},3:{}},star:{},bm:{}};
       QSTAT={}; QDONE={};
       DB.set(KEY,JSON.stringify(ST)); saveStat(); saveDone();
+      /* 서버에 둔 사본도 지운다. 안 그러면 다음에 맞출 때 되살아난다 */
+      if(window.syncWipe) window.syncWipe();
       applyMode(); build(); centerLv(); renderStat();
       closeSheet(); scrollTo({top:0});
       say('모두 지웠습니다');
@@ -10325,39 +10327,6 @@ function showUpdate(){
   b.onclick=()=>location.reload();
   document.body.appendChild(b);
 }
-/* ── 시험용 진도 채우기 ───────────────────────
-   SEEDR 회차까지 오게 만들고, 그 회차는 마지막 문장 하나만 남긴다.
-   회차 완료 연출을 확인하려고 둔 것이다. 한 번만 돌고,
-   다시 채우려면 주소 뒤에 #seed 를 붙여 연다.
-   확인이 끝나면 이 블록을 지운다 */
-const SEEDR=3;
-if(location.hash==='#seed' || DB.get('jp3000-seed')!==String(SEEDR)){
-  DB.set('jp3000-seed',String(SEEDR));
-  const L=SENT[1];
-  if(L){
-    ST.lv=1; ST.pg=0;
-    /* 가린 자리는 회차마다 다르고 maskPlan 이 ST.r 을 보므로,
-       회차를 옮겨 가며 그 회차의 자리를 표시한다 */
-    const fill=(s,r)=>{
-      const plan=maskPlan(s), sid='1-'+s.n;
-      let wi=-1;
-      chunkJP(s.j).forEach((c,ci)=>{ if(!c.w) return; wi++;
-        if(plan.j(wi)) markSolved(sid+'-j'+ci,r); });
-      wi=-1;
-      chunkKO(s.k).forEach((c,ci)=>{ if(c.plain) return; wi++;
-        if(plan.k(wi)) markSolved(sid+'-k'+ci,r); });
-    };
-    for(let r=1;r<=SEEDR;r++){
-      ST.r[1]=r;
-      if(r>1) ST.star[1]=r-1;                   /* 앞 회차를 마쳐 얻은 별 */
-      const a=ST.done[r][1]=[];
-      /* 마지막 회차만 문장 하나를 남긴다 */
-      (r<SEEDR?L.s:L.s.slice(0,-1)).forEach(s=>{ fill(s,r); a.push(s.n); });
-    }
-    saveDone(); DB.set(KEY,JSON.stringify(ST));
-  }
-  history.replaceState(null,'',location.pathname+location.search);
-}
 applyMode();
 if(ST.lv===RV) startReview();
 build();
@@ -10618,6 +10587,18 @@ on('bSyncPw', async function(){
     say('재설정 메일을 보냈습니다');
   }catch(e){ say(msg(e)); }
 });
+
+/* 전체 초기화. 서버에 둔 사본도 함께 지운다.
+   안 지우면 다음에 맞출 때 지운 진도가 그대로 되살아난다.
+   기기마다 사본이 있으므로 쓰는 기기 모두에서 초기화해야 깨끗해진다 */
+window.syncWipe = async function(){
+  clearTimeout(timer);
+  if(!acct) return;
+  try{
+    await fetch(DOC(acct.uid), {method:'DELETE',
+                                headers:{Authorization:'Bearer '+(await token())}});
+  }catch(e){}
+};
 
 /* ── 앱에 얹기 ─────────────────────────── */
 
