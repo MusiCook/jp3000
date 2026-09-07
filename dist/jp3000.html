@@ -10309,6 +10309,13 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   navigator.serviceWorker.addEventListener('message',e=>{
     if(e.data&&e.data.type==='updated') showUpdate();
   });
+  /* 채비를 마친 뒤 물어본다. 뒤에서 받는 일이 이 페이지가 뜨는 것보다
+     빨리 끝나면 알림이 허공에 흩어져, 묻지 않으면 놓친다 */
+  const ask=()=>{ const c=navigator.serviceWorker.controller;
+                  if(c) c.postMessage({type:'check'}); };
+  navigator.serviceWorker.ready.then(()=>{ ask(); setTimeout(ask,3000); });
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='visible') ask(); });
 }
 function showUpdate(){
   if(document.getElementById('upd')) return;

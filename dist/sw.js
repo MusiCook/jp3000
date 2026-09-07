@@ -68,7 +68,13 @@ self.addEventListener('fetch', e => {
   );
 });
 
+/* 새 내용을 받았다는 사실을 기억해 둔다.
+   페이지가 알림 받을 채비를 마치기 전에 알리면 아무도 못 듣고 사라진다.
+   그래서 알리기도 하고, 표시도 남겨 두었다가 물어보면 다시 알려 준다 */
+let dirty = false;
+
 function notify() {
+  dirty = true;
   self.clients.matchAll({ type: 'window' }).then(cs => {
     cs.forEach(c => c.postMessage({ type: 'updated' }));
   });
@@ -76,5 +82,10 @@ function notify() {
 
 /* 앱에서 즉시 갱신을 요청할 때 */
 self.addEventListener('message', e => {
-  if (e.data && e.data.type === 'skipWaiting') self.skipWaiting();
+  if (!e.data) return;
+  if (e.data.type === 'skipWaiting') self.skipWaiting();
+  /* 페이지가 열리며 「받아 둔 게 있나요」 하고 묻는다 */
+  if (e.data.type === 'check' && dirty && e.source) {
+    e.source.postMessage({ type: 'updated' });
+  }
 });
