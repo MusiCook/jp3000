@@ -35,6 +35,7 @@ tools/
 
 dist/               배포용. Pages가 이 폴더를 그대로 내보낸다
   jp3000.html         합본 (이것만 열면 동작)
+  index.html          jp3000.html 로 넘겨주는 짧은 주소용
   manifest.webmanifest
   sw.js               오프라인 캐시
   icon-*.png
@@ -93,8 +94,11 @@ git push
 1~2분 뒤 반영된다.
 
 ```
-https://musicook.github.io/jp3000/dist/jp3000.html
+https://musicook.github.io/jp3000/
 ```
+
+저장소 루트와 `dist` 의 `index.html` 이 `jp3000.html` 로 넘겨준다.
+직접 주소는 `https://musicook.github.io/jp3000/dist/jp3000.html`.
 
 - 서비스 워커는 HTTPS에서만 동작한다
 - 파일을 새로 올리면 앱이 자동으로 받아두고 「새 내용이 있습니다」를 띄운다

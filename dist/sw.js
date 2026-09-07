@@ -5,9 +5,10 @@
    앱에서 "새 내용이 있습니다"를 알린다.
    ============================================================ */
 
-const VER   = 'jp3000-v1';
+const VER   = 'jp3000-v2';
 const SHELL = [
   './',
+  './index.html',
   './jp3000.html',
   './manifest.webmanifest',
   './icon-192.png',
@@ -20,7 +21,8 @@ const SHELL = [
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(VER)
-      .then(c => c.addAll(SHELL).catch(() => {}))   /* 하나 실패해도 설치는 계속 */
+      /* 하나씩 받는다. addAll 은 하나만 실패해도 전부 저장하지 않는다 */
+      .then(c => Promise.all(SHELL.map(u => c.add(u).catch(() => {}))))
       .then(() => self.skipWaiting())
   );
 });

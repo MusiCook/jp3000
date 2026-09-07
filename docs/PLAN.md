@@ -373,10 +373,11 @@ ESC     팝업 닫기
 
 ## 9. 배포
 
-`dist` 폴더의 파일 7개를 같은 위치에 올린다.
+`dist` 폴더의 파일 8개를 같은 위치에 올린다.
 
 ```
 jp3000.html
+index.html
 manifest.webmanifest
 sw.js
 icon-192.png  icon-512.png  icon-maskable-512.png  apple-touch-icon.png
@@ -392,8 +393,10 @@ git push
 ```
 
 ```
-https://musicook.github.io/jp3000/dist/jp3000.html
+https://musicook.github.io/jp3000/
 ```
+
+루트와 `dist` 의 `index.html` 이 `jp3000.html` 로 넘겨준다.
 
 - **서비스 워커는 HTTPS에서만 동작한다.** GitHub Pages면 된다
 - **`sw.js`의 캐시 이름을 올리지 않으면** 브라우저가 옛 파일을 계속 쓴다. 배포 전 확인
