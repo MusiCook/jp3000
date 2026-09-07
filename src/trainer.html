@@ -1,0 +1,2405 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#1E3932">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="일본어3000">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>일본어 3000</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  /* 스타벅스 팔레트 — 하우스 그린과 크림, 골드 한 점 */
+  --paper:#F6F2EC;      /* 종이봉투 크림 */
+  --card:#FFFFFF;       /* 카드·시트·단추처럼 위에 얹히는 면 */
+  --sub:#EFE9E0;        /* 카드 뒤에 깔리는 면. 목록 줄·단계 띠·왼쪽 기둥 */
+  --chip:#F1EDE6;       /* 닫기 단추 같은 작은 원형 바탕 */
+  --hover:#E5DDD2;      /* 손이 올라갔을 때 · 눌렀을 때 */
+  --band:#1E3932;       /* 하우스 그린. 앞치마 밴드 */
+  --green:#00704A;      /* 스타벅스 그린. 면을 칠하고 흰 글자를 얹는다 */
+  --acc:#00704A;        /* 글자와 테두리로 쓰는 초록.
+                           어두운 판에서는 이쪽만 밝아진다 */
+  --green-l:#D4E9E2;    /* 연한 그린. 가림 블록 */
+  --gold:#CBA258;       /* 리저브 골드. 북마크 */
+  --ink:#2B2B28;        /* 따뜻한 먹색 */
+  --ink2:#6F675E;
+  --ink3:#A79E93;       /* 가장 옅은 글자. 번호·주석·설명 */
+  --line:#E4DDD3;
+  --seal:#9E2A2B;       /* 면을 칠하는 벽돌색 */
+  --acc-r:#9E2A2B;      /* 글자로 쓰는 벽돌색 */
+  --moss:#00704A;
+  --solid:#2B2B28;      /* 먹색으로 꽉 채우는 자리. 토스트·고른 탭 */
+  --solid-ink:#FFFFFF;
+  --mark:#fff3c4;       /* 열어 본 단어 */
+  --ok-bg:#E7F3ED;      /* 오답노트 정답 보기 */
+  --ng-bg:#F7EAE8;      /* 오답노트 오답 보기 */
+  --ng-line:#D9B3AE;
+  --ng-msk:#f0cdc8;     /* 틀린 가림 자리 */
+  --bm-bg:#F5EADA;      /* 오른쪽으로 밀면 나오는 북마크 면 */
+  --bm-ink:#9A7736;
+  --done-line:#B9DCCD;  /* 「완료」 딱지 테두리 */
+  --c-n:#00704A;   /* 명사류 — 그린 */
+  --c-v:#9E2A2B;   /* 동사·형용사·서술 — 벽돌색 */
+  --c-p:#9C948A;   /* 조사 — 따뜻한 회색 */
+  --c-x:#2B2B28;   /* 그 밖 */
+  --jp:"Noto Sans JP","Hiragino Sans","Yu Gothic","Meiryo",sans-serif;
+  --ko:"Apple SD Gothic Neo","Pretendard","Noto Sans KR","Malgun Gothic",sans-serif;
+  --sr:"Iowan Old Style",Georgia,serif;
+}
+/* 어두운 판.
+   글꼴·간격은 그대로 두고 색만 갈아 끼운다.
+   초록 띠(--band)는 종이보다 밝게 남겨 머리띠와 팝업이 떠 보이게 한다.
+   칠하는 초록(--green)과 글자 초록(--acc)이 여기서 갈라진다 */
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#101512;
+  --card:#1A211D;
+  --sub:#151B18;
+  --chip:#242C28;
+  --hover:#242C28;
+  --band:#1E332B;
+  --green:#00875E;
+  --acc:#5BC49A;
+  --green-l:#2A4A3E;
+  --gold:#D2AC69;
+  --ink:#E6E1D8;
+  --ink2:#A9A197;
+  --ink3:#7E776E;
+  --line:#2A322D;
+  --seal:#A83B38;
+  --acc-r:#E9938C;
+  --moss:#5BC49A;
+  --solid:#E6E1D8;
+  --solid-ink:#151B18;
+  --mark:#4E4114;
+  --ok-bg:#183328;
+  --ng-bg:#3A211F;
+  --ng-line:#6B3A36;
+  --ng-msk:#572B27;
+  --bm-bg:#382E1C;
+  --bm-ink:#D7B87A;
+  --done-line:#2E5546;
+  --c-n:#5BC49A;
+  --c-v:#E9938C;
+  --c-p:#9A968D;
+  --c-x:#E6E1D8;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{background:var(--paper);color:var(--ink);font-family:var(--ko);font-size:16px;line-height:1.5;overscroll-behavior-y:none;}
+.wrap{max-width:600px;margin:0 auto;background:var(--paper);min-height:100vh;}
+
+.topbar{position:sticky;top:0;z-index:40;box-shadow:0 6px 14px -8px rgba(30,57,50,.18);}
+header{background:var(--band);color:#fff;padding:calc(12px + env(safe-area-inset-top)) 16px 10px;}
+.htop{display:flex;align-items:baseline;gap:10px;}
+.stage{font-family:var(--sr);font-size:12px;letter-spacing:.22em;color:#9DBDB0;}
+.htitle{font-size:16.5px;font-weight:600;margin-left:auto;color:#e8eef4;}
+.gauge{margin-top:9px;height:3px;background:#33564A;border-radius:2px;overflow:hidden;}
+.gauge i{display:block;height:100%;width:0;background:var(--gold);transition:width .3s;}
+.hmeta{display:flex;align-items:center;gap:8px;margin-top:7px;font-size:12px;color:#B7D0C5;}
+.hmeta b{color:#fff;}
+.hmeta .rnd{color:var(--gold);}
+/* 보기 모드 단추. 회차가 가림을 정하므로 지금은 감춰 둔다.
+   되살리려면 이 줄만 지우면 「모두 보기」가 가림 끄기가 된다 */
+#bEye{display:none;}
+.sp{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
+.tgl{border:1px solid #3D5A4F;background:none;color:#B7D0C5;font-family:inherit;font-size:11px;padding:4px 9px;border-radius:999px;cursor:pointer;}
+.tgl[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:#fff;}
+.ic{width:34px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;}
+.ic svg{width:18px;height:18px;}
+
+.rvbtn{position:relative;}
+.rvbtn .n{position:absolute;top:-4px;right:-4px;min-width:15px;height:15px;line-height:15px;
+  padding:0 3px;border-radius:999px;background:var(--seal);color:#fff;
+  font-family:var(--sr);font-size:10px;text-align:center;}
+.rvbtn .n:empty{display:none;}
+.eye.m-jp svg{color:#7FD1AE;} .eye.m-ko svg{color:#E9A6A0;} .eye.m-all svg{color:#B7D0C5;}
+.mpop{position:fixed;z-index:93;width:170px;background:var(--band);border-radius:10px;
+  padding:6px;box-shadow:0 12px 34px rgba(30,57,50,.30);display:none;}
+.mpop.on{display:block;}
+.mopt{display:flex;align-items:center;gap:9px;width:100%;text-align:left;
+  border:none;background:none;color:#EDE7DE;font-family:var(--ko);font-size:13.5px;
+  padding:9px 10px;border-radius:7px;cursor:pointer;}
+.mopt:hover,.mopt[aria-current="true"]{background:#2E5145;}
+.mopt i{width:9px;height:9px;border-radius:50%;display:inline-block;}
+.mopt .c-ko{background:#C2635C;} .mopt .c-jp{background:#00704A;} .mopt .c-all{background:#9C948A;}
+
+.lvrow{display:flex;align-items:flex-start;background:var(--sub);border-bottom:1px solid var(--line);padding-left:12px;}
+.lvfix{flex:0 0 auto;width:30px;min-width:30px;height:30px;border-radius:50%;border:1px solid var(--line);
+  background:var(--card);color:var(--ink2);font-family:var(--jp);font-size:14px;cursor:pointer;
+  margin:16px 8px 0 0;display:inline-flex;align-items:center;justify-content:center;}
+.lvfix[aria-current="true"]{background:var(--green);color:#fff;border-color:var(--green);}
+@media (max-width:420px){.lvfix{width:28px;min-width:28px;height:28px;font-size:13px;margin:15px 6px 0 0;}
+  .lvrow{padding-left:10px;}}
+.levels{flex:1 1 auto;min-width:0;display:flex;gap:5px;overflow-x:auto;padding:16px 14px 8px 4px;
+  scrollbar-width:none;scroll-behavior:smooth;cursor:grab;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 20px),transparent 100%);
+          mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 20px),transparent 100%);}
+.levels.grab{cursor:grabbing;scroll-behavior:auto;}
+.levels::-webkit-scrollbar{display:none;}
+.lv{flex:0 0 auto;min-width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--ink2);font-family:var(--sr);font-size:13px;cursor:pointer;position:relative;}
+.lv[aria-current="true"]{background:var(--green);color:#fff;border-color:var(--green);}
+@media (max-width:420px){.lv{min-width:28px;height:28px;font-size:12px;}.levels{padding:15px 12px 6px 4px;}
+  .crown i{width:8px;height:8px;margin-left:-4px;}
+  .crown i:nth-child(1){transform:translateX(-7px) rotate(-24deg);}
+  .crown i:nth-child(3){transform:translateX(7px) rotate(24deg);}}
+.lv:disabled{opacity:.32;cursor:default;}
+.lv.part::after{content:"";position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--gold);}
+/* 단계 동그라미 위에 얹는 별 세 개. 회차를 마칠 때마다 왼쪽부터 찬다.
+   가로 내비는 overflow-x 때문에 위로 삐져나온 부분이 잘린다.
+   그래서 .levels 의 위쪽 여백 안쪽에 자리를 잡아 준다 */
+.crown{position:absolute;left:0;right:0;top:-8px;height:11px;pointer-events:none;}
+.crown i{position:absolute;left:50%;width:9px;height:9px;margin-left:-4.5px;}
+.crown i:nth-child(1){transform:translateX(-8px) rotate(-24deg);top:3px;}
+.crown i:nth-child(2){transform:translateX(0)     rotate(0deg);  top:0;}
+.crown i:nth-child(3){transform:translateX(8px)  rotate(24deg); top:3px;}
+.crown svg{width:100%;height:100%;display:block;
+  fill:none;stroke:var(--ink3);stroke-width:2.6;stroke-linejoin:round;}
+/* 채우는 순서는 왼쪽 → 오른쪽 → 가운데.
+   가운데가 가장 높이 솟아 있어서 마지막에 채워야 왕관이 완성돼 보인다 */
+.crown[data-s="1"] i:nth-child(1) svg,
+.crown[data-s="2"] i:nth-child(1) svg,
+.crown[data-s="2"] i:nth-child(3) svg,
+.crown[data-s="3"] svg{fill:var(--gold);stroke:var(--gold);}
+/* 날아오는 별이 박힐 때까지는 그 자리를 비워 둔다 */
+.crown[data-hold="1"] i:nth-child(1) svg,
+.crown[data-hold="2"] i:nth-child(2) svg,
+.crown[data-hold="3"] i:nth-child(3) svg{fill:none;stroke:var(--ink3);}
+@keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.9)}100%{transform:scale(1)}}
+.crown i.bump svg{animation:bump .45s ease-out;}
+
+.list{padding-bottom:40px;}
+.row{position:relative;overflow:hidden;scroll-margin-top:130px;border-bottom:1px solid var(--line);background:var(--sub);}
+.act{position:absolute;top:0;bottom:0;width:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10px;letter-spacing:.06em;}
+.act svg{width:20px;height:20px;}
+.act.l{left:0;background:var(--bm-bg);color:var(--bm-ink);}
+.card{position:relative;z-index:2;background:var(--card);padding:13px 16px 11px;touch-action:pan-y;transition:transform .22s cubic-bezier(.2,.8,.2,1),opacity .2s;}
+.card.drag{transition:none;}
+/* 카드 자체를 반투명하게 하면 아래 깔린 스와이프 아이콘이 비쳐 보인다.
+   배경은 불투명하게 두고 글자만 흐리게 한다 */
+.row.done .card{opacity:1;}
+/* 「더 배워보기」 버튼은 흐리게 하지 않는다. 다 푼 문장에서만 열리는 버튼이라
+   여기서 같이 흐려지면 오히려 눌러야 할 것이 안 보인다 */
+.row.done .idx,.row.done .jp,.row.done .tbody{opacity:.42;}
+/* 다 푼 문장에는 오른쪽 위에 동그란 체크가 붙는다 */
+.dchk{position:absolute;right:13px;top:10px;width:21px;height:21px;border-radius:999px;
+  background:var(--green);color:#fff;display:none;align-items:center;justify-content:center;}
+.dchk svg{width:11px;height:11px;}
+.row.done .dchk{display:flex;}
+
+.idx{display:flex;align-items:center;gap:6px;font-family:var(--sr);font-size:11px;color:var(--ink3);letter-spacing:.1em;margin-bottom:2px;}
+.idx .spk{border:none;background:none;padding:0 2px;margin:0;color:var(--ink3);cursor:pointer;display:flex;line-height:1;}
+.idx .spk:hover,.idx .spk.on{color:var(--ink);}
+.idx .spk svg{width:14px;height:14px;}
+body.notts .idx .spk{display:none;}
+.idx .bm{color:var(--gold);display:flex;}
+.idx .bm[hidden]{display:none;}
+.idx svg{width:11px;height:11px;}
+
+.jp{font-family:var(--jp);font-size:25px;line-height:1.95;word-break:keep-all;font-feature-settings:"palt" 0;}
+.jp rt{font-size:.42em;font-weight:500;opacity:.8;letter-spacing:.02em;}
+.w.has{border-bottom:2px solid currentColor;cursor:pointer;}
+.w.note{border-bottom:1px dotted currentColor;cursor:pointer;}
+.w.open{background:var(--mark);}
+.n{color:var(--c-n);} .v,.a,.c{color:var(--c-v);} .p{color:var(--c-p);} .x,.d{color:var(--c-x);}
+/* 흑백 모드. 품사 색을 만드는 변수만 글자색으로 되돌린다.
+   span 을 통째로 덮어쓰면 그 규칙이 가린 자리 안쪽 span 까지 잡아
+   (.msk * 보다 셈이 세다) 블라인드 밑의 답이 비쳐 보인다 */
+body.mono .jp,body.mono .ko{--c-n:var(--ink);--c-v:var(--ink);--c-p:var(--ink);--c-x:var(--ink);}
+body.mono .rvt{color:var(--ink)!important;border-bottom-color:var(--ink);}
+
+/* 퀴즈 · 가림 통합 */
+.qw{display:inline-block;}
+.msk{display:inline-block;min-width:1.5em;line-height:1;vertical-align:baseline;
+  padding:.04em .09em;margin:-.04em .06em;border-radius:3px;
+  background:var(--green-l);color:transparent!important;cursor:pointer;}
+.msk rt{display:none;}
+.ch{display:inline-block;}
+.msk *{color:transparent!important;background:none!important;border:none!important;}
+.msk .w{border-bottom:none!important;}
+@keyframes blinkm{0%,100%{opacity:1}50%{opacity:.45}}
+.blink{animation:blinkm 1s ease-in-out infinite;}
+.ko .msk{padding:.15em .1em;margin:-.15em .07em;}
+.msk.ng{background:var(--ng-msk);}
+
+/* 접었다 펴는 것이 아니라 팝업을 여는 단추다. 그렇게 보이게 둔다 */
+.tbtn2{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:6px 12px;
+  border:1px solid var(--line);background:var(--card);color:var(--ink2);border-radius:999px;
+  font-family:var(--ko);font-size:12px;cursor:pointer;transition:border-color .15s,color .15s;}
+.tbtn2:hover{border-color:var(--acc);color:var(--acc);}
+.tbtn2[hidden]{display:none;}
+.tbtn2 svg{width:12px;height:12px;}
+body.qm .trans{margin-top:6px;}
+.qpop{position:fixed;z-index:92;width:min(300px,calc(100vw - 24px));background:var(--band);
+  color:#EDE7DE;border-radius:10px;padding:13px 13px 11px;box-shadow:0 12px 34px rgba(30,57,50,.30);display:none;}
+.qpop.on{display:block;}
+.qpop .qq{font-size:11px;color:#9DBDB0;letter-spacing:.08em;margin-bottom:9px;}
+.qpop .qopt{display:block;width:100%;text-align:left;margin-bottom:6px;padding:10px 12px;
+  border:1px solid #35564A;background:#26443A;color:#EDE7DE;border-radius:7px;cursor:pointer;}
+.qpop .qopt.jp{font-family:var(--jp);font-size:18px;}
+.qpop .qopt.ko{font-family:var(--ko);font-size:15px;}
+.qpop .qopt rt{font-size:.4em;opacity:.7;}
+.qpop .qopt.ok{background:var(--green);border-color:#0A8A5F;}
+.qpop .qopt.ng{background:#6B2422;border-color:#8A3330;}
+.qpop .qmsg{font-family:var(--ko);font-size:12px;color:#9DBDB0;margin-top:6px;min-height:1.2em;}
+@media (max-width:560px){
+  .qpop.on{left:10px!important;right:10px!important;width:auto!important;
+    top:auto!important;bottom:calc(10px + env(safe-area-inset-bottom));}
+}
+.trans{margin-top:7px;}
+
+.tbody{display:block;margin-top:8px;padding-left:11px;border-left:2px solid var(--line);}
+body.m-jp .tbody{border-left-color:var(--line);}
+.ko{font-size:16.5px;line-height:1.75;white-space:pre-wrap;}
+.tip{margin-top:6px;font-size:12.5px;color:var(--ink2);line-height:1.6;}
+
+.pop{position:fixed;z-index:90;width:min(320px,calc(100vw - 24px));background:var(--band);color:#EDE7DE;border-radius:9px;padding:13px 14px;box-shadow:0 12px 34px rgba(30,57,50,.30);display:none;max-height:58vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
+@media (max-width:560px){
+  .pop.on{left:10px!important;right:10px!important;width:auto!important;
+    top:auto!important;bottom:calc(10px + env(safe-area-inset-bottom));
+    max-height:66vh;padding:15px 16px;}
+  .pop.on::before{content:"";display:block;width:34px;height:3px;border-radius:2px;
+    background:#3d4e60;margin:-4px auto 11px;}
+  .backdrop.on{background:rgba(16,26,38,.3);}
+}
+.pop.on{display:block;}
+.pop h4{margin:0 0 4px;font-size:17px;font-family:var(--jp);font-weight:600;color:#fff;}
+.pop .mean{font-size:12px;color:#9DBDB0;margin-bottom:9px;}
+.pop .grp{border-top:1px solid #2b3a4a;padding-top:8px;margin-top:8px;}
+.pop .grp:first-of-type{border-top:none;padding-top:0;margin-top:0;}
+.pop .gl{font-size:10px;color:#7f93a8;letter-spacing:.1em;margin-bottom:5px;}
+.pop dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:13px;}
+.pop dt{color:#9DBDB0;white-space:nowrap;font-size:12px;padding-top:2px;}
+.pop dd{margin:0;font-family:var(--jp);font-size:14px;line-height:1.5;}
+.pop dd em{font-style:normal;font-family:var(--ko);color:#B7D0C5;font-size:11.5px;margin-left:6px;}
+.pop i{font-style:normal;color:#93a9bf;font-size:.82em;margin-left:1px;letter-spacing:.01em;}
+.backdrop{position:fixed;inset:0;z-index:85;display:none;}
+.backdrop.on{display:block;}
+
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:95;background:var(--card);border-radius:14px 14px 0 0;
+  box-shadow:0 -8px 30px rgba(30,57,50,.18);transform:translateY(105%);transition:transform .25s;
+  max-width:600px;margin:0 auto;max-height:86vh;display:flex;flex-direction:column;}
+.shead{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px 10px 18px;border-bottom:1px solid var(--line);}
+.shead .ttl{font-size:14.5px;color:var(--ink);}
+.shead .x{width:32px;height:32px;border:none;background:var(--chip);border-radius:999px;
+  color:var(--ink2);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;}
+.shead .x svg{width:14px;height:14px;}
+.sbody{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:16px 18px calc(20px + env(safe-area-inset-bottom));}
+/* 시트를 아래로 끌어내려 닫는다 */
+.grip{flex:0 0 auto;padding:8px 0 2px;display:flex;justify-content:center;cursor:grab;touch-action:none;}
+.grip i{display:block;width:38px;height:4px;border-radius:999px;background:var(--line);}
+.sheet.on{transform:none;}
+.sheet h3{margin:0 0 4px;font-size:15px;}
+.sheet p{margin:0 0 12px;font-size:12.5px;color:var(--ink2);line-height:1.6;}
+.sheet textarea{width:100%;height:88px;border:1px solid var(--line);border-radius:7px;padding:9px;font-size:11px;background:var(--card);color:var(--ink);font-family:ui-monospace,Menlo,monospace;resize:none;}
+.brow{display:flex;gap:8px;margin-top:10px;}
+.btn{flex:1;border:1px solid var(--acc);background:var(--card);color:var(--acc);font-family:inherit;font-size:13px;padding:10px;border-radius:999px;cursor:pointer;}
+.btn.dark{background:var(--green);color:#fff;border-color:var(--green);}
+.btn[aria-pressed="true"]{background:var(--solid);color:var(--solid-ink);border-color:var(--solid);}
+.sheet{max-height:88vh;overflow-y:auto;}
+
+/* 가나 표 */
+.kana{padding:12px 12px 30px;}
+.ktabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+.ktab{flex:1;min-width:70px;border:1px solid var(--line);background:var(--card);color:var(--ink2);
+  font-family:inherit;font-size:12.5px;padding:8px 4px;border-radius:7px;cursor:pointer;}
+.ktab[aria-pressed="true"]{background:var(--solid);color:var(--solid-ink);border-color:var(--solid);}
+.krow{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:6px;}
+.kcell{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:9px 2px 7px;
+  text-align:center;cursor:pointer;min-height:64px;}
+.kcell:active{background:var(--hover);}
+.kcell.empty{background:transparent;border:none;cursor:default;}
+.kcell .hi{font-family:var(--jp);font-size:21px;line-height:1.15;color:var(--ink);}
+.kcell .ka{font-family:var(--jp);font-size:21px;line-height:1.15;color:var(--c-n);font-weight:500;}
+.kcell .ro{font-family:var(--sr);font-size:10px;color:var(--ink3);letter-spacing:.06em;margin-top:2px;}
+body.hidekata .kcell .ka{color:transparent;background:var(--green-l);border-radius:3px;display:inline-block;min-width:1.3em;}
+body.hidehira .kcell .hi{color:transparent;background:var(--green-l);border-radius:3px;display:inline-block;min-width:1.3em;}
+.kcell.rv .ka,.kcell.rv .hi{color:inherit!important;background:none!important;}
+.kcell.rv .ka{color:var(--c-n)!important;}
+.knote{margin:16px 2px 0;font-size:12px;color:var(--ink2);line-height:1.85;}
+.knote b{color:var(--ink);}
+.knote .pair{font-family:var(--jp);font-size:15px;color:var(--c-n);}
+/* 통계 차트 */
+.stbar{display:flex;height:12px;border-radius:999px;overflow:hidden;background:var(--line);margin:10px 0 6px;}
+.stbar i{display:block;height:100%;}
+.stbar .o{background:var(--green);} .stbar .x{background:var(--seal);}
+.stnum{display:flex;gap:14px;font-size:12px;color:var(--ink2);margin-bottom:16px;}
+.stnum b{font-family:var(--sr);font-size:19px;font-weight:400;display:block;color:var(--ink);line-height:1.2;}
+.stnum .o b{color:var(--acc);} .stnum .x b{color:var(--acc-r);}
+.sth{font-size:11.5px;color:var(--ink3);letter-spacing:.02em;margin:16px 0 7px;}
+.gr{display:grid;grid-template-columns:62px 1fr 34px;gap:8px;align-items:center;margin-bottom:5px;font-size:12px;}
+.gr .nm{color:var(--ink2);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.gr .tr{height:9px;background:var(--line);border-radius:999px;overflow:hidden;}
+.gr .tr i{display:block;height:100%;background:var(--green);}
+.gr .tr i.low{background:var(--seal);} .gr .tr i.mid{background:var(--gold);}
+.gr .pc{color:var(--ink2);font-family:var(--sr);font-size:12px;text-align:right;}
+.rvlink{display:inline-flex;align-items:center;gap:6px;margin-top:14px;
+  border:none;background:none;padding:0;cursor:pointer;
+  font-family:var(--ko);font-size:12.5px;color:var(--acc);}
+.rvlink b{font-family:var(--sr);font-size:13px;font-weight:400;}
+.rvlink svg{width:9px;height:9px;}
+.vnote{font-size:11.5px;color:var(--ink3);line-height:1.7;margin:8px 0 18px;}
+.sndrow{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:4px;}
+.sndbtn{flex:1;min-width:64px;border:1px solid var(--line);background:var(--card);color:var(--ink2);
+  font-family:inherit;font-size:13px;padding:11px 6px;border-radius:999px;cursor:pointer;}
+.sndbtn[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:#fff;}
+/* 오답노트 카드 */
+.rv{padding:18px 16px 40px;}
+.rvtop{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.rvbar{flex:1;height:5px;background:var(--line);border-radius:999px;overflow:hidden;}
+.rvbar i{display:block;height:100%;background:var(--green);transition:width .3s;}
+.rvnum{font-family:var(--sr);font-size:12px;color:var(--ink2);}
+.rvcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 18px;
+  box-shadow:0 2px 10px -6px rgba(30,57,50,.2);}
+.rvq{font-size:11.5px;color:var(--ink3);letter-spacing:.04em;margin-bottom:12px;}
+.rvt{color:var(--acc);border-bottom:2px solid var(--acc);padding-bottom:1px;}
+.rvjp{font-family:var(--jp);font-size:23px;line-height:2.2;color:var(--ink);word-break:keep-all;}
+.rvko{font-family:var(--ko);font-size:13.5px;color:var(--ink2);margin-top:10px;line-height:1.8;}
+.rvfrom{font-family:var(--sr);font-size:11px;color:var(--ink3);margin-top:14px;letter-spacing:.06em;}
+.rvopts{margin-top:20px;}
+.rvopt{display:block;width:100%;text-align:left;margin-bottom:8px;padding:14px 16px;
+  border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;cursor:pointer;}
+.rvopt.jp{font-family:var(--jp);font-size:19px;}
+.rvopt.ko{font-family:var(--ko);font-size:15px;}
+.rvopt rt{font-size:.4em;opacity:.65;}
+.rvopt.ok{background:var(--ok-bg);border-color:var(--acc);color:var(--acc);}
+.rvopt.ng{background:var(--ng-bg);border-color:var(--ng-line);color:var(--acc-r);}
+.rvend{padding:44px 22px;text-align:center;}
+.rvend .big{font-family:var(--sr);font-size:34px;color:var(--acc);line-height:1.2;}
+.rvend p{font-size:13.5px;color:var(--ink2);line-height:2;margin:12px 0 22px;}
+/* ── 큰 화면 대응 ──────────────────────────
+   폰 : 지금 그대로
+   패드: 글자와 여백을 키운다
+   PC  : 왼쪽에 단계 목록을 세우고 본문은 가운데로 */
+/* 마우스를 쓰는 기기: 스와이프 대신 버튼 */
+@media (hover:hover) and (pointer:fine){
+  .rowbtn{position:absolute;right:12px;bottom:10px;display:flex;gap:6px;opacity:0;transition:opacity .15s;}
+  .row:hover .rowbtn{opacity:1;}
+  .rowbtn button{width:28px;height:28px;border:1px solid var(--line);background:var(--card);border-radius:999px;
+    color:var(--ink2);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;}
+  .rowbtn button svg{width:13px;height:13px;}
+  .rowbtn .bmk[aria-pressed="true"]{color:var(--gold);border-color:var(--gold);}
+}
+@media not all and (hover:hover){ .rowbtn{display:none;} }
+@media (min-width:700px){
+  .wrap{max-width:720px;}
+  .jp{font-size:26px;line-height:2.3;}
+  .ko{font-size:15px;}
+  .card{padding:20px 22px 18px;}
+  .lv{min-width:34px;height:34px;font-size:14px;}
+  .lvfix{width:34px;min-width:34px;height:34px;font-size:16px;}
+  .crown i{width:10px;height:10px;margin-left:-5px;}
+  .crown i:nth-child(1){transform:translateX(-9px) rotate(-24deg);}
+  .crown i:nth-child(3){transform:translateX(9px) rotate(24deg);}
+  .rvjp{font-size:26px;}
+  .rvopt{padding:16px 18px;}
+  .rvopt.jp{font-size:21px;}
+  .rvopt.ko{font-size:16px;}
+  .kcell{min-height:76px;padding:12px 2px 9px;}
+  .kcell .hi,.kcell .ka{font-size:24px;}
+  .sheet{border-radius:16px;bottom:auto;top:50%;left:50%;right:auto;
+    transform:translate(-50%,-50%) scale(.96);opacity:0;pointer-events:none;
+    width:min(560px,92vw);max-height:80vh;transition:opacity .2s,transform .2s;}
+  .sheet.on{transform:translate(-50%,-50%);opacity:1;pointer-events:auto;}
+  .grip{display:none;}
+  .qpop,.pop{width:min(360px,42vw);}
+}
+@media (min-width:1080px){
+  .wrap{max-width:none;display:grid;grid-template-columns:232px 1fr;
+    grid-template-areas:"side head" "side main";align-items:start;}
+  .topbar{grid-area:head;position:sticky;top:0;}
+  .list,.legend,.foot{grid-area:main;}
+  .list{max-width:760px;margin:0 auto;width:100%;}
+  .legend,.foot{max-width:760px;margin-left:auto;margin-right:auto;}
+  /* 단계 목록을 왼쪽에 세로로 */
+  .side{grid-area:side;position:sticky;top:0;height:100vh;overflow-y:auto;scrollbar-width:none;
+    background:var(--sub);border-right:1px solid var(--line);padding:14px 10px 30px;}
+  .side::-webkit-scrollbar{display:none;}
+  .side h4{margin:0 0 8px 8px;font-family:var(--sr);font-size:11px;letter-spacing:.16em;color:var(--ink3);}
+  /* 번호는 왼쪽에 두고, 오른쪽 칸에 별 → 제목 순으로 쌓는다.
+     별 묶음에는 sidecrown 을 쓴다. side 로 두면 사이드바 자신의 .side 규칙
+     (검은 배경·세로 스크롤)까지 함께 먹어서 별 뒤에 검은 상자가 생긴다 */
+  .sideb{display:grid;grid-template-columns:auto minmax(0,1fr);
+    grid-template-areas:"no crown" "no tt";column-gap:9px;row-gap:0;
+    align-items:center;width:100%;text-align:left;
+    border:none;background:none;padding:6px 9px 7px;border-radius:8px;cursor:pointer;
+    font-family:var(--ko);font-size:12.5px;color:var(--ink2);}
+  .sideb:hover{background:var(--hover);}
+  .sideb[aria-current="true"]{background:var(--green);color:#fff;}
+  .sideb .no{grid-area:no;width:22px;font-family:var(--sr);font-size:11.5px;text-align:right;opacity:.7;}
+  .sideb .tt{grid-area:tt;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .crown.sidecrown{grid-area:crown;position:static;display:flex;gap:5px;
+    height:18px;margin:0;padding:0;background:none;overflow:visible;
+    justify-content:flex-start;}
+  .crown.sidecrown i{position:static;width:18px;height:18px;margin:0;transform:none!important;top:auto;}
+  /* 한 줄로 늘어놓을 때는 채우는 차례대로 보이게 자리를 바꾼다 */
+  .crown.sidecrown i:nth-child(2){order:3;} .crown.sidecrown i:nth-child(3){order:2;}
+  .sideb:disabled{opacity:.34;cursor:default;}
+  .lvrow{display:none;}          /* 가로 내비는 감춘다 */
+}
+@media (max-width:1079px){ .side{display:none;} }
+/* 더 알아보기 팝업 */
+.npop{position:fixed;z-index:94;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:min(520px,calc(100vw - 28px));
+  background:var(--card);border-radius:14px;padding:0;display:none;overflow:hidden;
+  box-shadow:0 18px 46px rgba(30,57,50,.32);max-height:80vh;flex-direction:column;}
+.npop.on{display:flex;}
+.nhead{flex:0 0 auto;padding:16px 18px 13px;border-bottom:1px solid var(--line);}
+.nhead .njp{font-family:var(--jp);font-size:20px;line-height:2;color:var(--ink);}
+.nhead .nko{font-family:var(--ko);font-size:13px;color:var(--ink2);margin-top:4px;}
+.nhead .nx{position:absolute;top:12px;right:12px;width:30px;height:30px;border:none;
+  background:var(--chip);border-radius:999px;color:var(--ink2);cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;}
+.nhead .nx svg{width:13px;height:13px;}
+.nbody{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px 18px 18px;}
+.ngrp{border-top:1px solid var(--line);padding-top:11px;margin-top:11px;}
+.ngrp:first-child{border-top:none;padding-top:14px;margin-top:0;}
+.ngl{font-size:11px;color:var(--ink3);letter-spacing:.06em;margin-bottom:7px;}
+.npop dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:5px 11px;font-size:13.5px;align-items:baseline;}
+.npop dt{color:var(--ink2);white-space:nowrap;font-size:12px;padding-top:2px;}
+.npop dd{margin:0;grid-column:1/-1;font-family:var(--jp);color:var(--ink);line-height:1.85;}
+.npop dt+dd{grid-column:auto;}
+.npop dd em{font-style:normal;font-family:var(--ko);color:var(--ink3);font-size:11.5px;margin-left:7px;}
+.npop .plain{font-family:var(--ko);font-size:13.5px;color:var(--ink);line-height:1.9;}
+.nword{font-family:var(--jp);font-size:15px;color:var(--acc);margin-bottom:3px;}
+.nword em{font-style:normal;font-family:var(--ko);font-size:11.5px;color:var(--ink3);margin-left:7px;}
+/* 확인 팝업 */
+.cpop{position:fixed;z-index:98;left:50%;top:50%;transform:translate(-50%,-50%) scale(.96);
+  width:min(320px,calc(100vw - 40px));background:var(--card);border-radius:14px;padding:22px 20px 18px;
+  box-shadow:0 16px 44px rgba(30,57,50,.3);display:none;opacity:0;transition:opacity .18s,transform .18s;}
+.cpop.on{display:block;opacity:1;transform:translate(-50%,-50%);}
+.cpop h4{margin:0 0 8px;font-size:15px;color:var(--ink);}
+.cpop p{margin:0 0 18px;font-size:13px;color:var(--ink2);line-height:1.85;}
+.cpop .brow{display:flex;gap:8px;}
+.cpop .danger{background:var(--seal);border-color:var(--seal);color:#fff;}
+/* ── 회차를 마쳤을 때 ─────────────────────── */
+.cel{position:fixed;z-index:98;left:50%;top:50%;transform:translate(-50%,-50%) scale(.9);
+  width:min(320px,calc(100vw - 40px));background:var(--card);border-radius:16px;
+  padding:26px 22px 20px;text-align:center;display:none;opacity:0;
+  box-shadow:0 18px 46px rgba(30,57,50,.32);
+  transition:opacity .22s,transform .3s cubic-bezier(.2,1.3,.4,1);}
+.cel.on{display:block;opacity:1;transform:translate(-50%,-50%) scale(1);}
+.cel .big{width:58px;height:58px;margin:0 auto 14px;color:var(--gold);}
+.cel .big svg,.cel .row3 svg{width:100%;height:100%;display:block;stroke-linejoin:round;}
+.cel .big svg{fill:currentColor;stroke:currentColor;stroke-width:2;}
+@keyframes starpop{0%{transform:scale(.2) rotate(-30deg);opacity:0}
+  60%{transform:scale(1.18) rotate(8deg);opacity:1}100%{transform:scale(1) rotate(0)}}
+.cel.on .big{animation:starpop .55s cubic-bezier(.2,1.2,.4,1) both;}
+.cel .yay{margin:0 0 5px;font-size:13.5px;color:var(--gold);letter-spacing:.02em;}
+.cel h4{margin:0 0 12px;font-size:17px;color:var(--ink);}
+.cel .row3{display:flex;justify-content:center;gap:8px;margin:0 0 14px;}
+.cel .row3 i{width:18px;height:18px;display:block;}
+.cel .row3 svg{fill:none;stroke:var(--ink3);stroke-width:2.4;}
+.cel .row3 i.on svg{fill:var(--gold);stroke:var(--gold);}
+.cel p{margin:0 0 18px;font-size:13px;color:var(--ink2);line-height:1.8;}
+.cel p b{color:var(--ink);font-weight:600;}
+.cel .brow{display:flex;gap:8px;}
+/* 색종이. 손가락을 막지 않게 통과시킨다 */
+.fx{position:fixed;inset:0;z-index:99;pointer-events:none;display:none;}
+.fx.on{display:block;}
+/* 팝업에서 왕관으로 날아가는 별 */
+.flystar{position:fixed;z-index:99;pointer-events:none;color:var(--gold);
+  transition:transform .62s cubic-bezier(.35,0,.2,1);}
+.flystar svg{width:100%;height:100%;display:block;
+  fill:currentColor;stroke:currentColor;stroke-width:2;stroke-linejoin:round;}
+.updbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom));
+  z-index:97;border:none;background:var(--band);color:#EDE7DE;font-family:var(--ko);font-size:12.5px;
+  padding:11px 18px;border-radius:999px;box-shadow:0 8px 24px rgba(30,57,50,.3);cursor:pointer;}
+.pgnav{display:flex;align-items:center;gap:10px;padding:16px;background:var(--paper);}
+.pgbtn{flex:1;border:1px solid var(--acc);background:var(--card);color:var(--acc);
+  font-family:inherit;font-size:13px;padding:11px;border-radius:999px;cursor:pointer;}
+.pgbtn:disabled{border-color:var(--line);color:var(--ink3);cursor:default;}
+.pgnow{flex:0 0 auto;font-family:var(--sr);font-size:12px;color:var(--ink2);letter-spacing:.06em;}
+.legend{padding:14px 16px 6px;display:flex;flex-wrap:wrap;gap:7px 14px;font-size:11.5px;color:var(--ink2);}
+.legend span::before{content:"■";margin-right:4px;}
+.legend .lgu::before{content:none;}
+.legend .lgu{display:inline-flex;align-items:center;gap:6px;}
+.legend .lgu i{display:inline-block;width:16px;height:0;}
+.legend .lgu i.s{border-bottom:2px solid var(--ink2);}
+.legend .lgu i.d{border-bottom:1px dotted var(--ink2);}
+.foot{padding:0 16px 44px;font-size:11.5px;color:var(--ink3);line-height:1.7;}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);z-index:99;background:var(--solid);color:var(--solid-ink);font-size:12.5px;padding:9px 15px;border-radius:999px;opacity:0;transition:.24s;pointer-events:none;}
+.toast.on{opacity:1;transform:translate(-50%,0);}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;}}
+</style>
+</head>
+<body>
+<noscript>
+  <div style="margin:0;padding:22px 18px;background:#fdecea;color:#8a2018;font-family:sans-serif;font-size:14px;line-height:1.8;border-bottom:2px solid #f0b6ae">
+    <b style="font-size:15px">자바스크립트가 꺼져 있어 문장이 표시되지 않습니다.</b><br>
+    파일 앱·메신저의 미리보기 화면에서는 작동하지 않습니다.<br>
+    <b>사파리나 크롬 같은 브라우저로 열어 주세요.</b>
+  </div>
+</noscript>
+<div class="wrap">
+  <aside class="side" id="side"></aside>
+  <div class="topbar">
+  <header>
+    <div class="htop"><span class="stage" id="stg">STAGE 01</span><span class="htitle" id="ttl">—</span></div>
+    <div class="gauge"><i id="gauge"></i></div>
+    <div class="hmeta">
+      <span id="rnd" class="rnd"></span>
+      <span><b id="cnt">0</b> / <span id="tot">0</span> 완료</span>
+      <span class="sp">
+        <button class="tgl ic" id="bColor" aria-pressed="true" aria-label="색 구분"></button>
+        <button class="tgl ic eye" id="bEye" aria-label="표시 모드"></button>
+        <button class="tgl ic" id="bJump" aria-label="북마크로 이동"></button>
+        <button class="tgl ic rvbtn" id="bRv" aria-label="오답노트"></button>
+        <button class="tgl ic" id="bBack" aria-label="설정"></button>
+      </span>
+    </div>
+  </header>
+  <div class="lvrow">
+    <button class="lvfix" id="lvKana" title="가나 표" aria-label="가나 표">あ</button>
+    <nav class="levels" id="nav" aria-label="단계"></nav>
+  </div>
+  </div>
+  <main class="list" id="list"></main>
+  <div class="legend">
+    <span style="color:var(--c-n)">명사·대명사</span>
+    <span style="color:var(--c-v)">동사·형용사·서술</span>
+    <span style="color:var(--c-p)">조사</span>
+    <span style="color:var(--c-x)">그 밖</span>
+  </div>
+  <div class="legend" style="padding-top:2px">
+    <span class="lgu"><i class="s"></i>실선 &middot; 형태가 변하는 단어</span>
+    <span class="lgu"><i class="d"></i>점선 &middot; 쓰임 &middot; 뜻 구분 &middot; 반대말</span>
+  </div>
+  <p class="foot">밑줄 친 단어를 누르면 열립니다. 문장을 오른쪽으로 밀면 북마크됩니다.<br>가려진 자리를 누르면 보기 4개가 나옵니다. 한 문장을 다 맞히면 완료로 넘어가고, 한 단계를 다 채우면 별이 하나 붙습니다.<br>한 단계를 세 번 돕니다. 1회차는 한국어를, 3회차는 일본어를 가리고, 2회차는 좌우를 번갈아 가립니다.</p>
+</div>
+
+<div class="backdrop" id="bd"></div>
+<div class="pop" id="pop" role="dialog"></div>
+<div class="qpop" id="qpop" role="dialog"></div>
+<div class="mpop" id="mpop" role="dialog"></div>
+<div class="npop" id="npop" role="dialog"></div>
+<div class="cpop" id="cpop" role="dialog"></div>
+<div class="cel" id="cel" role="dialog" aria-live="polite"></div>
+<canvas class="fx" id="fx" aria-hidden="true"></canvas>
+<div class="sheet" id="sheet" role="dialog">
+  <div class="grip" id="grip"><i></i></div>
+  <div class="shead"><span class="ttl">설정</span>
+    <button class="x" id="sX" aria-label="닫기"></button></div>
+  <div class="sbody">
+  <h3>화면</h3>
+  <p>「기기 설정」은 폰·PC의 다크 모드를 그대로 따라갑니다.</p>
+  <div class="sndrow" id="throw"></div>
+  <h3 style="margin-top:20px">효과음</h3>
+  <p>눌러서 들어보고 고릅니다.</p>
+  <div class="sndrow" id="sndrow"></div>
+  <h3 style="margin-top:20px">발음</h3>
+  <p>기기에 깔린 일본어 음성 중에서 고릅니다. 눌러서 들어보세요.</p>
+  <div class="sndrow" id="vrow"></div>
+  <p class="vnote" id="vnote"></p>
+  <h3>퀴즈 기록</h3>
+  <button class="btn" id="bReset" style="margin-bottom:10px">이 단계 다시 풀기</button>
+  <button class="btn" id="bResetAll" style="margin-bottom:14px">전체 다시 풀기</button>
+  <div id="qstat" style="font-size:12.5px;color:var(--ink2);line-height:1.9;margin-bottom:16px"></div>
+  <h3>진도 옮기기</h3>
+  <p>아래 코드를 복사해 메모앱에 두었다가, 다른 기기에서 붙여넣고 <b>불러오기</b>를 누르면 진도가 옮겨집니다.</p>
+  <textarea id="code" spellcheck="false"></textarea>
+  <div class="brow">
+    <button class="btn" id="bCopy">복사</button>
+    <button class="btn" id="bLoad">불러오기</button>
+  </div>
+
+  <h3 style="margin-top:22px">퀴즈 기록 옮기기</h3>
+  <p>맞힘·틀림 기록과 이미 맞힌 자리를 함께 옮깁니다. 진도 코드와 따로 보관하세요.</p>
+  <textarea id="qcode" spellcheck="false"></textarea>
+  <div class="brow">
+    <button class="btn" id="bQCopy">복사</button>
+    <button class="btn" id="bQLoad">불러오기</button>
+  </div>
+
+  <h3 style="margin-top:26px">초기화</h3>
+  <p>진도·북마크·퀴즈 기록을 모두 지웁니다. 되돌릴 수 없습니다.</p>
+  <div class="brow" style="margin-bottom:6px">
+    <button class="btn" id="bWipe">전체 초기화</button>
+  </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="groups.js"></script>
+<script src="words.js"></script>
+<script src="sentences-01.js"></script>
+<script>
+/* ── 0단계 · 가나 표 데이터 ────────────────── */
+const KANA={
+ sei:[["あ","ア","a"],["い","イ","i"],["う","ウ","u"],["え","エ","e"],["お","オ","o"],
+  ["か","カ","ka"],["き","キ","ki"],["く","ク","ku"],["け","ケ","ke"],["こ","コ","ko"],
+  ["さ","サ","sa"],["し","シ","shi"],["す","ス","su"],["せ","セ","se"],["そ","ソ","so"],
+  ["た","タ","ta"],["ち","チ","chi"],["つ","ツ","tsu"],["て","テ","te"],["と","ト","to"],
+  ["な","ナ","na"],["に","ニ","ni"],["ぬ","ヌ","nu"],["ね","ネ","ne"],["の","ノ","no"],
+  ["は","ハ","ha"],["ひ","ヒ","hi"],["ふ","フ","fu"],["へ","ヘ","he"],["ほ","ホ","ho"],
+  ["ま","マ","ma"],["み","ミ","mi"],["む","ム","mu"],["め","メ","me"],["も","モ","mo"],
+  ["や","ヤ","ya"],null,["ゆ","ユ","yu"],null,["よ","ヨ","yo"],
+  ["ら","ラ","ra"],["り","リ","ri"],["る","ル","ru"],["れ","レ","re"],["ろ","ロ","ro"],
+  ["わ","ワ","wa"],null,null,null,["を","ヲ","wo"],
+  ["ん","ン","n"],null,null,null,null],
+ daku:[["が","ガ","ga"],["ぎ","ギ","gi"],["ぐ","グ","gu"],["げ","ゲ","ge"],["ご","ゴ","go"],
+  ["ざ","ザ","za"],["じ","ジ","ji"],["ず","ズ","zu"],["ぜ","ゼ","ze"],["ぞ","ゾ","zo"],
+  ["だ","ダ","da"],["ぢ","ヂ","ji"],["づ","ヅ","zu"],["で","デ","de"],["ど","ド","do"],
+  ["ば","バ","ba"],["び","ビ","bi"],["ぶ","ブ","bu"],["べ","ベ","be"],["ぼ","ボ","bo"],
+  ["ぱ","パ","pa"],["ぴ","ピ","pi"],["ぷ","プ","pu"],["ぺ","ペ","pe"],["ぽ","ポ","po"]],
+ you:[["きゃ","キャ","kya"],["きゅ","キュ","kyu"],["きょ","キョ","kyo"],null,null,
+  ["しゃ","シャ","sha"],["しゅ","シュ","shu"],["しょ","ショ","sho"],null,null,
+  ["ちゃ","チャ","cha"],["ちゅ","チュ","chu"],["ちょ","チョ","cho"],null,null,
+  ["にゃ","ニャ","nya"],["にゅ","ニュ","nyu"],["にょ","ニョ","nyo"],null,null,
+  ["ひゃ","ヒャ","hya"],["ひゅ","ヒュ","hyu"],["ひょ","ヒョ","hyo"],null,null,
+  ["みゃ","ミャ","mya"],["みゅ","ミュ","myu"],["みょ","ミョ","myo"],null,null,
+  ["りゃ","リャ","rya"],["りゅ","リュ","ryu"],["りょ","リョ","ryo"],null,null,
+  ["ぎゃ","ギャ","gya"],["ぎゅ","ギュ","gyu"],["ぎょ","ギョ","gyo"],null,null,
+  ["じゃ","ジャ","ja"],["じゅ","ジュ","ju"],["じょ","ジョ","jo"],null,null,
+  ["びゃ","ビャ","bya"],["びゅ","ビュ","byu"],["びょ","ビョ","byo"],null,null,
+  ["ぴゃ","ピャ","pya"],["ぴゅ","ピュ","pyu"],["ぴょ","ピョ","pyo"],null,null]};
+const KNOTE=`<div class="knote">
+<b>모양이 닮아 헷갈리는 가타카나</b><br>
+<span class="pair">シ</span> shi 와 <span class="pair">ツ</span> tsu — 점의 방향. シ는 아래에서 위로, ツ는 위에서 아래로 긋는다<br>
+<span class="pair">ソ</span> so 와 <span class="pair">ン</span> n — 같은 규칙. ソ는 위에서, ン는 아래에서<br>
+<span class="pair">ク</span> ku 와 <span class="pair">タ</span> ta 와 <span class="pair">ワ</span> wa<br>
+<span class="pair">ス</span> su 와 <span class="pair">ヌ</span> nu<br>
+<span class="pair">コ</span> ko 와 <span class="pair">ユ</span> yu<br>
+<span class="pair">チ</span> chi 와 <span class="pair">テ</span> te<br><br>
+<b>읽기가 바뀌는 것</b><br>
+조사 <span class="pair">は</span> 는 '와', <span class="pair">へ</span> 는 '에', <span class="pair">を</span> 는 '오'로 읽는다<br>
+<span class="pair">ヲ ヂ ヅ</span> 는 현대 일본어에서 거의 쓰이지 않는다<br><br>
+<b>장음</b><br>
+가타카나는 <span class="pair">ー</span> 로 길게 늘인다. コーヒー, ラーメン<br>
+히라가나는 모음을 겹쳐 쓴다. おかあさん, とうきょう
+</div>`;
+
+/* 60단계 제목 (한 단계 50문장, 총 3,000문장) */
+const TITLES=[
+/* 1부 · 기초 문장 만들기 */
+"인사와 자기소개","지시어와 장소 묻기",
+"형용사로 말하기","형용사로 꾸미기",
+"있다와 없다","위치와 방향",
+"숫자와 개수","시간과 가격",
+"ます형 기초","이동과 교통",
+"1부 복습 · 조사","1부 복습 · 상황",
+/* 2부 · て형 */
+"て형 만들기","て형으로 요청하기",
+"~ています 진행","~ています 상태",
+"허가 구하기","금지와 주의",
+"순서 잇기","문장 이어 말하기",
+"희망 말하기","권유와 제안",
+"2부 복습 · た형","2부 복습 · 경험",
+/* 3부 · 보통형과 조건 */
+"보통형 만들기","생각 말하기",
+"말 전달하기","확인하기",
+"가능 표현","능력과 정도",
+"조건 ~たら","조건 ~ば와 ~と",
+"동시와 정도","쉽다와 어렵다",
+"3부 복습 · 자동사","3부 복습 · 타동사",
+/* 4부 · 관계와 경어 */
+"주고받기 기초","て형 수수 표현",
+"존경어","겸양어",
+"수동형","피해 수동",
+"사역형","사역수동",
+"추측 ~ようだ","전언 ~そうだ",
+"4부 복습 · 접속","4부 복습 · 복문",
+/* 5부 · 실전 */
+"분실과 지연","병원과 몸",
+"식당 주문","알레르기와 요청",
+"숙소 트러블","교통 환승",
+"쇼핑과 면세","잡담과 인사",
+"안내방송 듣기","표지판 읽기",
+"축약 구어체","종합 마무리"];
+
+const $=s=>document.querySelector(s), list=$('#list'), side=$('#side'), pop=$('#pop'), qpop=$('#qpop'), mpop=$('#mpop'), npop=$('#npop'), cpop=$('#cpop'), cel=$('#cel'), bd=$('#bd'), toast=$('#toast'), sheet=$('#sheet');
+/* 움직임을 줄이라고 해 둔 기기에서는 연출을 건너뛴다 */
+const RMQ=window.matchMedia?matchMedia('(prefers-reduced-motion:reduce)'):null;
+const reduceMotion=()=>!!(RMQ&&RMQ.matches);
+const ICO={bm:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 2h12v20l-6-5-6 5z"/></svg>',
+ ck:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12l6 6L20 5"/></svg>',
+ ar:'<svg viewBox="0 0 10 10" fill="currentColor"><path d="M2 0l6 5-6 5z"/></svg>',
+ pal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 100 18c1 0 1.6-.7 1.6-1.5 0-.4-.2-.8-.5-1.1-.3-.3-.4-.6-.4-1 0-.8.7-1.4 1.5-1.4H16a5 5 0 005-5c0-4.4-4-8-9-8z"/><circle cx="7.5" cy="11" r="1.1" fill="currentColor" stroke="none"/><circle cx="10.5" cy="7" r="1.1" fill="currentColor" stroke="none"/><circle cx="15" cy="7.6" r="1.1" fill="currentColor" stroke="none"/><circle cx="17.6" cy="11.4" r="1.1" fill="currentColor" stroke="none"/></svg>',
+ flag:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 2h12v20l-6-5-6 5z"/></svg>',
+ note:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3.5h11l3.5 3.5v13.5H5z"/><path d="M8.5 12h7M8.5 15.5h4.5"/></svg>',
+ x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg>',
+ star:'<svg viewBox="0 0 24 24"><path d="M12 2.6l2.9 6 6.6.9-4.8 4.6 1.2 6.6L12 17.6 6.1 20.7l1.2-6.6L2.5 9.5l6.6-.9z"/></svg>',
+ gear:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 7h9M18 7h2M4 12h2M11 12h9M4 17h7M16 17h4"/><circle cx="15.5" cy="7" r="2.1"/><circle cx="8.5" cy="12" r="2.1"/><circle cx="13.5" cy="17" r="2.1"/></svg>',
+ sp:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 4V5L7 9H3z"/><path d="M16.5 8.5a5 5 0 010 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M19 6a8 8 0 010 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'};
+window.SENT=window.SENT||{}; window.WORDS=window.WORDS||{};
+const KEY='jp3000v2';
+/* 저장소: localStorage → 없으면 메모리(새로고침 시 사라짐) */
+const DB=(()=>{ let ok=false; try{localStorage.setItem('_t','1');localStorage.removeItem('_t');ok=true;}catch(e){}
+  const m={}; return {ok,
+    get:function(k){ return ok?localStorage.getItem(k):(m[k]!==undefined?m[k]:null); },
+    set:(k,v)=>{ if(ok){try{localStorage.setItem(k,v);return true;}catch(e){}} m[k]=v; return ok; }};})();
+
+/* -- 화면 밝기 -----------------------------
+   기기 설정을 따르거나 밝게·어둡게를 직접 고른다.
+   고른 값을 <html>의 data-theme 으로 붙이면 CSS 변수가 통째로 바뀐다.
+   기기 설정일 때도 실제로 어느 쪽인지 계산해서 붙인다.
+   그래야 CSS 안에 어두운 판을 두 벌 적어 두지 않아도 된다 */
+const THEMES=[['auto','기기 설정'],['light','밝게'],['dark','어둡게']];
+let THEME=DB.get('jp3000-theme')||'auto';
+const darkQ=window.matchMedia?matchMedia('(prefers-color-scheme:dark)'):null;
+function applyTheme(){
+  const dark = THEME==='dark' || (THEME==='auto' && !!(darkQ&&darkQ.matches));
+  document.documentElement.dataset.theme = dark?'dark':'light';
+  /* 폰의 주소창·상태바 색도 같이 맞춘다 */
+  const m=document.querySelector('meta[name="theme-color"]');
+  if(m) m.setAttribute('content', dark?'#1E332B':'#1E3932');
+  paintTheme();
+}
+function paintTheme(){
+  const row=document.getElementById('throw'); if(!row) return;
+  row.innerHTML=THEMES.map(([v,n])=>
+    `<button class="sndbtn" data-t="${v}" aria-pressed="${THEME===v}">${n}</button>`).join('');
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('#throw .sndbtn'); if(!b) return;
+  THEME=b.dataset.t; DB.set('jp3000-theme',THEME); applyTheme();
+});
+/* 기기 설정을 따르는 중이라면, 기기가 바뀔 때 같이 바뀐다 */
+if(darkQ&&darkQ.addEventListener) darkQ.addEventListener('change',()=>{ if(THEME==='auto') applyTheme(); });
+applyTheme();
+
+/* ── 회차 ──────────────────────────────────
+   한 단계를 세 번 돈다.
+     1회차  일본어를 보고 한국어를 맞힌다
+     2회차  문장 안에서 좌우를 번갈아 가린다
+     3회차  한국어를 보고 일본어를 맞힌다
+   회차를 마칠 때마다 별이 하나 붙는다.
+   별은 「다시 풀기」로도 지워지지 않으므로 따로 저장한다.
+
+   done  회차별 완료 문장  ST.done[회차][단계] = [문장번호]
+   r     그 단계가 지금 몇 회차인지  ST.r[단계]
+   star  얻은 별 개수  ST.star[단계] */
+const RN=3;
+let ST={v:3,lv:1,pg:0,r:{},done:{1:{},2:{},3:{}},star:{},bm:{}};
+try{
+  const raw=DB.get(KEY); const o=raw&&JSON.parse(raw);
+  if(o&&o.v===3) ST=Object.assign(ST,o);
+  else if(o&&o.v===2){
+    /* 옛 진도를 1회차 완료분으로 옮긴다.
+       손으로 밀어 완료한 것이라 퀴즈 기록이 없을 수 있는데,
+       그것도 그대로 인정한다. 안 그러면 진도가 통째로 사라진다 */
+    ST.lv=o.lv||1; ST.pg=o.pg||0; ST.bm=o.bm||{};
+    ST.done={1:o.done||{},2:{},3:{}};
+    Object.keys(ST.done[1]).forEach(lv=>{
+      const L=SENT[lv], d=ST.done[1][lv]||[];
+      if(L&&d.length>=L.s.length) ST.star[lv]=1;   /* 다 끝낸 단계는 별 하나 */
+    });
+    /* 옮긴 결과를 바로 써 둔다. 안 그러면 열 때마다 옛 자료를 다시 읽는다 */
+    DB.set(KEY,JSON.stringify(ST));
+  }
+}catch(e){}
+if(!ST.done||!ST.done[1]) ST.done={1:{},2:{},3:{}};
+if(!ST.r) ST.r={}; if(!ST.star) ST.star={};
+/* 그 단계가 지금 도는 회차 */
+function curR(lv){ const r=+ST.r[lv]||1; return r<1?1:(r>RN?RN:r); }
+/* 회차 하나를 비트 하나에 담는다. 1회차=1, 2회차=2, 3회차=4 */
+function rbit(r){ return 1<<((r||1)-1); }
+/* 그 회차의 완료 문장 목록 */
+function doneList(lv,r){ const g=ST.done[r||curR(lv)]||{}; return g[lv]||(g[lv]=[]); }
+function save(){ DB.set(KEY,JSON.stringify(ST)); paint(); }
+
+const esc=t=>String(t).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+/* 가타카나 → 히라가나. 코드값이 0x60 차이라 그대로 옮기면 된다.
+   장음 ー 는 히라가나에 대응이 없으므로 그대로 둔다 */
+const kata2hira=s=>s.replace(/[ァ-ヶ]/g,c=>String.fromCharCode(c.charCodeAt(0)-0x60));
+const kataRuby=t=>t.replace(/[ァ-ヴー]+/g,m=>'<ruby>'+m+'<rt>'+kata2hira(m)+'</rt></ruby>');
+const ruby=t=>kataRuby(esc(t).replace(/\{([^|{}]+)\|([^|{}]+)\}/g,'<ruby>$1<rt>$2</rt></ruby>'));
+/* 툴팁은 후리가나가 너무 작아지므로 괄호로 적는다 */
+const paren=t=>esc(t).replace(/\{([^|{}]+)\|([^|{}]+)\}/g,'$1<i>($2)</i>');
+
+/* 조사는 앞 단어에 붙여 한 덩어리(문절)로 다룬다.
+   색은 낱말마다 그대로 두고, 가림과 문제는 덩어리 단위로 낸다 */
+/* 앞말에 붙는 말: 조사 + 접미사(さん)·단위(時·分·人·個…) + 활용 어미(ら·ない·でしょう…)
+   뜻이 「~」로 시작하면 홀로 서지 못하는 말이므로 앞에 붙인다 */
+const SUFJP=new Set(['san','ji','fun','nin','ko','mai','ban','en','do','bansen',
+  'han','sai','kai','satsu','hai','hon','dai','paasento','meetoru','kiro','yuki2']);
+/* 앞에 붙일 활용 어미. 한국어 해석에서도 앞말과 한 덩어리가 되는 것만 넣는다.
+   です·ます처럼 한국어에서 「입니다」로 따로 서는 것은 넣지 않는다.
+   ています·ていただけますか 계열은 한국어가 「하고 / 있습니다」처럼
+   두 덩어리로 서기 때문에 여기서 뺐다. 넣어 두었더니 164문장에서
+   일본어만 한 덩어리가 되어 좌우 짝이 어긋났다 */
+const GLUEJP=new Set(['ra','ri','nai','da','janai','datta','janakatta','koto',
+  'kadouka']);
+/* です·じゃないです 계열은 앞이 な형용사·명사일 때만 붙인다.
+   「静か + です」는 한국어로 「조용합니다」 한 덩어리이지만,
+   「キム + です」는 「김 / 입니다」 두 덩어리이기 때문 */
+const DESU=new Set(['desu','deshita','janaidesu','janakattadesu','naidesu','kattadesu','nakattadesu']);
+/* 단위는 앞이 숫자일 때만 붙인다.
+   「5本」은 한 덩어리지만 「かばんに / 本が」는 갈라야 한다.
+   本·階처럼 단위와 보통명사가 같은 글자인 경우가 있어서,
+   글자만 보고 붙이면 엉뚱한 곳이 뭉친다.
+   さん(이름 뒤) · 行き(지명 뒤) · 半(시각 뒤)은 숫자와 무관하다 */
+const NUMJP=new Set(['ichi','ni2','san3','yon','go','roku','nana','hachi','kyuu',
+  'juu','hyaku','sen','man','sanzen','zero','nan']);
+const FREEJP=new Set(['san','yuki2']);
+const TIMEJP=new Set(['ji','fun']);
+function sufJPok(id,prev){
+  if(FREEJP.has(id)) return true;
+  if(id==='han') return TIMEJP.has(prev);
+  return NUMJP.has(prev);
+}
+function glueJP(id,prev){
+  const w=WORDS[id]; if(!w) return false;
+  if(w.p==='p') return true;
+  if(SUFJP.has(id)) return sufJPok(id,prev);
+  if(GLUEJP.has(id)) return true;
+  if(DESU.has(id)){
+    const pw=prev&&WORDS[prev];
+    return !!(pw&&(pw.p==='a'||pw.p==='d'));   /* 앞이 형용사·부사일 때 */
+  }
+  /* 高く + なかったです 처럼 형용사 활용이 이어지는 경우 */
+  if(w.p==='a'&&w.adj==='ita'){
+    const pw=prev&&WORDS[prev];
+    return !!(pw&&pw.p==='a'&&pw.adj==='iku');
+  }
+  return false;
+}
+function chunkJP(ids){
+  const out=[];
+  ids.forEach((id,i)=>{
+    const glue=glueJP(id, ids[i-1]);
+    if(glue&&out.length&&out[out.length-1].w) out[out.length-1].ids.push(id);
+    else out.push({ids:[id], w:!!WORDS[id]});
+  });
+  return out;
+}
+/* mask 는 참·거짓이거나, 몇 번째 자리인지 받아 답하는 함수다.
+   부호는 자리에서 빼고 세므로 좌우 번호가 서로 맞는다 */
+function jpHTML(ids,mask,sid){
+  const want=(typeof mask==='function')?mask:()=>!!mask;
+  let wi=-1;
+  return chunkJP(ids).map((c,ci)=>{
+    const inner=c.ids.map(id=>{
+      const w=WORDS[id];
+      if(!w) return `<span class="x">${ruby(id)}</span>`;
+      const k=w.f?(w.f[0].g==='형태'?'has':'note'):'';
+      return `<span class="w ${w.p} ${k}"${w.f?` data-k="${id}"`:''}>${ruby(w.t)}</span>`;
+    }).join('');
+    if(!c.w) return inner;                       /* 마침표·쉼표는 그대로 */
+    wi++;
+    const key=sid+'-j'+ci;
+    if(!want(wi)||isSolved(key,curR(ST.lv))) return `<span class="ch">${inner}</span>`;
+    return `<span class="ch msk" data-q="${c.ids.join('|')}" data-s="${key}" data-t="j">${inner}</span>`;
+  }).join('');
+}
+/* 한국어도 같은 규칙. 씨·시·분·명 같은 말은 앞말에 붙인다 */
+const SUFKO=/^(씨|님|시|분|초|명|개|장|권|잔|병|엔|원|도|번|번선|층|반|퍼센트|미터|킬로|행)$/;
+/* 일본어와 같은 규칙. 「5개」는 붙지만 「공원에 / 개가」는 갈라야 한다 */
+const NUMKO=/[0-9]$|^(한|두|세|네|다섯|여섯|일곱|여덟|아홉|열|스물|백|천|만|억|몇|이천|삼천|사천|오천)$/;
+function sufKOok(w,prev){
+  if(!SUFKO.test(w)) return false;
+  if(/^(씨|님|행)$/.test(w)) return true;
+  if(w==='반') return /^(시|분)$/.test(prev);
+  return NUMKO.test(prev);
+}
+function chunkKO(t){
+  const out=[];
+  t.forEach((tok,i)=>{
+    const [w,c]=tok, plain=/^[\s,.?!]*$/.test(w);
+    const glue=(c==='p')||sufKOok(w.trim(), i>0?t[i-1][0].trim():'');
+    if(glue&&out.length&&!out[out.length-1].plain) out[out.length-1].toks.push(tok);
+    else out.push({toks:[tok], plain, i});
+  });
+  return out;
+}
+function koHTML(t,mask,sid){
+  const want=(typeof mask==='function')?mask:()=>!!mask;
+  let wi=-1;
+  return chunkKO(t).map((c,ci)=>{
+    const key=sid+'-k'+ci;
+    const txt=c.toks.map(x=>x[0]).join('');
+    const lead=txt.match(/^\s*/)[0];
+    const body=c.toks.map(([w,k],j)=>`<span class="${k}">${j===0?w.slice(lead.length):w}</span>`).join('');
+    if(c.plain) return lead+body;                /* 부호는 그대로 */
+    wi++;
+    if(!want(wi)||isSolved(key,curR(ST.lv))) return `${lead}<span class="ch">${body}</span>`;
+    return `${lead}<span class="ch msk" data-q="${ci}" data-s="${key}" data-t="k">${body}</span>`;
+  }).join('');
+}
+
+/* ── 화면 그리기 ──────────────────────────── */
+function centerLv(){
+  const el=nav.querySelector(`.lv[data-n="${ST.lv}"]`);
+  if(el&&el.scrollIntoView) el.scrollIntoView({inline:'center',block:'nearest'});
+  /* PC 의 왼쪽 목록도 같이 맞춘다. 화면 밖에 있으면 별이 그리로 날아가 버린다 */
+  const sb=side.querySelector(`.sideb[data-n="${ST.lv}"]`);
+  if(sb&&sb.offsetParent&&sb.scrollIntoView) sb.scrollIntoView({block:'nearest'});
+}
+function buildKana(){
+  $('#stg').textContent='STAGE 00';
+  $('#ttl').textContent='가나 표';
+  $('#tot').textContent='—'; $('#cnt').textContent='—';
+  $('#gauge').style.width='0';
+  const rows=[];
+  const set=KANA[kanaTab];
+  for(let i=0;i<set.length;i+=5){
+    rows.push('<div class="krow">'+set.slice(i,i+5).map(c=>
+      c?`<div class="kcell" data-h="${c[0]}" data-k="${c[1]}"><div class="hi">${c[0]}</div><div class="ka">${c[1]}</div><div class="ro">${c[2]}</div></div>`
+       :'<div class="kcell empty"></div>').join('')+'</div>');
+  }
+  list.innerHTML='<div class="kana">'+
+    '<div class="ktabs">'+
+      ['sei|청음','daku|탁음·반탁음','you|요음'].map(t=>{const[k,n]=t.split('|');
+        return `<button class="ktab" data-kt="${k}" aria-pressed="${kanaTab===k}">${n}</button>`;}).join('')+
+    '</div>'+
+    '<div class="ktabs">'+
+      `<button class="ktab" id="hideK" aria-pressed="${document.body.classList.contains('hidekata')}">가타카나 가리기</button>`+
+      `<button class="ktab" id="hideH" aria-pressed="${document.body.classList.contains('hidehira')}">히라가나 가리기</button>`+
+    '</div>'+
+    rows.join('')+KNOTE+'</div>';
+  document.querySelectorAll('.lv').forEach(el=>el.setAttribute('aria-current','false'));
+  $('#lvKana').setAttribute('aria-current','true');
+  side.querySelectorAll('.sideb').forEach(el=>el.setAttribute('aria-current',+el.dataset.n===0));
+  paintRv();
+}
+let kanaTab='sei';
+function build(){
+  if(ST.lv===0){ buildKana(); return; }
+  if(ST.lv===RV){ buildReview(); return; }
+  const L=SENT[ST.lv];
+  $('#stg').textContent='STAGE '+String(ST.lv).padStart(2,'0');
+  $('#ttl').textContent=(L?L.title:TITLES[ST.lv-1]||'');
+  if(!L){
+    list.innerHTML='<div style="padding:44px 22px;text-align:center;color:var(--ink2);font-size:13.5px;line-height:2">'+
+      '<b style="color:var(--seal)">문장 데이터를 불러오지 못했습니다.</b><br>'+
+      'sentences 파일이 함께 있는지 확인해 주세요.</div>';
+    $('#tot').textContent=0; $('#cnt').textContent=0; $('#gauge').style.width=0; return; }
+  if(rollRound(ST.lv)) DB.set(KEY,JSON.stringify(ST));
+  $('#rnd').textContent=curR(ST.lv)+'회차';
+  const PG=25, from=(ST.pg||0)*PG;
+  list.innerHTML=L.s.slice(from,from+PG).map((s,i)=>{
+   const plan=maskPlan(s);
+   return `
+  <div class="row" data-i="${from+i}" data-n="${s.n}">
+    <div class="act l">${ICO.bm}<span>북마크</span></div>
+    <div class="card">
+      <div class="idx"><span>${s.lbl||(String(ST.lv).padStart(2,'0')+'-'+String(s.n).padStart(3,'0'))}</span><button class="spk" aria-label="발음 듣기">${ICO.sp}</button><span class="bm" hidden>${ICO.bm}</span></div>
+      <div class="jp">${jpHTML(s.j, plan.j, ST.lv+"-"+s.n)}</div>
+      <div class="trans">
+        <div class="tbody"><div class="ko">${koHTML(s.k, plan.k, ST.lv+"-"+s.n)}</div></div>
+        ${hasNote(s)?`<button class="tbtn2"${sentDone(s)?'':' hidden'}>${ICO.note}<span>더 배워보기</span></button>`:''}
+      </div>
+      <span class="dchk" aria-label="완료">${ICO.ck}</span>
+      <div class="rowbtn"><button class="bmk" aria-label="북마크">${ICO.bm}</button></div>
+    </div>
+  </div>`;}).join('')
+  + `<div class="pgnav">
+      <button class="pgbtn" id="pgPrev" ${ST.pg?'':'disabled'}>이전 25문장</button>
+      <span class="pgnow">${from+1}–${Math.min(from+PG,L.s.length)}</span>
+      <button class="pgbtn" id="pgNext" ${from+PG<L.s.length?'':'disabled'}>다음 25문장</button>
+     </div>`;
+  paint();
+}
+function goPage(d){
+  const L=SENT[ST.lv]; if(!L) return;
+  const max=Math.ceil(L.s.length/25)-1;
+  ST.pg=Math.max(0,Math.min(max,(ST.pg||0)+d));
+  save(); build(); scrollTo({top:0});
+}
+function paint(){
+  if(ST.lv===0||ST.lv===RV) return;
+  const L=SENT[ST.lv]; if(!L) return;
+  const d=doneList(ST.lv), b=ST.bm[ST.lv];
+  $('#tot').textContent=L.s.length; $('#cnt').textContent=d.length;
+  $('#gauge').style.width=(L.s.length?d.length/L.s.length*100:0)+'%';
+  document.querySelectorAll('.row').forEach(r=>{
+    const n=+r.dataset.n;
+    r.classList.toggle('done',d.includes(n)); r.querySelector('.bm').hidden=(b!==n);
+    const rb=r.querySelector('.rowbtn');
+    if(rb) rb.querySelector('.bmk').setAttribute('aria-pressed',b===n);
+  });
+  document.querySelectorAll('.lv').forEach(el=>{
+    const n=+el.dataset.n, dd=doneList(n).length, tt=SENT[n]?SENT[n].s.length:0;
+    el.classList.toggle('part',dd>0&&dd<tt);
+    el.classList.toggle('full',tt>0&&dd===tt);
+    el.setAttribute('aria-current',n===ST.lv);
+    const cr=el.querySelector('.crown');
+    if(cr) cr.dataset.s=ST.star[n]||0;
+    if(n===1) $('#lvKana').setAttribute('aria-current',ST.lv===0);
+  });
+  side.querySelectorAll('.crown').forEach(cr=>{
+    const n=+cr.closest('.sideb').dataset.n; cr.dataset.s=ST.star[n]||0; });
+  $('#bJump').style.display=(b==null?'none':''); paintRv();
+  side.querySelectorAll('.sideb').forEach(el=>el.setAttribute('aria-current',+el.dataset.n===ST.lv));
+}
+
+/* ── 팝업 ─────────────────────────────────── */
+function closeAllPop(except){
+  if(except!=='pop'){ pop.classList.remove('on'); }
+  if(except!=='qpop'){ qpop.classList.remove('on');
+    document.querySelectorAll('.blink').forEach(x=>x.classList.remove('blink')); }
+  if(except!=='mpop'){ mpop.classList.remove('on'); }
+  if(except!=='sheet'){ sheet.classList.remove('on'); }
+  if(except!=='npop'){ npop.classList.remove('on'); }
+  if(except!=='cpop'){ cpop.classList.remove('on'); }
+  /* 축하 팝업은 그냥 닫지 않는다. 별을 왕관에 앉히고 닫아야 한다 */
+  if(except!=='cel'&&cel.classList.contains('on')) celDone();
+  if(!except) bd.classList.remove('on');
+}
+function closePop(){pop.classList.remove('on');bd.classList.remove('on');}
+function openPop(el,key){
+  const w=WORDS[key]; if(!w||!w.f) return;
+  closeAllPop('pop');
+  pop.innerHTML=`<h4>${paren(w.t)}</h4><div class="mean">${w.m||''}</div>`+
+    w.f.map(g=>`<div class="grp"><div class="gl">${g.g}</div><dl>`+
+      g.items.map(([a,b,c])=>`<dt>${a}</dt><dd>${paren(b)}${c?`<em>${c}</em>`:''}</dd>`).join('')+
+      '</dl></div>').join('');
+  pop.classList.add('on'); bd.classList.add('on');
+  if(innerWidth>560){
+    const r=el.getBoundingClientRect(), ph=pop.offsetHeight, pw=pop.offsetWidth;
+    let top=r.bottom+8; if(top+ph>innerHeight-10) top=Math.max(10,r.top-ph-8);
+    pop.style.top=top+'px';
+    pop.style.left=Math.max(12,Math.min(innerWidth-pw-12,r.left+r.width/2-pw/2))+'px';
+  }else{ pop.style.top=''; pop.style.left=''; }
+}
+
+/* ── 오답노트 · 카드형 복습 ─────────────────
+   틀린 말을 간격을 두고 다시 낸다.
+   틀림 → 오늘 / 1번 맞힘 → 3일 뒤 / 2번 → 1주 / 3번 → 3주 뒤 졸업 */
+const RV=61;
+const STEP=[0,3,7,21];
+const today=()=>Math.floor(Date.now()/86400000);
+function due(k){ const v=QSTAT[k]; return v?(v.due==null?0:v.due):0; }
+function schedule(k,ok){
+  const v=QSTAT[k]||(QSTAT[k]={o:0,x:0});
+  if(ok){ v.lv=Math.min((v.lv||0)+1,STEP.length); }
+  else  { v.lv=0; }
+  v.due=today()+(v.lv>=STEP.length?9999:STEP[v.lv]);
+  saveStat();
+}
+/* 오늘 볼 것: 틀린 적이 있고, 예정일이 지났고, 아직 졸업하지 않은 말 */
+function reviewQueue(){
+  const t=today();
+  return Object.entries(QSTAT)
+    .filter(([k,v])=>v.x>0&&WORDS[k]&&(v.lv||0)<STEP.length&&due(k)<=t)
+    .sort((a,b)=>b[1].x-a[1].x)
+    .slice(0,20).map(([k])=>k);
+}
+function nextDueDay(){
+  const t=today(), ds=Object.entries(QSTAT)
+    .filter(([k,v])=>v.x>0&&WORDS[k]&&(v.lv||0)<STEP.length)
+    .map(([k])=>due(k)).filter(d=>d>t);
+  return ds.length?Math.min(...ds)-t:null;
+}
+/* 그 말이 쓰인 문장 하나를 찾는다 */
+function sampleSentence(k){
+  for(const lv in SENT){ if(+lv===RV) continue;
+    for(const s of SENT[lv].s) if(s.j.indexOf(k)>=0)
+      return {s,lbl:String(lv).padStart(2,'0')+'-'+String(s.n).padStart(3,'0')};
+  }
+  return null;
+}
+let RVQ=[], RVi=0, RVo=0, RVx=0, RVdone=false;
+function startReview(){ RVQ=reviewQueue(); RVi=0; RVo=0; RVx=0; RVdone=false; }
+function buildReview(){
+  $('#stg').textContent='REVIEW';
+  $('#ttl').textContent='오답노트';
+  document.querySelectorAll('.lv').forEach(el=>el.setAttribute('aria-current',+el.dataset.n===RV));
+  paintRv();
+  const tot=RVQ.length;
+  $('#tot').textContent=tot; $('#cnt').textContent=RVi;
+  $('#gauge').style.width=(tot?RVi/tot*100:0)+'%';
+
+  if(!tot){
+    const nd=nextDueDay();
+    list.innerHTML='<div class="rvend"><div class="big">쉬는 날</div>'+
+      '<p>'+(nd==null?'틀린 기록이 아직 없습니다.<br>문제를 풀다 틀리면 여기에 모입니다.'
+                    :'오늘 복습할 것이 없습니다.<br>다음 복습은 '+nd+'일 뒤입니다.')+'</p></div>';
+    return;
+  }
+  if(RVdone){
+    const nd=nextDueDay();
+    list.innerHTML='<div class="rvend"><div class="big">'+RVo+' / '+(RVo+RVx)+'</div>'+
+      '<p>오늘 복습을 마쳤습니다.'+(nd!=null?'<br>다음 복습은 '+nd+'일 뒤입니다.':'')+'</p>'+
+      '<div class="brow"><button class="btn" id="rvAgain">한 번 더</button>'+
+      '<button class="btn dark" id="rvBack">단계로 돌아가기</button></div></div>';
+    $('#rvAgain').onclick=()=>{ startReview(); build(); };
+    $('#rvBack').onclick=()=>{ ST.lv=1; ST.pg=0; save(); build(); centerLv(); scrollTo({top:0}); };
+    return;
+  }
+  const k=RVQ[RVi], w=WORDS[k], sm=sampleSentence(k);
+  const askJP=(RVi%2===1);   /* 번갈아 묻는다 */
+  const seed=seedOf(k+RVi);
+  let opts;
+  if(askJP){
+    opts=optsJP(k,seed).map(x=>({v:x,html:ruby(WORDS[x].t)}));
+  }else{
+    opts=optsKO(k,seed).map(v=>({v,html:esc(v)}));
+  }
+  const jp=sm? sm.s.j.map(id=>{
+        const x=WORDS[id]; if(!x) return `<span>${ruby(id)}</span>`;
+        if(id===k) return askJP?`<span class="msk">${ruby(x.t)}</span>`
+                               :`<span class="rvt">${ruby(x.t)}</span>`;
+        return `<span>${ruby(x.t)}</span>`;
+      }).join('')
+    : ruby(w.t);
+  list.innerHTML='<div class="rv">'+
+    '<div class="rvtop"><span class="rvbar"><i style="width:'+(RVi/tot*100)+'%"></i></span>'+
+    '<span class="rvnum">'+(RVi+1)+' / '+tot+'</span></div>'+
+    '<div class="rvcard">'+
+      '<div class="rvq">'+(askJP?'가려진 자리에 들어갈 말은':'굵은 말의 뜻은')+'</div>'+
+      '<div class="rvjp">'+jp+'</div>'+
+      (askJP&&sm?'<div class="rvko">'+esc(sm.s.k.map(t=>t[0]).join(''))+'</div>':'')+
+      (sm?'<div class="rvfrom">'+sm.lbl+'</div>':'')+
+      '<div class="rvopts">'+opts.map(o=>
+        '<button class="rvopt '+(askJP?'jp':'ko')+'" data-v="'+esc(o.v)+'">'+o.html+'</button>').join('')+
+      '</div>'+
+    '</div></div>';
+  list.dataset.rvans=askJP?k:(w.m||'').split(',')[0].trim();
+}
+/* ── 단계 내비 ────────────────────────────── */
+nav.innerHTML=TITLES.map((t,i)=>
+ `<button class="lv" data-n="${i+1}" title="${t}" ${SENT[i+1]?'':'disabled'}>`+
+ `<span class="crown" data-s="0"><i>${ICO.star}</i><i>${ICO.star}</i><i>${ICO.star}</i></span>${i+1}</button>`).join('');
+side.innerHTML='<h4>STAGES</h4>'+
+  '<button class="sideb" data-n="0"><span class="no" style="font-family:var(--jp)">あ</span><span class="tt">가나 표</span></button>'+
+  TITLES.map((t,i)=>`<button class="sideb" data-n="${i+1}" ${SENT[i+1]?'':'disabled'}>`+
+    `<span class="no">${i+1}</span><span class="tt">${t}</span>`+
+    `<span class="crown sidecrown" data-s="0"><i>${ICO.star}</i><i>${ICO.star}</i><i>${ICO.star}</i></span></button>`).join('');
+side.addEventListener('click',e=>{const b=e.target.closest('.sideb'); if(!b||b.disabled)return;
+  ST.lv=+b.dataset.n; ST.pg=0; if(ST.lv===RV) startReview();
+  save(); build(); scrollTo({top:0}); centerLv();});
+nav.addEventListener('click',e=>{const b=e.target.closest('.lv'); if(!b||b.disabled||navMoved)return;
+  ST.lv=+b.dataset.n; ST.pg=0; if(ST.lv===RV) startReview();
+  save(); build(); scrollTo({top:0}); centerLv();});
+/* 세로 휠을 가로 이동으로 */
+nav.addEventListener('wheel',e=>{ if(Math.abs(e.deltaY)<=Math.abs(e.deltaX))return;
+  e.preventDefault(); nav.scrollLeft+=e.deltaY; },{passive:false});
+/* 끌어서 이동 */
+let navX=0,navL=0,navDown=false,navMoved=false;
+nav.addEventListener('pointerdown',e=>{navDown=true;navMoved=false;navX=e.clientX;navL=nav.scrollLeft;
+  nav.classList.add('grab');});
+nav.addEventListener('pointermove',e=>{ if(!navDown)return;
+  const dx=e.clientX-navX; if(Math.abs(dx)>4) navMoved=true;
+  nav.scrollLeft=navL-dx;});
+['pointerup','pointercancel','pointerleave'].forEach(ev=>
+  nav.addEventListener(ev,()=>{navDown=false;nav.classList.remove('grab');
+    setTimeout(()=>{navMoved=false;},0);}));
+
+/* ── 문장 목록 조작 ──────────────────────────
+   좌우로 밀어 북마크·완료, 눌러서 툴팁·문제 */
+let dg=null;
+list.addEventListener('pointerdown',e=>{
+  const card=e.target.closest('.card'); if(!card)return;
+  if(e.target.closest('.spk,.msk,.rowbtn,.tbtn2,.pgbtn,.ktab,.kcell,.rvopt')) return;
+  dg={card,x:e.clientX,y:e.clientY,ax:null};
+});
+list.addEventListener('pointermove',e=>{
+  if(!dg)return;
+  const dx=e.clientX-dg.x, dy=e.clientY-dg.y;
+  if(!dg.ax){ if(Math.abs(dx)<6&&Math.abs(dy)<6) return;
+    dg.ax=Math.abs(dx)>Math.abs(dy)?'x':'y'; }
+  if(dg.ax!=='x') return;
+  e.preventDefault();
+  dg.dx=Math.max(0,Math.min(110,dx));      /* 오른쪽(북마크)으로만 민다 */
+  dg.card.style.transition='none';
+  dg.card.style.transform='translateX('+dg.dx+'px)';
+});
+function endDrag(){
+  if(!dg)return;
+  const card=dg.card, dx=dg.dx||0, row=card.closest('.row'), n=+row.dataset.n;
+  card.style.transition=''; card.style.transform='';
+  if(dg.ax==='x'&&dx>60){
+    const b=ST.bm[ST.lv]; ST.bm[ST.lv]=(b===n?null:n);
+    say(ST.bm[ST.lv]===n?'북마크했습니다':'북마크를 해제했습니다');
+    save();
+  }
+  setTimeout(()=>{dg=null;},0);
+}
+['pointerup','pointercancel','pointerleave'].forEach(ev=>list.addEventListener(ev,endDrag));
+
+list.addEventListener('click',e=>{
+  if(dg&&dg.ax==='x')return;
+  const kt=e.target.closest('.ktab');
+  if(kt){
+    if(kt.id==='hideK'){ const on=document.body.classList.toggle('hidekata');
+      if(on)document.body.classList.remove('hidehira'); buildKana(); return; }
+    if(kt.id==='hideH'){ const on=document.body.classList.toggle('hidehira');
+      if(on)document.body.classList.remove('hidekata'); buildKana(); return; }
+    kanaTab=kt.dataset.kt; buildKana(); return; }
+  const kc=e.target.closest('.kcell:not(.empty)');
+  if(kc){
+    if(document.body.classList.contains('hidekata')||document.body.classList.contains('hidehira')){
+      kc.classList.toggle('rv'); }
+    speakText(kc.dataset.h); return; }
+  const rb=e.target.closest('.rowbtn button');
+  if(rb){
+    const n=+rb.closest('.row').dataset.n;
+    const b=ST.bm[ST.lv]; ST.bm[ST.lv]=(b===n?null:n);
+    say(ST.bm[ST.lv]===n?'북마크했습니다':'북마크를 해제했습니다');
+    save(); return;
+  }
+  const ro=e.target.closest('.rvopt');
+  if(ro){
+    if(ro.disabled) return;
+    const ans=list.dataset.rvans, k=RVQ[RVi], ok=(ro.dataset.v===ans);
+    document.querySelectorAll('.rvopt').forEach(b=>b.disabled=true);
+    ro.classList.add(ok?'ok':'ng');
+    if(!ok){ const t=document.querySelector('.rvopt[data-v="'+CSS.escape(ans)+'"]'); if(t) t.classList.add('ok'); }
+    if(ok){ RVo++; beepOk(); } else { RVx++; beepNg(); }
+    schedule(k,ok); paintRv();
+    setTimeout(()=>{ RVi++; if(RVi>=RVQ.length) RVdone=true; buildReview(); }, ok?650:1400);
+    return;
+  }
+  const pb=e.target.closest('.pgbtn');
+  if(pb){ goPage(pb.id==='pgNext'?1:-1); return; }
+  const mk=e.target.closest('.msk');
+  if(mk){ openQuiz(mk); return; }
+  const sp=e.target.closest('.spk');
+  if(sp){ speak(+sp.closest('.row').dataset.i,sp); return; }
+  const t2=e.target.closest('.tbtn2');
+  if(t2){ openNote(t2.closest('.row')); return; }
+  const wd=e.target.closest('.w[data-k]');
+  if(wd){ openPop(wd,wd.dataset.k); return; }
+});
+bd.addEventListener('click',()=>{ if(cel.classList.contains('on')){ celDone(); return; } closeAllPop(); });
+/* 퀴즈는 배경을 어둡게 하지 않으므로, 바깥을 누르면 닫히게 한다 */
+document.addEventListener('pointerdown',e=>{
+  if(!qpop.classList.contains('on')) return;
+  if(qpop.contains(e.target)||e.target.closest('.msk')) return;
+  closeQuiz();
+},true);
+
+/* ── 더 알아보기 ────────────────────────────
+   문장 설명(손으로 쓴 것)과 낱말 정보(사전에서 자동)를 함께 보여준다 */
+const NSKIP=/^(desu|deshita|janaidesu|janakattadesu|kudasai|teimasu|teimasen|teimashita|ka|da|janai|datta|janakatta|nai|ra|ri|koto|to|ne|yo|yone|moiidesuka|moiidesu|tewaikemasen|dekudasai|kadouka|deshou|kamoshiremasen|tearimasu|tearimashita|itadakemasuka|kudasaimasenka|onegaishimasu|arimasu|imasu)$/;
+const NPRIO=/^(반대말|짝이 되는 말|짝|뜻 구분|입는 곳에 따라)$/;   /* 늘 넣는다 */
+const NFORM=/^형태$/;                                          /* 처음 나올 때만 */
+const NSEEN={};
+/* 그 단계까지 이미 나온 낱말을 미리 기록해 둔다 */
+function markSeenUpto(lv,n){
+  for(const l in SENT){ if(+l>lv||+l===RV) continue;
+    for(const s of SENT[l].s){ if(+l===lv&&s.n>=n) break;
+      s.j.forEach(id=>{ NSEEN[id]=1; }); } }
+}
+function wordNotes(s){
+  const out=[]; 
+  s.j.forEach(id=>{
+    const w=WORDS[id]; if(!w||!w.f||NSKIP.test(id)||out.length>=2) return;
+    const prio=w.f.filter(g=>NPRIO.test(g.g));
+    const form=w.f.filter(g=>NFORM.test(g.g));
+    let use=prio;
+    if(!use.length&&form.length&&!NSEEN[id]) use=form;
+    if(!use.length) return;
+    out.push({w,g:use[0]});
+  });
+  return out;
+}
+function openNote(row){
+  const s=SENT[ST.lv].s.find(x=>x.n===+row.dataset.n); if(!s) return;
+  closeAllPop('npop');
+  Object.keys(NSEEN).forEach(k=>delete NSEEN[k]);
+  markSeenUpto(ST.lv,s.n);
+  const blocks=[];
+  /* 손으로 쓴 설명. 문자열이면 한 갈래로 감싼다 */
+  const T=Array.isArray(s.t)?s.t:(s.t?[['설명',s.t,'']]:[]);
+  /* 갈래 이름이 같거나 비어 있으면 앞 갈래에 이어 붙인다 */
+  const merged=[];
+  T.forEach(([g,a,b])=>{
+    if(!g&&merged.length) merged[merged.length-1].rows.push([a,b]);
+    else if(merged.length&&merged[merged.length-1].g===g) merged[merged.length-1].rows.push([a,b]);
+    else merged.push({g:g||'설명',rows:[[a,b]]});
+  });
+  merged.forEach(({g,rows})=>{
+    const jp=rows.some(([a])=>/[ぁ-んァ-ヴ一-龥]/.test(a));
+    const body=jp
+      ? '<dl>'+rows.map(([a,b])=>
+          `<dd>${paren(a)}${b?`<em>${esc(b)}</em>`:''}</dd>`).join('')+'</dl>'
+      : rows.map(([a,b])=>
+          `<div class="plain">${esc(a)}${b?` <em style="color:#A79E93;font-size:11.5px">${esc(b)}</em>`:''}</div>`).join('');
+    blocks.push(`<div class="ngrp"><div class="ngl">${esc(g)}</div>${body}</div>`);
+  });
+  /* 사전에서 가져온 낱말 정보. 여러 개여도 한 갈래로 묶는다 */
+  const wn=wordNotes(s);
+  if(wn.length){
+    blocks.push(`<div class="ngrp"><div class="ngl">이 문장의 말</div>`+
+      wn.map(({w,g},i)=>
+        `<div class="nword"${i?' style="margin-top:13px"':''}>${paren(w.t)}<em>${esc(w.m||'')}</em></div>`+
+        '<dl>'+g.items.slice(0,5).map(([a,b,c])=>
+          `<dt>${esc(a)}</dt><dd>${paren(b)}${c?`<em>${esc(c)}</em>`:''}</dd>`).join('')+'</dl>'
+      ).join('')+'</div>');
+  }
+  if(!blocks.length) return;
+  npop.innerHTML=
+    `<div class="nhead"><div class="njp">${jpHTML(s.j,false,'')}</div>`+
+    `<div class="nko">${esc(s.k.map(t=>t[0]).join(''))}</div>`+
+    `<button class="nx" id="nX" aria-label="닫기">${ICO.x}</button></div>`+
+    `<div class="nbody">${blocks.join('')}</div>`;
+  npop.classList.add('on'); bd.classList.add('on');
+  $('#nX').onclick=()=>{ npop.classList.remove('on'); bd.classList.remove('on'); };
+}
+/* ── 회차별 가림 계획 ───────────────────────
+   1회차  한국어를 가린다 — 일본어를 보고 뜻을 맞힌다
+   2회차  한 문장 안에서 좌우를 번갈아 가린다
+   3회차  일본어를 가린다 — 한국어를 보고 말을 맞힌다
+
+   2회차의 교차는 좌우 덩어리 수가 같을 때만 한다.
+   수가 다르면 몇 번째끼리 짝인지 알 수 없어서,
+   가린 자리의 단서까지 같이 가려 버리는 일이 생긴다.
+   그런 문장은 한쪽만 통짜로 가린다.
+
+   어느 쪽부터 가릴지는 문장 번호로 정한다.
+   새로 열 때마다 바뀌면 풀던 회차가 어그러지기 때문이다 */
+const NOMASK={j:()=>false,k:()=>false};
+function maskPlan(s){
+  if(MODE==='all') return NOMASK;           /* 그냥 읽기 */
+  const r=curR(ST.lv);
+  if(r<=1) return {j:()=>false,k:()=>true};
+  if(r>=3) return {j:()=>true, k:()=>false};
+  const nj=chunkJP(s.j).filter(c=>c.w).length;
+  const nk=chunkKO(s.k).filter(c=>!c.plain).length;
+  const flip=seeded(seedOf(ST.lv+'-'+s.n))<0.5;
+  if(nj!==nk) return flip?{j:()=>true,k:()=>false}:{j:()=>false,k:()=>true};
+  const off=flip?1:0;
+  return { j:i=>((i+off)%2===1), k:i=>((i+off)%2===0) };
+}
+/* 한 문장 안에서 자리를 푸는 차례.
+   2회차에는 일본어와 한국어가 한 자리씩 번갈아 가려지는데,
+   DOM 차례대로 풀면 일본어를 다 푼 뒤에야 한국어로 넘어간다.
+   낱말 자리 번호(좌우가 서로 맞는 번호)로 다시 세워 오가게 한다 */
+function maskOrder(row){
+  const out=[];
+  ['jp','ko'].forEach(cls=>{
+    const box=row.querySelector('.'+cls); if(!box) return;
+    [...box.children].filter(c=>c.classList.contains('ch')).forEach((ch,i)=>{
+      if(ch.classList.contains('msk')) out.push({el:ch,i}); });
+  });
+  return out.sort((a,b)=>a.i-b.i).map(x=>x.el);
+}
+/* 이번 회차에서 그 문장의 가린 자리를 다 풀었는지.
+   완료 판정과 「더 배워보기」 잠금 해제에 같이 쓴다 */
+function sentDone(s){
+  const plan=maskPlan(s), r=curR(ST.lv), sid=ST.lv+'-'+s.n, keys=[];
+  let wi=-1;
+  chunkJP(s.j).forEach((c,ci)=>{ if(!c.w) return; wi++;
+    if(plan.j(wi)) keys.push(sid+'-j'+ci); });
+  wi=-1;
+  chunkKO(s.k).forEach((c,ci)=>{ if(c.plain) return; wi++;
+    if(plan.k(wi)) keys.push(sid+'-k'+ci); });
+  if(!keys.length) return true;
+  return keys.every(k=>isSolved(k,r));
+}
+/* 단계를 다 채웠으면 별을 주고 다음 회차로 넘긴다.
+   마친 회차 번호를 돌려준다. 아직이면 0 */
+function rollRound(lv){
+  const L=SENT[lv]; if(!L) return 0;
+  let cleared=0;
+  for(let g=0;g<RN;g++){
+    const r=curR(lv), a=(ST.done[r]||{})[lv]||[];
+    if(a.length<L.s.length) break;
+    if((ST.star[lv]||0)<r){ ST.star[lv]=r; cleared=r; }
+    if(r<RN) ST.r[lv]=r+1; else break;
+  }
+  return cleared;
+}
+/* 설명이나 낱말 정보가 있는 문장인지 */
+function hasNote(s){
+  if(s.t) return true;
+  return s.j.some(id=>{ const w=WORDS[id];
+    return w&&w.f&&!NSKIP.test(id)&&w.f.some(g=>NPRIO.test(g.g)||NFORM.test(g.g)); });
+}
+
+/* ── 표시 모드 · 퀴즈 ────────────────────────
+   jp  일본어만 보임 (한국어가 가려짐)  ← 기본
+   ko  한국어만 보임 (일본어가 가려짐)
+   all 둘 다 보임 */
+/* 무엇을 가릴지는 이제 회차가 정한다.
+   보기 단추를 감춰 두었으므로, 예전에 「모두 보기」로 두었던 사람이
+   가림 없는 화면에 갇히지 않도록 되돌린다.
+   단추를 되살릴 때 이 줄을 지우면 「모두 보기」가 가림 끄기가 된다 */
+let MODE='jp';
+let QSTAT={}; try{ QSTAT=JSON.parse(DB.get('jp3000-quiz')||'{}'); }catch(e){ QSTAT={}; }
+Object.keys(QSTAT).forEach(k=>{ if(k.indexOf('ko:')===0) delete QSTAT[k]; });
+function saveStat(){ DB.set('jp3000-quiz',JSON.stringify(QSTAT)); }
+/* 맞힌 자리. 값은 회차 비트를 모은 것이다.
+   1이면 1회차에서만, 3이면 1·2회차에서, 7이면 세 회차 모두 맞혔다는 뜻.
+   옛 기록은 값이 모두 1이라 그대로 1회차 기록으로 읽힌다 */
+let QDONE={}; try{ QDONE=JSON.parse(DB.get('jp3000-solved')||'{}'); }catch(e){ QDONE={}; }
+function saveDone(){ DB.set('jp3000-solved',JSON.stringify(QDONE)); }
+function isSolved(key,r){ return ((QDONE[key]|0)&rbit(r))!==0; }
+function markSolved(key,r){ QDONE[key]=(QDONE[key]|0)|rbit(r); }
+
+/* 같은 뜻으로 인정할 짝. お·ご가 붙고 안 붙는 것은 자동으로 찾는다 */
+const EQMAP={};
+(function(){
+  const put=(a,b,note)=>{ (EQMAP[a]=EQMAP[a]||[]).push([b,note]);
+                          (EQMAP[b]=EQMAP[b]||[]).push([a,note]); };
+  (window.EQ||[]).forEach(([a,b,n])=>{ if(WORDS[a]&&WORDS[b]) put(a,b,n); });
+  const byT={}; Object.keys(WORDS).forEach(k=>{ byT[WORDS[k].t]=k; });
+  Object.keys(WORDS).forEach(k=>{
+    const t=WORDS[k].t;
+    if(t.indexOf('お')!==0&&t.indexOf('ご')!==0) return;
+    const hit=byT[t.slice(1)];
+    if(hit&&hit!==k) put(k,hit,'앞에 '+t[0]+'를 붙이면 더 공손한 말이 된다');
+  });
+})();
+function eqOf(a,b){ const l=EQMAP[a]; if(!l) return null;
+  const hit=l.find(([k])=>k===b); return hit?hit[1]:null; }
+
+const PARTICLES=['wa','ga','wo','ni','de','he','no','mo','to','kara','made','ka','yori'];
+function seeded(n){ const x=Math.sin(n)*10000; return x-Math.floor(x); }
+function seedOf(s){ let v=0; for(let i=0;i<s.length;i++) v+=s.charCodeAt(i)*(i+1); return v; }
+/* 글자가 겹칠수록 높은 점수 */
+function sim(a,b){
+  if(a===b) return -1;
+  const A=[...a], B=[...b], used=new Array(B.length).fill(false);
+  let same=0;
+  A.forEach(c=>{ const i=B.findIndex((d,j)=>!used[j]&&d===c); if(i>=0){used[i]=true;same++;} });
+  let s=same*2/(A.length+B.length);
+  if(A[0]===B[0]) s+=0.30;
+  if(A[A.length-1]===B[B.length-1]) s+=0.15;
+  if(A.length===B.length) s+=0.15;
+  return s;
+}
+function pick3(cands,seed){
+  const top=cands.filter(c=>c.s>=0).sort((a,b)=>b.s-a.s).slice(0,9);
+  const out=[]; let i=0;
+  while(out.length<3&&i<300&&top.length){
+    const v=top[Math.floor(seeded(seed+i*7.3)*Math.min(top.length,i<60?5:top.length))];
+    if(v&&out.indexOf(v.v)<0) out.push(v.v);
+    i++;
+  }
+  return out;
+}
+function shuffle4(arr,seed){
+  const a=arr.slice();
+  for(let j=a.length-1;j>0;j--){ const r=Math.floor(seeded(seed+j*3.1)*(j+1));
+    const t=a[j]; a[j]=a[r]; a[r]=t; }
+  return a;
+}
+/* 은/는처럼 앞 글자에 따라 갈리는 조사는 한 덩어리로 보여준다 */
+const KPAIR=[['은','는'],['이','가'],['을','를'],['와','과'],['이라고','라고'],['이에요','예요'],['으로','로']];
+/* 받침이 있으면 true */
+function hasBat(w){
+  const s=String(w).trim(); if(!s) return false;
+  const c=s.charCodeAt(s.length-1);
+  return (c>=0xAC00&&c<=0xD7A3) ? ((c-0xAC00)%28!==0) : false;
+}
+/* 앞말에 맞는 조사 꼴로 바꾼다.  이름+은 → 이름은 / 주소+은 → 주소는 */
+const JOSA=[['은','는'],['이','가'],['을','를'],['과','와'],['으로','로'],['이라고','라고']];
+function fitJosa(word,josa){
+  const j=String(josa).trim(); if(!j) return '';
+  const pair=JOSA.find(p=>p.indexOf(j)>=0);
+  if(!pair) return j;
+  return hasBat(word)?pair[0]:pair[1];
+}
+/* 서술은 어미만 갈아 끼워 보기를 만든다.
+   「않습니다」 → 않았습니다 / 않겠습니다 / 않을 겁니다
+   불규칙이 많으므로 안전한 꼴만 쓰고, 애매하면 만들지 않는다 */
+const ENDRULE=[
+  /* 끝말 그대로를 갈아 끼우는 짝. 앞의 것이 길수록 먼저 맞춘다 */
+  ['있습니다',   ['있었습니다','있겠습니다','있을 겁니다','없습니다']],
+  ['없습니다',   ['없었습니다','없겠습니다','없을 겁니다','있습니다']],
+  ['합니다',     ['했습니다','하겠습니다','할 겁니다','하지 않습니다']],
+  ['입니다',     ['이었습니다','일 겁니다','이 아닙니다','입니까']],
+  ['않습니다',   ['않았습니다','않겠습니다','않을 겁니다','않습니까']],
+  ['습니다',     ['었습니다','겠습니다','을 겁니다','습니까']],
+  ['습니까',     ['었습니까','겠습니까','습니다']],
+  ['주세요',     ['주시겠습니까','주셨습니다','주지 마세요']],
+  ['세요',       ['셨습니다','시겠습니까','지 마세요']],
+  ['마세요',     ['마셨습니다','말아 주세요','하세요']],
+  ['입니',       ['이었습니','일 겁니']],
+  ['있습니',     ['있었습니','있겠습니']],
+  ['습니',       ['었습니','겠습니']]
+];
+function endingAlts(word){
+  const w=String(word).trim(), out=[];
+  for(const [tail,alts] of ENDRULE){
+    if(!w.endsWith(tail)) continue;
+    const stem=w.slice(0,w.length-tail.length);
+    /* 어간이 비면(=끝말이 전부) 그대로, 아니면 어간+새 어미 */
+    alts.forEach(a=>{ const v=stem+a; if(v!==w&&out.indexOf(v)<0) out.push(v); });
+    break;                       /* 가장 긴 짝 하나만 쓴다 */
+  }
+  return out;
+}
+function kNorm(t){
+  const s=String(t).trim();
+  const hit=KPAIR.find(p=>p.indexOf(s)>=0);
+  return hit?hit.join('/'):s.replace(/\([^)]*\)$/,'').trim();
+}
+/* 문장에 실제로 나온 「말+조사」 덩어리.
+   보기를 만들어 내기 전에 여기 있는 것부터 쓴다 */
+let CHUNKPOOL=null;
+function buildChunkPool(){
+  CHUNKPOOL={byHead:{}, byGroup:{}, all:[], jpByHead:{}, jpAll:[]};
+  const add=(o,k,v)=>{ if(!k||!v)return; (o[k]=o[k]||[]); if(o[k].indexOf(v)<0) o[k].push(v); };
+  for(const lv in SENT){
+    if(+lv===RV) continue;
+    SENT[lv].s.forEach(s=>{
+      const jc=chunkJP(s.j), kc=chunkKO(s.k);
+      jc.forEach(c=>{
+        if(!c.w||c.ids.length<2) return;
+        const key=c.ids.join('|'), head=c.ids[0];
+        add(CHUNKPOOL.jpByHead,head,key);
+        if(CHUNKPOOL.jpAll.indexOf(key)<0) CHUNKPOOL.jpAll.push(key);
+      });
+      kc.forEach((c,i)=>{
+        if(c.plain||c.toks.length<2) return;
+        const txt=c.toks.map(x=>x[0]).join('').trim();
+        const head=c.toks[0][0].trim();
+        if(!txt||txt===head) return;
+        add(CHUNKPOOL.byHead,head,txt);
+        const j=jc[i];
+        if(j&&j.ids&&WORDS[j.ids[0]]) add(CHUNKPOOL.byGroup,WORDS[j.ids[0]].g,txt);
+        if(CHUNKPOOL.all.indexOf(txt)<0) CHUNKPOOL.all.push(txt);
+      });
+    });
+  }
+}
+let KOPOOL=null;
+function buildKoPool(){
+  KOPOOL={byP:{},byG:{}};
+  const push=(o,k,v)=>{ if(!k||!v)return; (o[k]=o[k]||[]).push(v); };
+  for(const lv in SENT) SENT[lv].s.forEach(s=>s.k.forEach(([w,c],i)=>{
+    const t=kNorm(w); if(!t||/^[,.?!]$/.test(t)) return;
+    push(KOPOOL.byP,c,t);
+    if(s.j.length===s.k.length && WORDS[s.j[i]]) push(KOPOOL.byG,WORDS[s.j[i]].g,t);
+  }));
+  Object.values(WORDS).forEach(w=>{
+    if(!w.m) return;
+    w.m.split(',').forEach(x=>{ const t=x.trim();
+      if(!t||/^~/.test(t)) return;
+      const n=kNorm(t); push(KOPOOL.byP,w.p,n); push(KOPOOL.byG,w.g,n); });
+  });
+  for(const o of [KOPOOL.byP,KOPOOL.byG]) for(const k in o) o[k]=[...new Set(o[k])];
+}
+
+/* 보기 만들기 — 낱말 단위 */
+function optsJP(ans,seed){
+  const w=WORDS[ans];
+  const kanjiOf=t=>t.replace(/\{([^|{}]+)\|[^|{}]+\}/g,'$1');
+  const kanaOf =t=>t.replace(/\{[^|{}]+\|([^|{}]+)\}/g,'$1');
+  const aK=kanjiOf(w.t), aY=kanaOf(w.t);
+  const cands=Object.keys(WORDS).map(k=>{ const t=WORDS[k].t;
+    let s=Math.max(sim(aK,kanjiOf(t)),sim(aY,kanaOf(t)));
+    if(s<0) return {v:k,s:-1};
+    if(eqOf(ans,k)!=null) return {v:k,s:-1};
+    if(WORDS[k].g===w.g) s+=1.2;
+    if(WORDS[k].p===w.p) s+=0.4;
+    return {v:k,s}; });
+  return shuffle4(pick3(cands,seed).concat([ans]),seed);
+}
+function optsKO(ans,seed){
+  if(!KOPOOL) buildKoPool();
+  const w=WORDS[ans], m=(w.m||'').split(',')[0].trim();
+  const pool=(KOPOOL.byG[w.g]&&KOPOOL.byG[w.g].length>=6)?KOPOOL.byG[w.g]:(KOPOOL.byP[w.p]||[]);
+  const cands=pool.map(v=>({v,s:sim(m,v)+0.4}));
+  return shuffle4(pick3(cands,seed).concat([m]),seed);
+}
+
+/* ── 문제 열기 ────────────────────────────
+   조사가 붙은 덩어리는 통째로 묻는다 */
+function openQuiz(el){
+  const type=el.dataset.t, sid=el.dataset.s, seed=seedOf(sid);
+  let opts, ans, cls, jkey=null, rawAns=null;
+  if(type==='j'){
+    ans=el.dataset.q; cls='jp';
+    const ids=ans.split('|'), head=ids[0], tail=ids.slice(1);
+    jkey=head;
+    const show=l=>l.map(i=>ruby(WORDS[i].t)).join('');
+    const cand=[];
+    if(!CHUNKPOOL) buildChunkPool();
+    /* 단위·접미사가 붙은 덩어리는 실제로 쓰인 것만 쓴다 (三時 ○ / 万時 ×) */
+    const isUnit=tail.some(t=>SUFJP.has(t));
+    if(isUnit){
+      const same=[];
+      Object.keys(CHUNKPOOL.jpByHead).forEach(hd=>{
+        (CHUNKPOOL.jpByHead[hd]||[]).forEach(v=>{
+          if(v!==ans&&v.split('|').slice(1).join('|')===tail.join('|')) same.push(v); }); });
+      pick3(same.map(v=>({v,s:sim(show(ans.split('|')),show(v.split('|')))+0.4})),seed)
+        .forEach(v=>{ if(cand.length<3&&cand.indexOf(v)<0) cand.push(v); });
+      (CHUNKPOOL.jpByHead[head]||[]).forEach(v=>{
+        if(cand.length<3&&v!==ans&&cand.indexOf(v)<0) cand.push(v); });
+    }
+    if(!isUnit&&tail.length===1&&WORDS[tail[0]]&&WORDS[tail[0]].p==='p'){
+      /* 조사만 바꾼 보기 둘 + 앞말을 바꾼 보기 하나 */
+      const pt=PARTICLES.filter(k=>WORDS[k]&&k!==tail[0]);
+      [Math.floor(seeded(seed*1.7)*pt.length),
+       Math.floor(seeded(seed*2.9)*pt.length)].forEach(i=>{
+        const v=head+'|'+pt[i]; if(pt[i]&&cand.indexOf(v)<0) cand.push(v); });
+      const near=optsJP(head,seed).filter(k=>k!==head)[0];
+      if(near&&cand.length<3) cand.push(near+'|'+tail[0]);
+    }
+    if(cand.length<3&&!isUnit){
+      optsJP(head,seed).filter(k=>k!==head).forEach(k=>{
+        const v=k+(tail.length?'|'+tail.join('|'):'');
+        if(cand.length<3&&cand.indexOf(v)<0&&v!==ans) cand.push(v); });
+    }
+    if(cand.length<3&&isUnit){
+      pick3(CHUNKPOOL.jpAll.filter(v=>v!==ans&&cand.indexOf(v)<0)
+        .map(v=>({v,s:sim(show(ans.split('|')),show(v.split('|')))+0.3})),seed)
+        .forEach(v=>{ if(cand.length<3) cand.push(v); });
+    }
+    opts=shuffle4(cand.slice(0,3).concat([ans]),seed).map(v=>({v,html:show(v.split('|'))}));
+  }else{
+    if(!KOPOOL) buildKoPool();
+    const row=el.closest('.row'), s=SENT[ST.lv].s.find(x=>x.n===+row.dataset.n);
+    const ci=+el.dataset.q, ck=chunkKO(s.k)[ci], toks=ck.toks;
+    ans=toks.map(x=>x[0]).join('').trim(); rawAns=ans; cls='ko';
+    const hw=toks[0][0].trim();
+    let part=toks.slice(1).map(x=>x[0].trim()).join('');
+    /* 「까」·「요」는 조사가 아니라 어미다. 조사 보기를 만들지 않는다 */
+    const ENDTOK=/^(까|요|네|죠|군요|는데요)$/;
+    if(ENDTOK.test(part)) part='';
+    let g=null;
+    const jc=chunkJP(s.j)[ci];
+    if(jc&&WORDS[jc.ids[0]]){ jkey=jc.ids[0]; g=WORDS[jkey].g; }
+    if(!jkey) jkey=s.j.find(id=>{ const x=WORDS[id];
+      return x&&x.m&&x.m.split(',').some(m=>kNorm(m)===kNorm(hw)); })||null;
+    if(!g&&jkey) g=WORDS[jkey].g;
+    const cand=[];
+    if(part){
+      if(!CHUNKPOOL) buildChunkPool();
+      /* 1순위: 같은 앞말이 다른 조사와 쓰인 실제 덩어리 */
+      (CHUNKPOOL.byHead[hw]||[]).forEach(v=>{
+        if(cand.length<3&&v!==ans&&cand.indexOf(v)<0) cand.push(v); });
+      /* 2순위: 같은 뜻갈래의 다른 낱말이 만든 실제 덩어리 */
+      if(cand.length<3&&g){
+        const gl=(CHUNKPOOL.byGroup[g]||[]).filter(v=>v!==ans&&!v.startsWith(hw));
+        pick3(gl.map(v=>({v,s:sim(ans,v)+0.4})),seed).forEach(v=>{
+          if(cand.length<3&&cand.indexOf(v)<0) cand.push(v); });
+      }
+      /* 3순위: 그래도 모자라면 받침에 맞는 조사로 만들어 쓴다 */
+      if(cand.length<3){
+        const KP=['은','이','을','과','에','에서','도','까지','부터','으로'];
+        const alt=KP.map(x=>fitJosa(hw,x)).filter(x=>kNorm(x)!==kNorm(part));
+        alt.forEach(x=>{ const v=hw+x;
+          if(cand.length<3&&cand.indexOf(v)<0&&v!==ans) cand.push(v); });
+      }
+    }
+    /* 조사가 붙을 수 없는 말은 앞말 후보에서 뺀다
+       (단위·수식어 등: 명 시 분 번 개 장 원 엔 …) */
+    const NOSUF=/^(명|시|분|초|번|개|장|권|잔|병|원|엔|도|층|번선|호|일|월|년|주|살|세|배|회|점|위|째|여|약|반)$/;
+    /* 이미 조사·어미가 붙어 있거나 띄어쓰기가 든 말에는 조사를 또 붙이지 않는다 */
+    const HASJOSA=/(은|는|이|가|을|를|의|에|에서|도|와|과|까지|부터|로|으로|라고|이라고)$|[\s~]/;
+    /* 어미가 잘린 말(주시겠습니·입니 …)에는 조사를 붙이지 않는다 */
+    const CUTEND=/(습니|입니|겠습니|ㅂ니|시겠|하겠)$/;
+    /* 서술·동사는 어미를 갈아 끼운 보기를 먼저 쓴다 */
+    if(!part&&/^[cva]$/.test(toks[0][1])){
+      endingAlts(ans).forEach(v=>{ if(cand.length<3&&cand.indexOf(v)<0&&v!==ans) cand.push(v); });
+    }
+    const pool=((g&&KOPOOL.byG[g]&&KOPOOL.byG[g].length>=6)?KOPOOL.byG[g]:(KOPOOL.byP[toks[0][1]]||[]))
+      .filter(v=>!part||(!NOSUF.test(v)&&!HASJOSA.test(v)&&!CUTEND.test(v)&&v.length>=hw.length-1));
+    if(!part){
+      pick3(pool.map(v=>({v,s:sim(hw,v)+0.4})),seed).forEach(v=>{
+        if(cand.length<3&&cand.indexOf(v)<0&&v!==ans) cand.push(v); });
+    }
+    /* 그래도 모자라면 조사만 바꾼 것으로 채운다 */
+
+    opts=shuffle4(cand.slice(0,3).concat([ans]),seed).map(v=>({v,html:esc(v)}));
+  }
+  qpop.innerHTML='<div class="qq">'+(type==='j'?'어느 일본어가 맞을까요':'어느 뜻이 맞을까요')+'</div>'+
+    opts.map(o=>`<button class="qopt ${cls}" data-v="${esc(o.v)}">${o.html}</button>`).join('')+
+    '<div class="qmsg"></div>';
+  qpop.dataset.ans=ans; qpop.dataset.type=type; qpop.dataset.jkey=jkey||''; qpop.dataset.raw=rawAns||''; qpop.dataset.first='1'; qpop.dataset.key=(type==='j'?ans:jkey)||'';
+  /* 앞서 열었던 문제의 깜빡임을 먼저 지운다 */
+  document.querySelectorAll('.blink').forEach(x=>x.classList.remove('blink'));
+  qpop._el=el; el.classList.add('blink');
+  /* 반대쪽 언어의 같은 자리도 함께 깜빡인다.
+     화면 순서가 아니라 데이터의 덩어리 번호로 맞춘다.
+     덩어리 개수가 다르면 짝이 없으므로 건드리지 않는다 */
+  (function(){
+    const row=el.closest('.row'); if(!row) return;
+    const s=SENT[ST.lv].s.find(x=>x.n===+row.dataset.n); if(!s) return;
+    /* 마침표 같은 사전에 없는 조각은 빼고 센다 */
+    /* 양쪽 덩어리 수가 같을 때만 짝을 찾는다.
+       달라도 대상 자리는 이미 깜빡이므로 문제되지 않는다 */
+    const mine=[...row.querySelectorAll('.'+(type==='j'?'jp':'ko')+' > .ch')];
+    const other=[...row.querySelectorAll('.'+(type==='j'?'ko':'jp')+' > .ch')];
+    if(mine.length!==other.length) return;
+    const ci=mine.indexOf(el);
+    if(ci>=0&&other[ci]) other[ci].classList.add('blink');
+  })();
+  closeAllPop('qpop'); qpop.classList.add('on');
+  qpop.style.top=''; qpop.style.left='';
+  const wide=innerWidth>560;
+  const qrow=el.closest('.row');
+  const qcard=qrow?qrow.querySelector('.card'):el;
+  const head=(document.querySelector('.topbar')||{getBoundingClientRect:()=>({bottom:60})})
+               .getBoundingClientRect().bottom;
+  if(wide){
+    /* 팝업은 문장 카드 전체를 피해 붙인다. 가린 자리(el)에만 맞추면
+       화면이 아래쪽에 있을 때 위로 뒤집히면서 그 문장을 덮어 버린다.
+       자리가 모자라면 먼저 페이지를 움직여 자리를 만든다.
+       팝업은 fixed 라서 자리를 잡은 뒤에 스크롤하면 어긋난다.
+       그래서 스크롤을 먼저 끝내고(부드럽게 하지 않는다) 다시 재고 붙인다 */
+    const r=el.getBoundingClientRect(), ph=qpop.offsetHeight, pw=qpop.offsetWidth;
+    let box=qcard.getBoundingClientRect();
+    const fitsBelow=b=>b.bottom+10+ph<=innerHeight-10;
+    let dy=0;
+    if(box.top<head+12) dy=box.top-(head+12);                    /* 머리띠에 가렸다: 위로 */
+    else if(!fitsBelow(box))                                     /* 아래가 좁다: 밀 수 있는 만큼만 */
+      dy=Math.min((box.bottom+10+ph)-(innerHeight-10), box.top-(head+12));
+    if(dy){ scrollBy({top:dy,behavior:'auto'}); box=qcard.getBoundingClientRect(); }
+    let top=fitsBelow(box)?box.bottom+10:box.top-ph-10;
+    top=Math.max(10,Math.min(top,innerHeight-ph-10));
+    qpop.style.top=top+'px';
+    qpop.style.left=Math.max(12,Math.min(innerWidth-pw-12,r.left+r.width/2-pw/2))+'px';
+    return;
+  }
+  /* 좁은 화면에서는 팝업이 아래에 붙박이로 올라오므로,
+     대상 카드가 그 위로 올라오도록 페이지를 민다 */
+  requestAnimationFrame(()=>{
+    const box=qcard.getBoundingClientRect();
+    const pt=qpop.getBoundingClientRect().top || innerHeight*0.5;
+    if(box.bottom>pt-14){ scrollBy({top:box.bottom-(pt-20),behavior:'smooth'}); return; }
+    /* 머리띠에 가렸을 때만 내린다 */
+    if(box.top<head+10) scrollBy({top:box.top-head-16,behavior:'smooth'});
+  });
+}
+function closeQuiz(){ qpop.classList.remove('on');
+  document.querySelectorAll('.blink').forEach(x=>x.classList.remove('blink')); }
+/* 정답 판정. 맞으면 설명(또는 빈 문자열)을, 틀리면 null을 돌려준다 */
+function judge(pick){
+  const ans=qpop.dataset.ans, raw=qpop.dataset.raw, type=qpop.dataset.type, jkey=qpop.dataset.jkey;
+  if(pick===ans) return '';                       /* 그대로 맞음 */
+  if(raw&&pick===raw) return '';                  /* 은/는처럼 표기만 다름 */
+  if(type==='j'){                                 /* 같은 뜻 짝 (일본어) */
+    const n=eqOf(ans,pick); if(n!=null) return n;
+  }else if(jkey){                                 /* 같은 뜻 짝 (한국어) */
+    const hit=(EQMAP[jkey]||[]).find(([k])=>{
+      const m=WORDS[k]&&WORDS[k].m;
+      return m&&m.split(',').some(x=>kNorm(x)===pick);
+    });
+    if(hit) return hit[1];
+  }
+  return null;
+}
+qpop.addEventListener('click',e=>{
+  const o=e.target.closest('.qopt'); if(!o)return;
+  const key=qpop.dataset.key, first=qpop.dataset.first==='1';
+  /* 사전 단어와 연결되지 않으면 기록하지 않는다 */
+  const st=key?(QSTAT[key]||(QSTAT[key]={o:0,x:0})):{o:0,x:0};
+  const note=judge(o.dataset.v);
+  if(note!==null){
+    o.classList.add('ok'); if(first) st.o++; beepOk();
+    qpop.querySelector('.qmsg').textContent = note ? '이것도 맞습니다. '+note : '정답입니다';
+    if(note){ const t=qpop.querySelector(`.qopt[data-v="${qpop.dataset.ans}"]`); if(t) t.classList.add('ok'); }
+    let nextEl=null, cleared=0;
+    if(qpop._el){
+      /* 같은 문장에서 다음 자리로 넘어간다.
+         끝에 닿으면 앞쪽에 남은 자리로 돌아온다 */
+      const row=qpop._el.closest('.row');
+      if(row){
+        const all=maskOrder(row);
+        const i=all.indexOf(qpop._el);
+        nextEl = all.slice(i+1)[0] || all.slice(0,i)[0] || null;
+      }
+      qpop._el.classList.remove('msk','ng','blink');
+      markSolved(qpop._el.dataset.s,curR(ST.lv)); saveDone();
+      /* 그 문장의 가린 자리를 다 풀었으면 완료로 올리고,
+         「더 배워보기」 잠금을 푼다. 단계를 다 채웠으면 회차가 넘어간다 */
+      if(row){ const sx=SENT[ST.lv].s.find(x=>x.n===+row.dataset.n);
+        if(sx&&sentDone(sx)){
+          const btn=row.querySelector('.tbtn2'); if(btn) btn.hidden=false;
+          row.classList.add('done');
+          const a=doneList(ST.lv);
+          if(a.indexOf(sx.n)<0) a.push(sx.n);
+          cleared=rollRound(ST.lv);
+          save();
+        } }
+    }
+    saveStat(); paintRv();
+    setTimeout(()=>{
+      closeQuiz();
+      if(cleared){
+        build(); centerLv(); scrollTo({top:0});
+        celebrate(cleared);
+        return;
+      }
+      if(nextEl&&document.body.contains(nextEl)) openQuiz(nextEl);
+    }, note?1800:600);
+  }else{
+    o.classList.add('ng'); o.disabled=true; beepNg();
+    if(first){ st.x++; qpop.dataset.first='0'; saveStat(); paintRv();
+      if(qpop._el) qpop._el.classList.add('ng'); }
+    qpop.querySelector('.qmsg').textContent='다시 골라 보세요';
+  }
+});
+/* ── 색 구분 켜고 끄기 ─────────────────────
+   끄면 body 에 mono 가 붙어 품사 색이 모두 글자색으로 바뀐다 */
+let COLOR=DB.get('jp3000-color')!=='off';
+function applyColor(){
+  document.body.classList.toggle('mono',!COLOR);
+  $('#bColor').setAttribute('aria-pressed',COLOR?'true':'false');
+  DB.set('jp3000-color',COLOR?'on':'off');
+}
+$('#bColor').onclick=()=>{ COLOR=!COLOR; applyColor();
+  say(COLOR?'품사를 색으로 구분합니다':'색 구분을 껐습니다'); };
+const MODES=[['ko','한국어만','c-ko'],['jp','일본어만','c-jp'],['all','모두 보기','c-all']];
+const EYE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.7"/></svg>';
+function applyMode(){
+  document.body.classList.remove('m-jp','m-ko','m-all');
+  document.body.classList.add('m-'+MODE);
+  const b=$('#bEye'); b.className='tgl ic eye m-'+MODE; b.innerHTML=EYE;
+  DB.set('jp3000-mode',MODE);
+}
+$('#bEye').onclick=function(){
+  mpop.innerHTML=MODES.map(([v,n,c])=>
+    `<button class="mopt" data-m="${v}" aria-current="${MODE===v}"><i class="${c}"></i>${n}</button>`).join('');
+  closeAllPop('mpop'); mpop.classList.add('on'); bd.classList.add('on');
+  const r=this.getBoundingClientRect();
+  mpop.style.top=(r.bottom+8)+'px';
+  mpop.style.left=Math.min(innerWidth-182,Math.max(10,r.right-170))+'px';
+};
+mpop.addEventListener('click',e=>{
+  const o=e.target.closest('.mopt'); if(!o)return;
+  MODE=o.dataset.m; applyMode(); build();
+  mpop.classList.remove('on'); bd.classList.remove('on');
+});
+/* ── 키보드 ────────────────────────────────
+   ← → 단계 이동 · [ ] 쪽 이동 · 1~4 보기 고르기 · ESC 닫기 */
+addEventListener('keydown',e=>{
+  if(/INPUT|TEXTAREA/.test((e.target.tagName||''))) return;
+  const k=e.key;
+  if(k==='Escape'){ closeAllPop(); return; }
+  const qp2=$('#qpop');
+  if(qp2.classList.contains('on')&&/^[1-4]$/.test(k)){
+    const o=qp2.querySelectorAll('.qopt')[+k-1]; if(o) o.click(); e.preventDefault(); return; }
+  const rv=document.querySelector('.rvopt');
+  if(rv&&/^[1-4]$/.test(k)){
+    const o=document.querySelectorAll('.rvopt')[+k-1]; if(o) o.click(); e.preventDefault(); return; }
+  if(k==='ArrowRight'||k==='ArrowLeft'){
+    const d=(k==='ArrowRight')?1:-1, n=ST.lv+d;
+    if(n>=0&&n<=60&&(n===0||SENT[n])){ ST.lv=n; ST.pg=0; save(); build(); centerLv(); scrollTo({top:0}); }
+    e.preventDefault(); return; }
+  if(k==='['||k===']'){ goPage(k===']'?1:-1); e.preventDefault(); return; }
+});
+$('#lvKana').onclick=()=>{ ST.lv=0; ST.pg=0; save(); build(); scrollTo({top:0}); };
+$('#bJump').onclick=jump;
+$('#bRv').onclick=()=>{ ST.lv=RV; ST.pg=0; startReview(); save(); build(); centerLv(); scrollTo({top:0}); };
+/* 오늘 볼 것이 몇 개인지 배지로 알린다 */
+function paintRv(){
+  const n=reviewQueue().length, b=$('#bRv');
+  let s=b.querySelector('.n'); if(!s){ s=document.createElement('span'); s.className='n'; b.appendChild(s); }
+  s.textContent=n?n:'';
+  b.setAttribute('aria-pressed',ST.lv===RV);
+}
+function jump(){const b=ST.bm[ST.lv]; if(b==null)return;
+  const L=SENT[ST.lv]; if(!L)return;
+  /* 북마크가 다른 쪽에 있으면 그 쪽으로 옮긴 뒤 이동한다 */
+  const idx=L.s.findIndex(s=>s.n===b);
+  if(idx>=0){ const pg=Math.floor(idx/25);
+    if(pg!==(ST.pg||0)){ ST.pg=pg; save(); build(); } }
+  const el=document.querySelector(`.row[data-n="${b}"]`);
+  if(el&&el.scrollIntoView)el.scrollIntoView({block:'center',behavior:'smooth'});}
+
+/* 백업 */
+/* 백업 코드: 연속 번호를 구간으로 묶는다  예) J2|1|1:1-25|1=7 */
+/* 퀴즈 기록 코드. 진도와 별도로 뽑는다 */
+function encQ(){
+  const a=Object.entries(QSTAT).map(([k,v])=>k+':'+v.o+'.'+v.x).join(',');
+  /* 값이 1(1회차만)이면 생략해서 짧게 둔다 */
+  const b=Object.keys(QDONE).filter(k=>QDONE[k])
+    .map(k=>QDONE[k]===1?k:k+'~'+QDONE[k]).join(',');
+  return 'Q2|'+a+'|'+b;
+}
+function decQ(s){
+  const p=String(s||'').trim().split('|');
+  if(p[0]!=='Q1'&&p[0]!=='Q2') throw 0;
+  const st={}, dn={};
+  (p[1]||'').split(',').filter(Boolean).forEach(x=>{
+    const i=x.lastIndexOf(':'); const k=x.slice(0,i), v=x.slice(i+1).split('.');
+    st[k]={o:+v[0]||0,x:+v[1]||0};
+  });
+  (p[2]||'').split(',').filter(Boolean).forEach(t=>{
+    const i=t.indexOf('~');
+    if(i<0) dn[t]=1; else dn[t.slice(0,i)]=+t.slice(i+1)||1; });
+  return {st,dn};
+}
+/* 이어진 번호는 1-5 처럼 줄여 쓴다 */
+function encDone(g){
+  const seg=[];
+  Object.keys(g||{}).forEach(lv=>{ const a=[...new Set(g[lv])].sort((x,y)=>x-y);
+    if(!a.length)return; const r=[]; let s=a[0],p=a[0];
+    for(let k=1;k<=a.length;k++){ const v=a[k];
+      if(v===p+1){p=v;continue;} r.push(s===p?s:s+'-'+p); s=p=v; }
+    seg.push(lv+':'+r.join(',')); });
+  return seg.join(';');
+}
+function decDone(str){
+  const out={};
+  (str||'').split(';').filter(Boolean).forEach(g=>{
+    const c=g.indexOf(':'), lv=g.slice(0,c), a=[];
+    g.slice(c+1).split(',').filter(Boolean).forEach(t=>{
+      const m=t.split('-').map(Number);
+      if(m.length===2){ for(let i=m[0];i<=m[1];i++) a.push(i); } else a.push(m[0]); });
+    out[lv]=a; });
+  return out;
+}
+const encMap=o=>Object.keys(o||{}).filter(k=>o[k]!=null&&o[k]!=='').map(k=>k+'='+o[k]).join(',');
+function decMap(str){ const o={};
+  (str||'').split(',').filter(Boolean).forEach(t=>{ const q=t.split('='); o[q[0]]=+q[1]; });
+  return o; }
+function encST(){
+  return 'J3|'+ST.lv+'|'+encDone(ST.done[1])+'|'+encDone(ST.done[2])+'|'+encDone(ST.done[3])
+    +'|'+encMap(ST.bm)+'|'+encMap(ST.star)+'|'+encMap(ST.r);
+}
+/* 옛 J2 코드도 읽는다. 그때는 회차가 없었으므로 1회차 진도로 넣는다 */
+function decST(s){
+  const p=String(s).trim().split('|');
+  if(p[0]==='J2'){
+    const one=decDone(p[2]);
+    const st={v:3,lv:(p[1]===''||p[1]==null)?1:+p[1],pg:0,
+      r:{},done:{1:one,2:{},3:{}},star:{},bm:decMap(p[3])};
+    Object.keys(one).forEach(lv=>{ const L=SENT[lv];
+      if(L&&one[lv].length>=L.s.length) st.star[lv]=1; });
+    return st;
+  }
+  if(p[0]!=='J3') throw new Error('형식이 다릅니다');
+  return {v:3,lv:(p[1]===''||p[1]==null)?1:+p[1],pg:0,
+    done:{1:decDone(p[2]),2:decDone(p[3]),3:decDone(p[4])},
+    bm:decMap(p[5]), star:decMap(p[6]), r:decMap(p[7])};
+}
+function renderStat(){
+  const solved=Object.keys(QDONE).filter(k=>k.indexOf(ST.lv+'-')===0).length;
+  const es=Object.entries(QSTAT).filter(([k])=>WORDS[k]);
+  if(!es.length){ $('#qstat').innerHTML='<span style="color:#A79E93">아직 푼 문제가 없습니다.</span>'; return; }
+  let o=0,x=0; es.forEach(([,v])=>{o+=v.o;x+=v.x;});
+  const tot=o+x, pc=tot?Math.round(o/tot*100):0;
+
+  /* 의미 그룹별 정답률 */
+  const g={};
+  es.forEach(([k,v])=>{ const w=WORDS[k]; if(!w||!w.g) return;
+    const a=g[w.g]||(g[w.g]={o:0,x:0}); a.o+=v.o; a.x+=v.x; });
+  const gl=Object.entries(g).filter(([,v])=>v.o+v.x>=3)
+    .map(([n,v])=>[n,v.o+v.x,Math.round(v.o/(v.o+v.x)*100)])
+    .sort((a,b)=>a[2]-b[2]).slice(0,8);
+
+  /* 자주 틀리는 단어 */
+  const bad=es.filter(([k,v])=>v.x>0&&WORDS[k]);
+
+  $('#qstat').innerHTML=
+    `<div class="stbar"><i class="o" style="width:${tot?o/tot*100:0}%"></i>`+
+    `<i class="x" style="width:${tot?x/tot*100:0}%"></i></div>`+
+    `<div class="stnum">`+
+      `<span class="o"><b>${o}</b>맞힘</span>`+
+      `<span class="x"><b>${x}</b>틀림</span>`+
+      `<span><b>${pc}%</b>정답률</span>`+
+      (solved?`<span><b>${solved}</b>이 단계</span>`:'')+
+    `</div>`+
+    (gl.length?`<div class="sth">약한 갈래 · 정답률이 낮은 순</div>`+
+      gl.map(([n,c,p])=>
+        `<div class="gr"><span class="nm">${n}</span>`+
+        `<span class="tr"><i class="${p<60?'low':p<80?'mid':''}" style="width:${p}%"></i></span>`+
+        `<span class="pc">${p}%</span></div>`).join(''):'')+
+    (bad.length?`<button class="rvlink" id="goRv">오답노트 <b>${bad.length}</b>개 ${ICO.ar}</button>`:'');
+  const g2=$('#goRv');
+  if(g2) g2.onclick=()=>{ closeSheet(); ST.lv=RV; ST.pg=0; startReview(); save(); build(); scrollTo({top:0}); centerLv(); };
+}
+function paintSnd(){
+  $('#sndrow').innerHTML=Object.entries(SNDSET).map(([k,v])=>
+    `<button class="sndbtn" data-s="${k}" aria-pressed="${SND===k}">${v.n}</button>`).join('');
+}
+$('#sndrow').addEventListener('click',e=>{
+  const b=e.target.closest('.sndbtn'); if(!b)return;
+  SND=b.dataset.s; DB.set('jp3000-snd',SND); paintSnd();
+  if(SND!=='off'){ initAudio(); beepOk(); }
+});
+function paintVoice(){
+  const row=$('#vrow'), note=$('#vnote'); if(!row) return;
+  if(!JALIST.length){
+    row.innerHTML='<span style="font-size:12.5px;color:#A79E93">일본어 음성이 없습니다.</span>';
+    note.textContent=''; return;
+  }
+  const cur=JAV?(JAV.voiceURI||JAV.name):'';
+  row.innerHTML=JALIST.map(v=>{
+    const id=v.voiceURI||v.name;
+    const nm=(v.name||'').replace(/\s*\((고품질|Enhanced|Premium)\)/i,'');
+    const hi=/enhanced|premium|고품질|高品質/i.test((v.name||'')+' '+(v.voiceURI||''));
+    return `<button class="sndbtn" data-v="${esc(id)}" aria-pressed="${cur===id}">${esc(nm)}${hi?' ✦':''}</button>`;
+  }).join('');
+  note.innerHTML = JALIST.length===1
+    ? '이 기기는 웹에 음성을 하나만 내줍니다. 설정에서 다른 음성을 받아도 여기 나오지 않을 수 있습니다.'
+    : '✦ 는 고품질 음성입니다.';
+}
+$('#vrow')&&$('#vrow').addEventListener('click',e=>{
+  const b=e.target.closest('.sndbtn'); if(!b)return;
+  DB.set('jp3000-voice',b.dataset.v);
+  JAV=JALIST.find(v=>(v.voiceURI||v.name)===b.dataset.v)||JAV;
+  paintVoice();
+  speakText('こんにちは。おはようございます。');
+});
+/* 지금 도는 회차만 되돌린다. 이미 얻은 별은 남긴다 */
+$('#bReset').onclick=()=>{
+  const pre=ST.lv+'-', r=curR(ST.lv), off=~rbit(r);
+  Object.keys(QDONE).forEach(k=>{ if(k.indexOf(pre)!==0) return;
+    QDONE[k]&=off; if(!QDONE[k]) delete QDONE[k]; });
+  ST.done[r][ST.lv]=[];
+  saveDone(); save(); build(); renderStat();
+  say(ST.lv+'단계 '+r+'회차를 다시 풀 수 있습니다');
+};
+$('#bResetAll').onclick=()=>{
+  QDONE={}; ST.done={1:{},2:{},3:{}}; ST.r={};
+  saveDone(); save(); build(); renderStat(); say('전체를 다시 풀 수 있습니다 (별은 남습니다)');
+};
+$('#bBack').onclick=()=>{ $('#code').value=encST(); $('#qcode').value=encQ(); renderStat(); paintTheme(); paintSnd(); paintVoice();
+  closeAllPop('sheet'); sheet.classList.add('on'); bd.classList.add('on'); };
+function closeSheet(){sheet.classList.remove('on');bd.classList.remove('on');}
+/* ── 확인 팝업 ────────────────────────────
+   되돌릴 수 없는 일을 하기 전에 한 번 더 묻는다 */
+function confirmBox(title,msg,okLabel,onOk){
+  cpop.innerHTML=`<h4>${esc(title)}</h4><p>${msg}</p>`+
+    `<div class="brow"><button class="btn" id="cNo">취소</button>`+
+    `<button class="btn danger" id="cYes">${esc(okLabel)}</button></div>`;
+  closeAllPop('cpop');
+  cpop.classList.add('on'); bd.classList.add('on');
+  const close=()=>{ cpop.classList.remove('on'); bd.classList.remove('on'); };
+  $('#cNo').onclick=close;
+  $('#cYes').onclick=()=>{ close(); onOk(); };
+}
+$('#bWipe').onclick=()=>{
+  confirmBox('전체 초기화',
+    '지금까지의 <b>진도·북마크·퀴즈 기록</b>이 모두 지워집니다.<br>되돌릴 수 없습니다.',
+    '지웁니다',
+    ()=>{
+      ST={v:3,lv:1,pg:0,r:{},done:{1:{},2:{},3:{}},star:{},bm:{}};
+      QSTAT={}; QDONE={};
+      DB.set(KEY,JSON.stringify(ST)); saveStat(); saveDone();
+      applyMode(); build(); centerLv(); renderStat();
+      closeSheet(); scrollTo({top:0});
+      say('모두 지웠습니다');
+    });
+};
+$('#sX').innerHTML=ICO.x;
+$('#sX').onclick=closeSheet;
+/* 시트를 아래로 끌어내려도 닫힌다 */
+(function(){
+  const g=$('#grip'), sh=$('#sheet'); let y0=null;
+  g.addEventListener('pointerdown',e=>{ y0=e.clientY; sh.style.transition='none'; try{g.setPointerCapture(e.pointerId);}catch(_){} });
+  g.addEventListener('pointermove',e=>{ if(y0==null)return;
+    const dy=Math.max(0,e.clientY-y0); sh.style.transform='translateY('+dy+'px)'; });
+  const up=e=>{ if(y0==null)return;
+    const dy=Math.max(0,(e.clientY||0)-y0);
+    sh.style.transition=''; sh.style.transform='';
+    if(dy>70) closeSheet();
+    y0=null; };
+  g.addEventListener('pointerup',up); g.addEventListener('pointercancel',up);
+})();
+$('#bQCopy').onclick=()=>{ const t=$('#qcode'); t.select();
+  try{ navigator.clipboard.writeText(t.value); }catch(e){ document.execCommand('copy'); }
+  say('퀴즈 기록을 복사했습니다'); };
+$('#bQLoad').onclick=()=>{
+  try{ const r=decQ($('#qcode').value);
+    QSTAT=r.st; QDONE=r.dn; saveStat(); saveDone(); build(); renderStat();
+    say('퀴즈 기록을 불러왔습니다');
+  }catch(e){ say('코드를 확인해 주세요'); }
+};
+$('#bCopy').onclick=()=>{const t=$('#code'); t.select(); t.setSelectionRange(0,99999);
+  (navigator.clipboard?navigator.clipboard.writeText(t.value):Promise.reject()).then(()=>say('복사했습니다'),()=>{document.execCommand('copy');say('복사했습니다');});};
+$('#bLoad').onclick=()=>{ try{ ST=decST($('#code').value);
+    save(); build(); centerLv(); closeSheet(); say('진도를 불러왔습니다');
+  }catch(e){ say('코드를 읽을 수 없습니다'); }};
+
+/* ── 효과음 ────────────────────────────────
+   파일을 쓰지 않고 브라우저가 직접 소리를 만든다.
+   용량이 늘지 않고 오프라인에서도 난다 */
+let AC=null, SND=DB.get('jp3000-snd')||'bell';
+function tone(freq,at,dur,vol,type){
+  if(!AC) return;
+  const o=AC.createOscillator(), g=AC.createGain();
+  o.type=type||'sine'; o.frequency.value=freq;
+  const t=AC.currentTime+at;
+  g.gain.setValueAtTime(0,t);
+  g.gain.linearRampToValueAtTime(vol,t+0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g); g.connect(AC.destination);
+  o.start(t); o.stop(t+dur+0.02);
+}
+function initAudio(){
+  if(AC){ if(AC.state==='suspended') AC.resume(); return; }
+  try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ AC=null; }
+}
+/* 아이폰은 사용자가 화면을 한 번 건드려야 소리가 난다 */
+['pointerdown','touchstart'].forEach(ev=>
+  document.addEventListener(ev,()=>{ if(SND!=='off') initAudio(); },{once:true,passive:true}));
+/* 효과음 세트. 이름 → [정답 소리, 오답 소리] */
+const SNDSET={
+  bell:{n:'종',
+    ok(){ tone(784,0,0.16,0.10); tone(1175,0.09,0.30,0.085); },
+    ng(){ tone(196,0,0.14,0.07,'triangle'); }},
+  drop:{n:'물방울',
+    ok(){ tone(1318,0,0.07,0.075); tone(1760,0.05,0.16,0.06); },
+    ng(){ tone(330,0,0.06,0.06); tone(220,0.05,0.12,0.05); }},
+  wood:{n:'나무',
+    ok(){ tone(660,0,0.05,0.07,'triangle'); tone(990,0.05,0.09,0.06,'triangle'); },
+    ng(){ tone(160,0,0.08,0.06,'square'); }},
+  chord:{n:'화음',
+    ok(){ tone(523,0,0.34,0.055); tone(659,0.01,0.34,0.05); tone(784,0.02,0.36,0.045); },
+    ng(){ tone(349,0,0.20,0.05); tone(415,0.01,0.20,0.04); }},
+  off:{n:'없음', ok(){}, ng(){}}
+};
+function beepOk(){ const s=SNDSET[SND]; if(!s||SND==='off')return; initAudio(); s.ok(); }
+function beepNg(){ const s=SNDSET[SND]; if(!s||SND==='off')return; initAudio(); s.ng(); }
+
+/* ── 발음 듣기 ─────────────────────────────
+   한자 대신 후리가나를 넘긴다. 조사 は·へ·を 는 y 값으로 교정한다 */
+let JAV=null;
+/* 같은 일본어라도 음성마다 품질 차이가 크다.
+   고품질(Enhanced/Premium)을 먼저 고르고, Otoya를 가장 앞에 둔다 */
+function voiceScore(v){
+  const n=(v.name||'')+' '+(v.voiceURI||'');
+  let s=0;
+  if(/otoya/i.test(n)) s+=4;
+  if(/kyoko/i.test(n)) s+=2;
+  if(/o-?ren/i.test(n)) s+=2;
+  if(/enhanced|premium|고품질|高品質/i.test(n)) s+=8;
+  if(/compact|eloquence/i.test(n)) s-=6;
+  if(v.localService) s+=1;
+  return s;
+}
+let JALIST=[];
+function pickVoice(){
+  try{
+    JALIST=(speechSynthesis.getVoices()||[]).filter(v=>/^ja/i.test(v.lang));
+    const want=DB.get('jp3000-voice');
+    JAV=(want&&JALIST.find(v=>(v.voiceURI||v.name)===want))
+        || JALIST.slice().sort((a,b)=>voiceScore(b)-voiceScore(a))[0] || null;
+  }catch(e){ JAV=null; JALIST=[]; }
+  document.body.classList.toggle('notts',!JAV);
+  if(document.getElementById('vrow')) paintVoice();
+}
+if('speechSynthesis' in window){ pickVoice(); speechSynthesis.addEventListener('voiceschanged',pickVoice); }
+else document.body.classList.add('notts');
+function reading(ids){ return ids.map(id=>{ const w=WORDS[id];
+  if(!w) return id;
+  return w.y || w.t.replace(/\{[^|{}]+\|([^|{}]+)\}/g,'$1'); }).join(''); }
+function speakText(t){ if(!JAV)return;
+  try{ speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(t); u.lang='ja-JP'; u.voice=JAV; u.rate=0.86;
+    speechSynthesis.speak(u); }catch(e){} }
+function speak(i,btn){ const L=SENT[ST.lv]; if(!L||!JAV)return;
+  try{ speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(reading(L.s[i].j));
+    u.lang='ja-JP'; u.voice=JAV; u.rate=1; u.pitch=1;
+    document.querySelectorAll('.spk.on').forEach(x=>x.classList.remove('on'));
+    if(btn){ btn.classList.add('on'); u.onend=u.onerror=()=>btn.classList.remove('on'); }
+    speechSynthesis.speak(u);
+  }catch(e){ say('이 기기에서는 발음을 재생할 수 없습니다'); } }
+
+/* ── 회차를 마쳤을 때의 연출 ─────────────────
+   색종이는 라이브러리 없이 캔버스에 직접 그린다.
+   앱 색을 그대로 써서 금색·초록·크림으로만 낸다 */
+const FXC=['#CBA258','#00704A','#7FD1AE','#EFE3CE'];
+function confetti(cx,cy){
+  if(reduceMotion()) return;
+  const cv=$('#fx'); if(!cv||!cv.getContext) return;
+  const g=cv.getContext('2d'), dpr=Math.min(devicePixelRatio||1,2);
+  const W=innerWidth, H=innerHeight;
+  cv.width=W*dpr; cv.height=H*dpr; cv.style.width=W+'px'; cv.style.height=H+'px';
+  g.setTransform(dpr,0,0,dpr,0,0);
+  cv.classList.add('on');
+  const P=[];
+  for(let i=0;i<90;i++){
+    const a=Math.random()*Math.PI*2, sp=3+Math.random()*8;
+    P.push({x:cx,y:cy,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-4.5,
+      w:4+Math.random()*5,h:7+Math.random()*7,
+      r:Math.random()*6.3,vr:(Math.random()-0.5)*0.3,c:FXC[i%FXC.length]});
+  }
+  let t0=null;
+  function step(ts){
+    if(t0==null) t0=ts;
+    const el=ts-t0;
+    g.clearRect(0,0,W,H);
+    let alive=0;
+    for(const q of P){
+      q.vy+=0.17; q.vx*=0.992; q.vy*=0.992;
+      q.x+=q.vx; q.y+=q.vy; q.r+=q.vr;
+      if(q.y>H+40) continue;
+      alive++;
+      g.save(); g.translate(q.x,q.y); g.rotate(q.r);
+      g.globalAlpha=Math.max(0,1-el/2600);
+      g.fillStyle=q.c; g.fillRect(-q.w/2,-q.h/2,q.w,q.h);
+      g.restore();
+    }
+    if(alive&&el<2800) requestAnimationFrame(step);
+    else { g.clearRect(0,0,W,H); cv.classList.remove('on'); }
+  }
+  requestAnimationFrame(step);
+}
+/* 축하음. 효과음을 「없음」으로 두었으면 나지 않는다 */
+function fanfare(){
+  if(SND==='off') return;
+  initAudio();
+  tone(523,0,0.16,0.055); tone(659,0.09,0.16,0.055);
+  tone(784,0.18,0.20,0.06); tone(1046,0.29,0.46,0.065);
+}
+/* 왕관에서 별이 차는 차례 — 왼쪽, 오른쪽, 가운데 */
+const STORDER=[1,3,2];
+let CELLV=0, CELIX=0;
+const CELMSG={
+  1:['이제 2회차입니다','이번에는 일본어와 한국어를 번갈아 가립니다.<br>한쪽을 보고 다른 쪽을 맞춰보세요.'],
+  2:['이제 마지막 3회차입니다','이번에는 한국어만 보입니다.<br>한국어를 보고 일본어 정답을 맞춰보세요.']
+};
+/* 회차마다 다른 축하 한마디 */
+const CELYAY={1:'축하드립니다!',2:'훌륭합니다!',3:'대단해요!'};
+/* 단계를 다 마쳤을 때 끝에 붙는 응원. 하나를 골라 쓴다.
+   짧게 던지는 말이라 여섯 자를 넘기지 않는다 */
+const CHEER=['파이팅 파이팅!','힘내세요!','잘 하고 있어요!','같이 가봅시다!',
+  '계속 가볼까요!','조금만 더!','아주 좋아요!','멋집니다!',
+  '쭉 가봅시다!','한 걸음 더!'];
+/* 을·를 을 받침으로 고른다. 한글이 아니면 「를」로 둔다 */
+function eul(w){
+  const t=(w||'').trim(); if(!t) return '를';
+  const c=t.charCodeAt(t.length-1);
+  if(c<0xAC00||c>0xD7A3) return '를';
+  return ((c-0xAC00)%28)?'을':'를';
+}
+/* 마지막 회차 안내는 단계 이름을 넣어 그때그때 짓는다 */
+function celMsg3(lv){
+  const now=TITLES[lv-1]||'', nx=TITLES[lv]||'';
+  const head=lv+'단계를 모두 완료하셨습니다';
+  const learned='이번 단계에서는 <b>'+now+'</b>'+eul(now)+' 배웠습니다.';
+  if(!SENT[lv+1]) return [head,learned+'<br>여기까지가 지금 준비된 마지막 단계입니다.'];
+  return [head, learned+'<br>이제 다음 단계에서는 <b>'+nx+'</b>'+eul(nx)+' 배우게 됩니다.<br>'+
+    CHEER[Math.floor(Math.random()*CHEER.length)]];
+}
+function celebrate(r){
+  CELLV=ST.lv; CELIX=STORDER[r-1];
+  const got=ST.star[CELLV]||r;
+  /* 별이 날아와 박힐 때까지 그 자리는 비워 둔다 */
+  const cr=crownEl(CELLV);
+  if(cr) cr.dataset.hold=CELIX;
+  const hasNext=!!SENT[CELLV+1];
+  const last=r>=RN;
+  const m=last?celMsg3(CELLV):CELMSG[r];
+  /* 마지막 회차에는 「다음 단계」만 남긴다. 갈 곳이 없으면 닫기만 둔다 */
+  const btns=last
+    ? (hasNext?'<button class="btn dark" id="celNext">다음 단계</button>'
+             :'<button class="btn dark" id="celOk">좋습니다</button>')
+    : '<button class="btn dark" id="celOk">'+(r+1)+'회차 진행</button>'+
+      (hasNext?'<button class="btn" id="celNext">다음 단계</button>':'');
+  cel.innerHTML='<div class="big" id="celStar">'+ICO.star+'</div>'+
+    '<div class="yay">'+(CELYAY[r]||CELYAY[3])+'</div>'+
+    '<h4>'+r+'회차를 마쳤습니다</h4>'+
+    '<div class="row3">'+[1,2,3].map(i=>
+      '<i class="'+(i<=got?'on':'')+'">'+ICO.star+'</i>').join('')+'</div>'+
+    '<p><b>'+m[0]+'</b><br>'+m[1]+'</p>'+
+    '<div class="brow">'+btns+'</div>';
+  closeAllPop('cel');
+  cel.classList.add('on'); bd.classList.add('on');
+  fanfare();
+  confetti(innerWidth/2, innerHeight*0.42);
+  const ok=$('#celOk'); if(ok) ok.onclick=()=>celDone(false);
+  const nx=$('#celNext'); if(nx) nx.onclick=()=>celDone(true);
+}
+/* 팝업을 닫으면서 별을 왕관 자리로 날려 보낸다.
+   팝업이 사라진 뒤에는 크기를 잴 수 없으므로 먼저 재 둔다 */
+function celDone(next){
+  const src=$('#celStar');
+  const a=src?src.getBoundingClientRect():null;
+  cel.classList.remove('on'); bd.classList.remove('on');
+  flyStar(a);
+  /* 별이 왕관에 앉은 뒤에 화면을 바꾼다 */
+  if(next) setTimeout(()=>{ const n=CELLV+1; if(!SENT[n]) return;
+    ST.lv=n; ST.pg=0; save(); build(); scrollTo({top:0}); centerLv(); },700);
+}
+/* 별이 박히는 왕관. PC 는 왼쪽 목록, 그보다 좁으면 가로 내비를 쓴다.
+   감춰진 쪽을 잡으면 크기가 0 이라 별이 날지 않는다 */
+function crownEl(lv){
+  const a=side.querySelector('.sideb[data-n="'+lv+'"] .crown');
+  if(a&&a.offsetParent) return a;
+  return nav.querySelector('.lv[data-n="'+lv+'"] .crown');
+}
+function flyStar(a){
+  const cr=crownEl(CELLV);
+  const land=()=>{
+    if(!cr) return;
+    delete cr.dataset.hold;
+    const t=cr.children[CELIX-1];
+    if(t&&!reduceMotion()){ t.classList.add('bump');
+      setTimeout(()=>t.classList.remove('bump'),520); }
+  };
+  const dst=cr&&cr.children[CELIX-1];
+  const b=dst?dst.getBoundingClientRect():null;
+  if(reduceMotion()||!a||!b||!a.width||!b.width){ land(); return; }
+  const fly=document.createElement('span');
+  fly.className='flystar'; fly.innerHTML=ICO.star;
+  fly.style.left=a.left+'px'; fly.style.top=a.top+'px';
+  fly.style.width=a.width+'px'; fly.style.height=a.height+'px';
+  document.body.appendChild(fly);
+  const dx=(b.left+b.width/2)-(a.left+a.width/2);
+  const dy=(b.top+b.height/2)-(a.top+a.height/2);
+  requestAnimationFrame(()=>{
+    fly.style.transform='translate('+dx+'px,'+dy+'px) scale('+(b.width/a.width)+') rotate(340deg)';
+  });
+  setTimeout(()=>{ fly.remove(); land(); },640);
+}
+
+let tid; function say(m){toast.textContent=m;toast.classList.add('on');
+  clearTimeout(tid);tid=setTimeout(()=>toast.classList.remove('on'),1400);}
+
+$('#bColor').innerHTML=ICO.pal;
+applyColor();
+$('#bJump').innerHTML=ICO.flag;
+$('#bRv').innerHTML=ICO.note;
+$('#bBack').innerHTML=ICO.gear;
+/* ── 앱으로 설치·오프라인 ────────────────────
+   file:// 로 열었을 때는 등록하지 않는다 */
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  navigator.serviceWorker.addEventListener('message',e=>{
+    if(e.data&&e.data.type==='updated') showUpdate();
+  });
+}
+function showUpdate(){
+  if(document.getElementById('upd')) return;
+  const b=document.createElement('button');
+  b.id='upd'; b.className='updbar';
+  b.innerHTML='새 내용이 있습니다 · 눌러서 새로고침';
+  b.onclick=()=>location.reload();
+  document.body.appendChild(b);
+}
+/* ── 시험용 진도 채우기 ───────────────────────
+   SEEDR 회차까지 오게 만들고, 그 회차는 마지막 문장 하나만 남긴다.
+   회차 완료 연출을 확인하려고 둔 것이다. 한 번만 돌고,
+   다시 채우려면 주소 뒤에 #seed 를 붙여 연다.
+   확인이 끝나면 이 블록을 지운다 */
+const SEEDR=3;
+if(location.hash==='#seed' || DB.get('jp3000-seed')!==String(SEEDR)){
+  DB.set('jp3000-seed',String(SEEDR));
+  const L=SENT[1];
+  if(L){
+    ST.lv=1; ST.pg=0;
+    /* 가린 자리는 회차마다 다르고 maskPlan 이 ST.r 을 보므로,
+       회차를 옮겨 가며 그 회차의 자리를 표시한다 */
+    const fill=(s,r)=>{
+      const plan=maskPlan(s), sid='1-'+s.n;
+      let wi=-1;
+      chunkJP(s.j).forEach((c,ci)=>{ if(!c.w) return; wi++;
+        if(plan.j(wi)) markSolved(sid+'-j'+ci,r); });
+      wi=-1;
+      chunkKO(s.k).forEach((c,ci)=>{ if(c.plain) return; wi++;
+        if(plan.k(wi)) markSolved(sid+'-k'+ci,r); });
+    };
+    for(let r=1;r<=SEEDR;r++){
+      ST.r[1]=r;
+      if(r>1) ST.star[1]=r-1;                   /* 앞 회차를 마쳐 얻은 별 */
+      const a=ST.done[r][1]=[];
+      /* 마지막 회차만 문장 하나를 남긴다 */
+      (r<SEEDR?L.s:L.s.slice(0,-1)).forEach(s=>{ fill(s,r); a.push(s.n); });
+    }
+    saveDone(); DB.set(KEY,JSON.stringify(ST));
+  }
+  history.replaceState(null,'',location.pathname+location.search);
+}
+applyMode();
+if(ST.lv===RV) startReview();
+build();
+centerLv();
+if(ST.bm[ST.lv]!=null) setTimeout(jump,120);
+</script>
+</body>
+</html>

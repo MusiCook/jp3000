@@ -1,0 +1,17 @@
+{
+  "name": "일본어 3000",
+  "short_name": "일본어3000",
+  "description": "여행 회화 수준 일본어 3,000문장. 60단계로 나누어 읽고 풀며 익힌다.",
+  "start_url": "./jp3000.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F6F2EC",
+  "theme_color": "#1E3932",
+  "lang": "ko",
+  "icons": [
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "./icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
