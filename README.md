@@ -27,10 +27,12 @@ src/                작업 대상
   words.js            단어 사전
   sentences-01.js     문장 데이터 (1~31단계)
   groups.js           의미 그룹 + 같은 뜻 짝
+  sync.js             기기 간 진도 동기화 (Firebase)
 
 tools/
   build.py            src → dist/jp3000.html 합치기
   check.js            데이터 검사기
+  sync-test.js        진도 합치기 검사기
   append.py           문장 배치 추가 도구
 
 dist/               배포용. Pages가 이 폴더를 그대로 내보낸다
@@ -127,4 +129,3 @@ https://musicook.github.io/jp3000/
 - 32~60단계 문장 1,450개
 - 「더 배워보기」 설명 채우기 (`docs/NOTES-PLAN.md` 참고)
 - 원어민 검수 — 문법은 맞지만 실제로 쓰지 않는 표현이 섞여 있을 수 있다
-- 기기 간 진도 자동 동기화 (지금은 코드 복사)
