@@ -27,12 +27,14 @@ src/                작업 대상
   words.js            단어 사전
   sentences-01.js     문장 데이터 (1~31단계)
   groups.js           의미 그룹 + 같은 뜻 짝
+  quiz.js             퀴즈 보기 만들기 (정답 하나 + 오답 셋)
   sync.js             기기 간 진도 동기화 (Firebase)
 
 tools/
   build.py            src → dist/jp3000.html 합치기
   check.js            데이터 검사기
   sync-test.js        진도 합치기 검사기
+  quiz-audit.js       퀴즈 보기 검사기
   append.py           문장 배치 추가 도구
 
 dist/               배포용. Pages가 이 폴더를 그대로 내보낸다
@@ -59,6 +61,7 @@ docs/
 
 # 2. 검사
 node tools/check.js
+node tools/quiz-audit.js     # 보기를 손댔다면
 
 # 3. 합치기
 python3 tools/build.py
@@ -112,6 +115,10 @@ https://musicook.github.io/jp3000/
 
 **배치를 추가하면 검사기를 돌린다.** 사전 키 충돌은 조용히 일어나고 화면에는
 엉뚱한 글자가 나온다. 과거에 네 건이 있었고 두 건은 우연히 발견했다.
+
+**퀴즈 보기를 손대면 검사기를 돌린다.** `node tools/quiz-audit.js`.
+「실례하겠겠습니다」 같은 말이 300건 넘게 나가 있었는데 아무도 몰랐다.
+사람이 3,000문장의 보기를 눈으로 볼 수 없다.
 
 **코드를 고칠 때 정규식으로 큰 구간을 다루지 않는다.** 범위를 잘못 잡아 함수
 여러 개를 통째로 날린 적이 있다. 정확한 문자열로 바꾸고, 고친 뒤 반드시
