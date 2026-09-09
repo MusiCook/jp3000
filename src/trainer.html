@@ -645,13 +645,20 @@ body.hidehira .kcell .hi{color:transparent;background:var(--green-l);border-radi
     <button class="btn" id="bQLoad">불러오기</button>
   </div>
 
+  <h3 style="margin-top:26px">앱 갱신</h3>
+  <p>기기에 담아 둔 파일을 버리고 서버에서 새로 받습니다.
+     <b>진도는 그대로입니다.</b> 새 판이 나왔는데 옛 화면이 계속 나올 때 씁니다.</p>
+  <div class="brow">
+    <button class="btn" id="bUpd">최신으로 받기</button>
+  </div>
+  <p style="margin:9px 0 0;font-size:11.5px;color:var(--ink3);text-align:center">
+    지금 판 <span id="ver">개발본</span></p>
+
   <h3 style="margin-top:26px">초기화</h3>
   <p>진도·북마크·퀴즈 기록을 모두 지웁니다. 되돌릴 수 없습니다.</p>
   <div class="brow" style="margin-bottom:6px">
     <button class="btn" id="bWipe">전체 초기화</button>
   </div>
-  <p style="margin-top:18px;font-size:11px;color:var(--ink3);text-align:center">
-    판 <span id="ver">개발본</span></p>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -1913,6 +1920,32 @@ function confirmBox(title,msg,okLabel,onOk){
   $('#cNo').onclick=close;
   $('#cYes').onclick=()=>{ close(); onOk(); };
 }
+/* 담아 둔 파일을 모두 버리고 새로 받는다. 진도는 건드리지 않는다.
+   서비스 워커가 「저장해 둔 것 먼저」로 도는 탓에 새 판이 나와도
+   두어 번 열어야 보이는 일이 있어, 한 번에 끝내는 길을 둔다 */
+$('#bUpd').onclick=async function(){
+  /* 인터넷이 없을 때 지우면 오프라인으로 열 것까지 사라진다 */
+  if(navigator.onLine===false){ say('인터넷에 연결한 뒤에 눌러 주세요'); return; }
+  const b=this, was=b.textContent;
+  b.disabled=true; b.textContent='받는 중…';
+  try{
+    if(window.caches){
+      const ks=await caches.keys();
+      await Promise.all(ks.map(k=>caches.delete(k)));
+    }
+    if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations){
+      const rs=await navigator.serviceWorker.getRegistrations();
+      await Promise.all(rs.map(r=>r.unregister()));
+    }
+  }catch(e){
+    b.disabled=false; b.textContent=was;
+    say('받지 못했습니다. 잠시 뒤에 다시 해주세요'); return;
+  }
+  /* 주소에 표시를 붙여 브라우저가 담아 둔 것까지 지나쳐 받게 한다.
+     다시 열리면 서비스 워커가 새로 등록되고 파일을 다시 담는다 */
+  location.replace(location.pathname+'?u='+Date.now());
+};
+
 $('#bWipe').onclick=()=>{
   confirmBox('전체 초기화',
     '지금까지의 <b>진도·북마크·퀴즈 기록</b>이 모두 지워집니다.<br>되돌릴 수 없습니다.',
@@ -2233,6 +2266,9 @@ function showUpdate(){
   b.onclick=()=>location.reload();
   document.body.appendChild(b);
 }
+/* 「최신으로 받기」가 붙인 표시는 한 번 쓰고 지운다 */
+if(/[?&]u=/.test(location.search))
+  history.replaceState(null,'',location.pathname);
 applyMode();
 if(ST.lv===RV) startReview();
 build();
