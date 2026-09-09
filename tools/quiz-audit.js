@@ -145,6 +145,10 @@ function audit(ctx){
       }
       for(const [re,why] of BADKO)
         if(re.test(t)) return note(where,'이상한 말','「'+t+'」 — '+why,list);
+      /* 「그 ~」 같은 사전 표기는 한국어가 아니다. 정답이 그런 꼴이
+         아닌 한 보기로 나와서는 안 된다 */
+      if(/~/.test(t) && !/~/.test(String(q.ans)))
+        note(where,'사전 표기가 남았다','「'+t+'」 — 물결표',list);
       if(cutWord(t) && !cutWord(String(q.ans)))
         note(where,'잘린 말','「'+t+'」 — 어미가 끊겼다',list);
     });

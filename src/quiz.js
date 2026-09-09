@@ -101,7 +101,11 @@ function endingAlts(word){
 function kNorm(t){
   const s=String(t).trim();
   const hit=KPAIR.find(p=>p.indexOf(s)>=0);
-  return hit?hit.join('/'):s.replace(/\([^)]*\)$/,'').trim();
+  if(hit) return hit.join('/');
+  /* 사전의 「그 ~」는 뒤에 말이 온다는 표기이지 한국어가 아니다.
+     보기로 내놓을 때는 떼어 「그」로 쓴다. 문장 쪽에는 물결표가
+     든 말이 하나도 없으므로 정답과 부딪칠 일이 없다 */
+  return s.replace(/\([^)]*\)$/,'').replace(/\s*~\s*$/,'').trim();
 }
 /* 문장에 실제로 나온 「말+조사」 덩어리.
    보기를 만들어 내기 전에 여기 있는 것부터 쓴다 */

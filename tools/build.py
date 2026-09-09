@@ -9,6 +9,7 @@ trainer.html 안의 <script src="..."> 를 실제 파일 내용으로 바꿔 넣
 """
 import re
 import sys
+from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -28,6 +29,11 @@ def inline(m):
 def main():
     html = (SRC / "trainer.html").read_text(encoding="utf-8")
     out = re.sub(r'<script src="([^"]+)"></script>', inline, html)
+    # 판 표시. 설정 맨 아래에 나온다. 「지금 쓰는 것이 새것인가」를
+    # 눈으로 확인할 수 있어야 옛 화면을 붙들고 헤매지 않는다
+    stamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+    out = out.replace('<span id="ver">개발본</span>',
+                      '<span id="ver">' + stamp + '</span>')
     DIST.mkdir(exist_ok=True)
     (DIST / "jp3000.html").write_text(out, encoding="utf-8")
     print(f"dist/jp3000.html : {len(out):,} bytes")
