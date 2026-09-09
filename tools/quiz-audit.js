@@ -120,11 +120,21 @@ function audit(ctx){
     const list = q.opts.map(o=> jp ? bare(o.html) : o.v);
     const face = q.opts.map(o=> jp ? kanji(o.html) : o.v);
 
-    /* 겹치는 보기. 일본어는 후리가나를 빼고 견준다 */
-    const seen={};
-    face.forEach((t,i)=>{ if(seen[t]!==undefined)
-        note(where, jp?'겉모습이 같은 보기':'겹치는 보기','「'+t+'」가 둘',list);
-      seen[t]=i; });
+    /* 겹치는 보기. 일본어는 후리가나를 빼고 견준다.
+       똑같은 것뿐 아니라 何 / 何か 처럼 거의 같아 보이는 것도 본다 */
+    /* 다만 「十番」과 「十番の」처럼 조사만 다른 것은 걸러선 안 된다.
+       조사가 붙는지를 묻는 것이 그 문제의 요지다 */
+    const ids = q.opts.map(o=> jp ? String(o.v).split('|') : null);
+    const partOnly=(i,k)=>{
+      const a=ids[i], b=ids[k]; if(!a||!b) return false;
+      const [x,y] = a.length<b.length ? [a,b] : [b,a];
+      return x.length<y.length && x.every((t,n)=>y[n]===t);
+    };
+    const same=(i,k)=> face[i]===face[k] ||
+      (jp && typeof ctx.alike==='function' && ctx.alike(face[i],face[k]) && !partOnly(i,k));
+    face.forEach((t,i)=>{ for(let k=0;k<i;k++) if(same(i,k)){
+        note(where, jp?'겉모습이 같은 보기':'겹치는 보기',
+             '「'+face[k]+'」와 「'+t+'」', list); break; } });
 
     if(list.length < 4) note(where,'보기 부족', list.length+'개뿐', list);
 
