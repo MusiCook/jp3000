@@ -284,6 +284,10 @@ body.m-jp .tbody{border-left-color:var(--line);}
 .pop i{font-style:normal;color:#93a9bf;font-size:.82em;margin-left:1px;letter-spacing:.01em;}
 .backdrop{position:fixed;inset:0;z-index:85;display:none;}
 .backdrop.on{display:block;}
+/* 「더 배워보기」는 읽을 것이 많아 뒤가 비치면 눈이 흩어진다.
+   그 팝업에서만 뒤를 흐린다 */
+.backdrop.blur{backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);
+  background:rgba(16,26,38,.22);}
 
 .sheet{position:fixed;left:0;right:0;bottom:0;z-index:95;background:var(--card);border-radius:14px 14px 0 0;
   box-shadow:0 -8px 30px rgba(30,57,50,.18);transform:translateY(105%);transition:transform .25s;
@@ -1063,7 +1067,7 @@ function closeAllPop(except){
     document.querySelectorAll('.blink').forEach(x=>x.classList.remove('blink')); }
   if(except!=='mpop'){ mpop.classList.remove('on'); }
   if(except!=='sheet'){ sheet.classList.remove('on'); }
-  if(except!=='npop'){ npop.classList.remove('on'); }
+  if(except!=='npop'){ npop.classList.remove('on'); bd.classList.remove('blur'); }
   if(except!=='cpop'){ cpop.classList.remove('on'); }
   /* 축하 팝업은 그냥 닫지 않는다. 별을 왕관에 앉히고 닫아야 한다 */
   if(except!=='cel'&&cel.classList.contains('on')) celDone();
@@ -1088,7 +1092,11 @@ function openPop(el,key){
 
 /* ── 오답노트 · 카드형 복습 ─────────────────
    틀린 말을 간격을 두고 다시 낸다.
-   틀림 → 오늘 / 1번 맞힘 → 3일 뒤 / 2번 → 1주 / 3번 → 3주 뒤 졸업 */
+   틀림 → 오늘 / 1번 맞힘 → 3일 뒤 / 2번 → 1주 / 3번 → 3주 뒤 졸업
+
+   한 말은 그날 안에 두 번 맞혀야 끝난다. 한 번은 뜻으로, 한 번은
+   일본어로 묻는다. 한 번 맞힌 것은 뒤로 돌려 두었다가 다시 낸다.
+   틀리면 처음으로 돌아가 두 번을 새로 채워야 한다 */
 const RV=61;
 const STEP=[0,3,7,21];
 const today=()=>Math.floor(Date.now()/86400000);
@@ -1122,16 +1130,24 @@ function sampleSentence(k){
   }
   return null;
 }
-let RVQ=[], RVi=0, RVo=0, RVx=0, RVdone=false;
-function startReview(){ RVQ=reviewQueue(); RVi=0; RVo=0; RVx=0; RVdone=false; }
+const RVHIT=2;                 /* 한 말을 몇 번 맞혀야 끝나는가 */
+let RVQ=[];                    /* 아직 남은 말. 앞에서부터 낸다 */
+let RVN={};                    /* 말마다 남은 횟수 */
+let RVtot=0, RVo=0, RVx=0, RVdone=false;
+function startReview(){
+  RVQ=reviewQueue(); RVtot=RVQ.length; RVN={};
+  RVQ.forEach(k=>{ RVN[k]=RVHIT; });
+  RVo=0; RVx=0; RVdone=false;
+}
+const rvEnd=()=>RVtot-RVQ.length;      /* 끝낸 말의 수 */
 function buildReview(){
   $('#stg').textContent='REVIEW';
   $('#ttl').textContent='오답노트';
   document.querySelectorAll('.lv').forEach(el=>el.setAttribute('aria-current',+el.dataset.n===RV));
   paintRv();
-  const tot=RVQ.length;
-  $('#tot').textContent=tot; $('#cnt').textContent=RVi;
-  $('#gauge').style.width=(tot?RVi/tot*100:0)+'%';
+  const tot=RVtot, fin=rvEnd();
+  $('#tot').textContent=tot; $('#cnt').textContent=fin;
+  $('#gauge').style.width=(tot?fin/tot*100:0)+'%';
 
   if(!tot){
     const nd=nextDueDay();
@@ -1150,9 +1166,11 @@ function buildReview(){
     $('#rvBack').onclick=()=>{ ST.lv=1; ST.pg=0; save(); build(); centerLv(); scrollTo({top:0}); };
     return;
   }
-  const k=RVQ[RVi], w=WORDS[k], sm=sampleSentence(k);
-  const askJP=(RVi%2===1);   /* 번갈아 묻는다 */
-  const seed=seedOf(k+RVi);
+  const k=RVQ[0], w=WORDS[k], sm=sampleSentence(k);
+  /* 첫 번째는 뜻을, 두 번째는 일본어를 묻는다 */
+  const turn=RVHIT-(RVN[k]||RVHIT);
+  const askJP=(turn%2===1);
+  const seed=seedOf(k+'-'+turn);
   let opts;
   if(askJP){
     opts=optsJP(k,seed).map(x=>({v:x,html:ruby(WORDS[x].t)}));
@@ -1167,8 +1185,8 @@ function buildReview(){
       }).join('')
     : ruby(w.t);
   list.innerHTML='<div class="rv">'+
-    '<div class="rvtop"><span class="rvbar"><i style="width:'+(RVi/tot*100)+'%"></i></span>'+
-    '<span class="rvnum">'+(RVi+1)+' / '+tot+'</span></div>'+
+    '<div class="rvtop"><span class="rvbar"><i style="width:'+(fin/tot*100)+'%"></i></span>'+
+    '<span class="rvnum">'+(fin+1)+' / '+tot+'</span></div>'+
     '<div class="rvcard">'+
       '<div class="rvq">'+(askJP?'가려진 자리에 들어갈 말은':'굵은 말의 뜻은')+'</div>'+
       '<div class="rvjp">'+jp+'</div>'+
@@ -1265,13 +1283,21 @@ list.addEventListener('click',e=>{
   const ro=e.target.closest('.rvopt');
   if(ro){
     if(ro.disabled) return;
-    const ans=list.dataset.rvans, k=RVQ[RVi], ok=(ro.dataset.v===ans);
+    const ans=list.dataset.rvans, k=RVQ[0], ok=(ro.dataset.v===ans);
     document.querySelectorAll('.rvopt').forEach(b=>b.disabled=true);
     ro.classList.add(ok?'ok':'ng');
     if(!ok){ const t=document.querySelector('.rvopt[data-v="'+CSS.escape(ans)+'"]'); if(t) t.classList.add('ok'); }
     if(ok){ RVo++; beepOk(); } else { RVx++; beepNg(); }
-    schedule(k,ok); paintRv();
-    setTimeout(()=>{ RVi++; if(RVi>=RVQ.length) RVdone=true; buildReview(); }, ok?650:1400);
+    if(ok){
+      RVN[k]--;
+      if(RVN[k]<=0){ schedule(k,true); RVQ.shift(); }   /* 두 번 다 맞혔다 */
+      else RVQ.push(RVQ.shift());                       /* 뒤로 돌려 한 번 더 */
+    }else{
+      RVN[k]=RVHIT;                                     /* 처음부터 다시 */
+      schedule(k,false); RVQ.push(RVQ.shift());
+    }
+    paintRv();
+    setTimeout(()=>{ if(!RVQ.length) RVdone=true; buildReview(); }, ok?650:1400);
     return;
   }
   const pb=e.target.closest('.pgbtn');
@@ -1358,8 +1384,9 @@ function openNote(row){
     `<div class="nko">${esc(s.k.map(t=>t[0]).join(''))}</div>`+
     `<button class="nx" id="nX" aria-label="닫기">${ICO.x}</button></div>`+
     `<div class="nbody">${blocks.join('')}</div>`;
-  npop.classList.add('on'); bd.classList.add('on');
-  $('#nX').onclick=()=>{ npop.classList.remove('on'); bd.classList.remove('on'); };
+  npop.classList.add('on'); bd.classList.add('on','blur');
+  $('#nX').onclick=()=>{ npop.classList.remove('on');
+                         bd.classList.remove('on','blur'); };
 }
 /* ── 회차별 가림 계획 ───────────────────────
    1회차  한국어를 가린다 — 일본어를 보고 뜻을 맞힌다
@@ -2103,6 +2130,7 @@ function celebrate(r){
   const hasNext=!!SENT[CELLV+1];
   const last=r>=RN;
   const m=last?celMsg3(CELLV):CELMSG[r];
+  const badN=last?reviewQueue().length:0;
   /* 마지막 회차에는 「다음 단계」만 남긴다. 갈 곳이 없으면 닫기만 둔다 */
   const btns=last
     ? (hasNext?'<button class="btn dark" id="celNext">다음 단계</button>'
@@ -2115,6 +2143,9 @@ function celebrate(r){
     '<div class="row3">'+[1,2,3].map(i=>
       '<i class="'+(i<=got?'on':'')+'">'+ICO.star+'</i>').join('')+'</div>'+
     '<p><b>'+m[0]+'</b><br>'+m[1]+'</p>'+
+    /* 세 회차를 다 돌았는데 오답노트에 쌓인 것이 있으면 그리로 이끈다.
+       여기서 놓치면 한참 뒤에야 다시 눈에 띈다 */
+    (badN?'<button class="rvlink" id="celRv">오답노트 <b>'+badN+'</b>개 '+ICO.ar+'</button>':'')+
     '<div class="brow">'+btns+'</div>';
   closeAllPop('cel');
   cel.classList.add('on'); bd.classList.add('on');
@@ -2122,6 +2153,11 @@ function celebrate(r){
   confetti(innerWidth/2, innerHeight*0.42);
   const ok=$('#celOk'); if(ok) ok.onclick=()=>celDone(false);
   const nx=$('#celNext'); if(nx) nx.onclick=()=>celDone(true);
+  const rv=$('#celRv');
+  if(rv) rv.onclick=()=>{ celDone(false);
+    /* 별이 왕관에 앉은 뒤에 옮긴다. 「다음 단계」와 같은 박자다 */
+    setTimeout(()=>{ ST.lv=RV; ST.pg=0; startReview();
+      save(); build(); scrollTo({top:0}); centerLv(); },700); };
 }
 /* 팝업을 닫으면서 별을 왕관 자리로 날려 보낸다.
    팝업이 사라진 뒤에는 크기를 잴 수 없으므로 먼저 재 둔다 */
