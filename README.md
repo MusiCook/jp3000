@@ -35,6 +35,7 @@ tools/
   check.js            데이터 검사기
   sync-test.js        진도 합치기 검사기
   quiz-audit.js       퀴즈 보기 검사기
+  sw-test.js          서비스 워커가 캐시를 갱신하는지 검사
   append.py           문장 배치 추가 도구
 
 dist/               배포용. Pages가 이 폴더를 그대로 내보낸다

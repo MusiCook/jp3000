@@ -38,6 +38,20 @@ def main():
     (DIST / "jp3000.html").write_text(out, encoding="utf-8")
     print(f"dist/jp3000.html : {len(out):,} bytes")
 
+    # sw.js 에도 같은 판을 찍는다. 이 파일의 내용이 바뀌어야 브라우저가
+    # 서비스 워커를 새로 깔고, 그때 뼈대를 다시 받는다. 안 그러면
+    # 앱이 옛 화면에 머문다 — 실제로 그 일이 있었다
+    sw = DIST / "sw.js"
+    if sw.exists():
+        t = sw.read_text(encoding="utf-8")
+        t2 = re.sub(r"const BUILD = '[^']*';",
+                    "const BUILD = '" + stamp.replace(" ", "-").replace(":", "") + "';", t)
+        if t2 != t:
+            sw.write_text(t2, encoding="utf-8")
+            print(f"dist/sw.js       : 판 {stamp}")
+        else:
+            print("[경고] sw.js 에 BUILD 줄이 없습니다", file=sys.stderr)
+
 
 if __name__ == "__main__":
     main()

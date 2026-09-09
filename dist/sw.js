@@ -5,7 +5,11 @@
    앱에서 "새 내용이 있습니다"를 알린다.
    ============================================================ */
 
-const VER   = 'jp3000-v2';
+/* BUILD 는 build.py 가 만들 때마다 새로 찍는다.
+   이 파일의 내용이 바뀌어야 브라우저가 서비스 워커를 새로 깔고,
+   그때 뼈대를 다시 받는다. 이 줄이 그대로면 앱은 옛것에 머문다 */
+const BUILD = '2026-09-10-0833';
+const VER   = 'jp3000-' + BUILD;
 const SHELL = [
   './',
   './index.html',
@@ -46,26 +50,34 @@ self.addEventListener('fetch', e => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;   /* 바깥 주소는 건드리지 않는다 */
 
-  e.respondWith(
-    caches.open(VER).then(async cache => {
-      const hit = await cache.match(req, { ignoreSearch: true });
+  /* 뒤에서 새것을 받아 두는 일.
+     **반드시 waitUntil 로 붙잡아야 한다.** 저장해 둔 것이 있으면
+     respondWith 가 곧바로 끝나는데, 그 순간 iOS 는 서비스 워커를
+     재워버린다. 그러면 cache.put 이 영영 실행되지 않아 앱이 옛것에
+     머문다. 실제로 그 일이 있었다 */
+  const fresh = (async () => {
+    const cache = await caches.open(VER);
+    const hit = await cache.match(req, { ignoreSearch: true });
+    let res = null;
+    try { res = await fetch(req); } catch (err) { return null; }
+    if (res && res.ok) {
+      const copy = res.clone();
+      /* 본문이 달라졌는지 확인해 알린다 */
+      if (hit && /\.(html|js)$/.test(url.pathname)) {
+        const [a, b] = await Promise.all([hit.clone().text(), res.clone().text()]);
+        if (a !== b) notify();
+      }
+      await cache.put(req, copy);
+    }
+    return res;
+  })();
+  e.waitUntil(fresh);
 
-      const fresh = fetch(req).then(async res => {
-        if (res && res.ok) {
-          const copy = res.clone();
-          /* 본문이 달라졌는지 확인해 알린다 */
-          if (hit && /\.(html|js)$/.test(url.pathname)) {
-            const [a, b] = await Promise.all([hit.clone().text(), res.clone().text()]);
-            if (a !== b) notify();
-          }
-          cache.put(req, copy);
-        }
-        return res;
-      }).catch(() => null);
-
-      return hit || fresh || new Response('', { status: 504 });
-    })
-  );
+  e.respondWith((async () => {
+    const cache = await caches.open(VER);
+    const hit = await cache.match(req, { ignoreSearch: true });
+    return hit || (await fresh) || new Response('', { status: 504 });
+  })());
 });
 
 /* 새 내용을 받았다는 사실을 기억해 둔다.
