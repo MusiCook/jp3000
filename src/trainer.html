@@ -283,11 +283,10 @@ body.m-jp .tbody{border-left-color:var(--line);}
 .pop dd em{font-style:normal;font-family:var(--ko);color:#B7D0C5;font-size:11.5px;margin-left:6px;}
 .pop i{font-style:normal;color:#93a9bf;font-size:.82em;margin-left:1px;letter-spacing:.01em;}
 .backdrop{position:fixed;inset:0;z-index:85;display:none;}
-.backdrop.on{display:block;}
-/* 「더 배워보기」는 읽을 것이 많아 뒤가 비치면 눈이 흩어진다.
-   그 팝업에서만 뒤를 흐린다 */
-.backdrop.blur{backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);
-  background:rgba(16,26,38,.22);}
+/* 팝업이 열리면 뒤를 흐린다. 뒤가 또렷이 비치면 눈이 흩어진다.
+   퀴즈는 이 막을 쓰지 않는다 — 묻는 문장이 뒤에 보여야 하기 때문이다 */
+.backdrop.on{display:block;
+  backdrop-filter:blur(3.5px);-webkit-backdrop-filter:blur(3.5px);}
 
 .sheet{position:fixed;left:0;right:0;bottom:0;z-index:95;background:var(--card);border-radius:14px 14px 0 0;
   box-shadow:0 -8px 30px rgba(30,57,50,.18);transform:translateY(105%);transition:transform .25s;
@@ -1074,7 +1073,7 @@ function closeAllPop(except){
     document.querySelectorAll('.blink').forEach(x=>x.classList.remove('blink')); }
   if(except!=='mpop'){ mpop.classList.remove('on'); }
   if(except!=='sheet'){ sheet.classList.remove('on'); }
-  if(except!=='npop'){ npop.classList.remove('on'); bd.classList.remove('blur'); }
+  if(except!=='npop'){ npop.classList.remove('on'); }
   if(except!=='cpop'){ cpop.classList.remove('on'); }
   /* 축하 팝업은 그냥 닫지 않는다. 별을 왕관에 앉히고 닫아야 한다 */
   if(except!=='cel'&&cel.classList.contains('on')) celDone();
@@ -1391,9 +1390,8 @@ function openNote(row){
     `<div class="nko">${esc(s.k.map(t=>t[0]).join(''))}</div>`+
     `<button class="nx" id="nX" aria-label="닫기">${ICO.x}</button></div>`+
     `<div class="nbody">${blocks.join('')}</div>`;
-  npop.classList.add('on'); bd.classList.add('on','blur');
-  $('#nX').onclick=()=>{ npop.classList.remove('on');
-                         bd.classList.remove('on','blur'); };
+  npop.classList.add('on'); bd.classList.add('on');
+  $('#nX').onclick=()=>{ npop.classList.remove('on'); bd.classList.remove('on'); };
 }
 /* ── 회차별 가림 계획 ───────────────────────
    1회차  한국어를 가린다 — 일본어를 보고 뜻을 맞힌다

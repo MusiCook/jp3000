@@ -87,4 +87,16 @@ const miss=[...ALL].filter(c=>!kUsed.has(c));
 console.log('\n가타카나 : 문장 '+kSent+'/'+kTot+' ('+(kSent/kTot*100).toFixed(1)+'%) | 기본 글자 '+main.length+'/'+ALL.length+'종'
   +(extra.length?' | 작은 글자 '+extra.join('')+' 포함':''));
 if(miss.length) console.log('  안 나온 글자:',miss.join(' '));
+/* 「더 배워보기」 설명의 갈래 이름.
+   같은 것을 다른 이름으로 부르기 시작하면 화면이 뒤죽박죽이 된다.
+   한 번만 쓰인 이름이 늘면 합칠 자리가 없는지 본다 */
+const gN=new Map();
+Object.values(W).forEach(w=>(w.f||[]).forEach(b=>gN.set(b.g,(gN.get(b.g)||0)+1)));
+const gS=[...gN.entries()].sort((a,b)=>b[1]-a[1]);
+console.log('');
+console.log('설명 갈래 : '+gS.length+'종');
+console.log('  '+gS.map(([g,n])=>g+'('+n+')').join('  '));
+const gOnce=gS.filter(([,n])=>n===1).length;
+if(gOnce>6) console.log('  한 번만 쓰인 이름이 '+gOnce+'개다. 합칠 자리가 없는지 본다');
+
 console.log(err.length?'\n[문제]\n'+err.join('\n'):'\n문제 없음');
