@@ -800,7 +800,8 @@ applyTheme();
    r     그 단계가 지금 몇 회차인지  ST.r[단계]
    star  얻은 별 개수  ST.star[단계] */
 const RN=3;
-let ST={v:3,lv:1,pg:0,r:{},done:{1:{},2:{},3:{}},star:{},bm:{}};
+const PG=25;                    /* 한 쪽에 보이는 문장 수 */
+let ST={v:3,lv:1,pg:0,r:{},done:{1:{},2:{},3:{}},star:{},bm:{},at:{}};
 try{
   const raw=DB.get(KEY); const o=raw&&JSON.parse(raw);
   if(o&&o.v===3) ST=Object.assign(ST,o);
@@ -996,7 +997,7 @@ function build(){
     $('#tot').textContent=0; $('#cnt').textContent=0; $('#gauge').style.width=0; return; }
   if(rollRound(ST.lv)) DB.set(KEY,JSON.stringify(ST));
   $('#rnd').textContent=curR(ST.lv)+'회차';
-  const PG=25, from=(ST.pg||0)*PG;
+  const from=(ST.pg||0)*PG;
   list.innerHTML=L.s.slice(from,from+PG).map((s,i)=>{
    const plan=maskPlan(s);
    return `
@@ -1497,6 +1498,10 @@ function openQuiz(el){
   const type=el.dataset.t, sid=el.dataset.s, seed=seedOf(sid);
   const row=el.closest('.row');
   const sent=row?SENT[ST.lv].s.find(x=>x.n===+row.dataset.n):null;
+  /* 마지막에 보던 자리를 적어 둔다. 앱을 다시 열면 여기로 돌아온다.
+     paint 까지 부를 일은 아니라 저장만 한다 */
+  if(sent){ ST.at=ST.at||{};
+    if(ST.at[ST.lv]!==sent.n){ ST.at[ST.lv]=sent.n; DB.set(KEY,JSON.stringify(ST)); } }
   const {opts,ans,cls,jkey,rawAns} =
     quizOpts(type,{ans:el.dataset.q, ci:+el.dataset.q, sent, seed});
   qpop.innerHTML='<div class="qq">'+(type==='j'?'어느 일본어가 맞을까요':'어느 뜻이 맞을까요')+'</div>'+
@@ -1614,6 +1619,7 @@ qpop.addEventListener('click',e=>{
     setTimeout(()=>{
       closeQuiz();
       if(cleared){
+        if(ST.at) delete ST.at[ST.lv];     /* 새 회차는 처음부터 */
         build(); centerLv(); scrollTo({top:0});
         celebrate(cleared);
         return;
@@ -1690,10 +1696,29 @@ function jump(){const b=ST.bm[ST.lv]; if(b==null)return;
   const L=SENT[ST.lv]; if(!L)return;
   /* 북마크가 다른 쪽에 있으면 그 쪽으로 옮긴 뒤 이동한다 */
   const idx=L.s.findIndex(s=>s.n===b);
-  if(idx>=0){ const pg=Math.floor(idx/25);
+  if(idx>=0){ const pg=Math.floor(idx/PG);
     if(pg!==(ST.pg||0)){ ST.pg=pg; save(); build(); } }
   const el=document.querySelector(`.row[data-n="${b}"]`);
   if(el&&el.scrollIntoView)el.scrollIntoView({block:'center',behavior:'smooth'});}
+
+/* 마지막에 보던 자리로 돌아간다.
+   단계와 쪽은 늘 저장되지만 그것만으로는 쪽 맨 위에서 다시 시작한다.
+   마지막으로 문제를 연 문장까지 되찾아 그 자리에서 잇는다.
+   되찾았으면 true. 적어 둔 자리가 없으면 false 를 돌려주고,
+   그때는 북마크로 간다 */
+function resume(){
+  const n=(ST.at||{})[ST.lv];
+  if(n==null) return false;
+  const L=SENT[ST.lv]; if(!L) return false;
+  const idx=L.s.findIndex(x=>x.n===n);
+  if(idx<0) return false;
+  const pg=Math.floor(idx/PG);
+  if(pg!==(ST.pg||0)){ ST.pg=pg; save(); build(); }
+  if(idx%PG===0) return true;            /* 쪽 첫 문장이면 그냥 위에서 시작 */
+  const el=document.querySelector(`.row[data-n="${n}"]`);
+  if(el&&el.scrollIntoView) el.scrollIntoView({block:'center'});
+  return true;
+}
 
 /* 백업 */
 /* 백업 코드: 연속 번호를 구간으로 묶는다  예) J2|1|1:1-25|1=7 */
@@ -1864,7 +1889,7 @@ $('#bWipe').onclick=()=>{
     '지금까지의 <b>진도·북마크·퀴즈 기록</b>이 모두 지워집니다.<br>되돌릴 수 없습니다.',
     '지웁니다',
     ()=>{
-      ST={v:3,lv:1,pg:0,r:{},done:{1:{},2:{},3:{}},star:{},bm:{}};
+      ST={v:3,lv:1,pg:0,r:{},done:{1:{},2:{},3:{}},star:{},bm:{},at:{}};
       QSTAT={}; QDONE={};
       DB.set(KEY,JSON.stringify(ST)); saveStat(); saveDone();
       /* 서버에 둔 사본도 지운다. 안 그러면 다음에 맞출 때 되살아난다 */
@@ -2174,7 +2199,8 @@ applyMode();
 if(ST.lv===RV) startReview();
 build();
 centerLv();
-if(ST.bm[ST.lv]!=null) setTimeout(jump,120);
+/* 마지막에 보던 자리로. 적어 둔 것이 없으면 북마크로 간다 */
+setTimeout(()=>{ if(!resume() && ST.bm[ST.lv]!=null) jump(); },120);
 
 /* ── 숨은 기능: 시험용으로 진도 채우기 ─────────────
    위쪽 「STAGE 01」을 일곱 번 잇따라 누르면, 그 단계의 지금 회차를

@@ -48,7 +48,7 @@ function device(local){
 (async()=>{
   /* 폰: 1단계를 1회차로 25개 풀고, 3번 자리를 1회차에서 맞혔다 */
   const phone = device({
-    'jp3000v2': JSON.stringify({v:3,lv:2,pg:0,r:{1:2},done:{1:{1:[1,2,3]},2:{},3:{}},star:{1:1},bm:{1:2}}),
+    'jp3000v2': JSON.stringify({v:3,lv:2,pg:0,r:{1:2},done:{1:{1:[1,2,3]},2:{},3:{}},star:{1:1},bm:{1:2},at:{1:3,2:7}}),
     'jp3000-solved': JSON.stringify({'a':1,'b':1}),
     'jp3000-quiz'  : JSON.stringify({'a':{o:3,x:1}})
   });
@@ -57,7 +57,7 @@ function device(local){
 
   /* PC: 같은 계정인데 2단계를 풀었고, a 를 2회차에서도 맞혔다 */
   const pc = device({
-    'jp3000v2': JSON.stringify({v:3,lv:1,pg:1,r:{2:1},done:{1:{2:[7,8]},2:{1:[1]},3:{}},star:{},bm:{2:9}}),
+    'jp3000v2': JSON.stringify({v:3,lv:1,pg:1,r:{2:1},done:{1:{2:[7,8]},2:{1:[1]},3:{}},star:{},bm:{2:9},at:{1:20}}),
     'jp3000-solved': JSON.stringify({'a':2,'c':1}),
     'jp3000-quiz'  : JSON.stringify({'a':{o:1,x:5}})
   });
@@ -80,6 +80,10 @@ function device(local){
   t('PC에만 있던 c 살아있음',           dn.c===1);
   t('퀴즈 기록 큰 쪽 o=3 x=5',         qz.a.o===3&&qz.a.x===5);
   t('받은 게 있으니 새로 연다',         pc.ctx.reloaded===true);
+  /* 마지막에 보던 자리는 기기마다 다르다. 이 기기 것을 남기되,
+     이 기기에 없는 단계는 저쪽 것을 받아 둔다 */
+  t('보던 자리는 이 기기 것 우선',       st.at && st.at[1]===20);
+  t('이 기기에 없는 단계는 받는다',      st.at && st.at[2]===7);
   console.log('\n서버 최종 →', JSON.stringify(server));
 
   /* 같은 기기에서 한 번 더 — 이번엔 달라진 게 없어야 한다 */

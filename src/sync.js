@@ -128,8 +128,10 @@ function mergeST(a,b){
   }
   o.r={}; maxInto(o.r, a.r, b.r);          /* 회차는 더 나간 쪽 */
   o.star={}; maxInto(o.star, a.star, b.star);
-  /* 북마크는 단계마다 한 자리뿐이라 합칠 수 없다. 이 기기 것을 남긴다 */
+  /* 북마크와 마지막에 보던 자리는 단계마다 하나뿐이라 합칠 수 없다.
+     단계별로 이 기기 것을 남기고, 이 기기에 없는 단계만 저쪽 것을 받는다 */
   o.bm = Object.assign({}, b.bm||{}, a.bm||{});
+  o.at = Object.assign({}, b.at||{}, a.at||{});
   return o;
 }
 
