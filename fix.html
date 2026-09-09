@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>일본어 3000 · 새로 받기</title>
+<!--
+  앱이 옛 화면에서 벗어나지 못할 때 쓰는 페이지.
+
+  서비스 워커는 dist/ 안에서만 돈다. 이 파일은 그 바깥에 있어
+  가로채이지 않는다. 주소 뒤에 무엇을 붙여도(?v=1 …) 소용없는 것은
+  sw.js 가 ignoreSearch 로 찾아 저장해 둔 것을 그대로 내주기 때문이다.
+
+  담아 둔 파일과 서비스 워커만 지운다. 진도는 localStorage 에 있어
+  건드리지 않는다.
+-->
+<style>
+  :root{color-scheme:dark}
+  html{background:#12241F;color:#EDE6DA}
+  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
+       padding:24px;box-sizing:border-box;
+       font:15px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif}
+  .box{width:100%;max-width:380px;text-align:center}
+  h1{font-size:19px;font-weight:600;margin:0 0 14px}
+  p{margin:0 0 10px;color:#B7D0C5}
+  small{display:block;color:#7f8f88;font-size:12px;line-height:1.7;margin-top:8px}
+  a{display:inline-block;margin-top:18px;padding:11px 22px;border-radius:999px;
+    border:1px solid #4EA98A;color:#4EA98A;text-decoration:none;font-size:14px}
+  .sp{width:26px;height:26px;margin:0 auto 16px;border-radius:50%;
+      border:2px solid #2c4a40;border-top-color:#4EA98A;animation:t .8s linear infinite}
+  @keyframes t{to{transform:rotate(360deg)}}
+  [hidden]{display:none!important}
+</style>
+<body>
+  <div class="box">
+    <div class="sp" id="sp"></div>
+    <h1>앱을 새로 받습니다</h1>
+    <p id="msg">담아 둔 파일을 지우는 중…</p>
+    <a id="go" href="./dist/jp3000.html" hidden>앱 열기</a>
+  </div>
+<script>
+(async function(){
+  var msg=document.getElementById('msg'),
+      go =document.getElementById('go'),
+      sp =document.getElementById('sp');
+  var log=[];
+  try{
+    if(navigator.serviceWorker && navigator.serviceWorker.getRegistrations){
+      var rs=await navigator.serviceWorker.getRegistrations();
+      await Promise.all(rs.map(function(r){ return r.unregister(); }));
+      log.push('서비스 워커 '+rs.length+'개 해제');
+    }
+  }catch(e){}
+  try{
+    if(window.caches){
+      var ks=await caches.keys();
+      await Promise.all(ks.map(function(k){ return caches.delete(k); }));
+      log.push('담아 둔 파일 '+ks.length+'벌 삭제');
+    }
+  }catch(e){}
+  sp.hidden=true;
+  msg.innerHTML='다 지웠습니다. 진도는 그대로입니다.'+
+                '<small>'+(log.join('<br>')||'지울 것이 없었습니다')+'</small>';
+  go.hidden=false;
+  /* 주소에 표시를 붙여 브라우저가 따로 담아 둔 것까지 지나쳐 받게 한다 */
+  setTimeout(function(){ location.replace('./dist/jp3000.html?fresh='+Date.now()); },1600);
+})();
+</script>
+</body>
+</html>
