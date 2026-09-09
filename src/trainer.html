@@ -2175,6 +2175,43 @@ if(ST.lv===RV) startReview();
 build();
 centerLv();
 if(ST.bm[ST.lv]!=null) setTimeout(jump,120);
+
+/* ── 숨은 기능: 시험용으로 진도 채우기 ─────────────
+   위쪽 「STAGE 01」을 일곱 번 잇따라 누르면, 그 단계의 지금 회차를
+   마지막 문장 하나만 남기고 모두 맞힌 것으로 만든다.
+   회차를 마칠 때의 연출을 확인하려고 둔 것이다.
+
+   전에는 이것을 그냥 코드에 두었다가 새로 들어온 사람마다 진도가
+   채워진 채로 시작하는 일이 있었다. 눌러야만 나오게 바꾼 이유다 */
+(function(){
+  const stg=$('#stg'); if(!stg) return;
+  let hit=0, last=0;
+  stg.addEventListener('click',()=>{
+    const now=Date.now();
+    hit=(now-last<1200)?hit+1:1;          /* 뜸을 들이면 처음부터 */
+    last=now;
+    if(hit<7) return;
+    hit=0; fillStage();
+  });
+  function fillStage(){
+    const lv=ST.lv, L=SENT[lv];
+    if(!L||lv===RV){ say('여기서는 되지 않습니다'); return; }
+    const r=curR(lv), keep=L.s.length-1;   /* 마지막 하나는 남긴다 */
+    const a=ST.done[r][lv]=[];
+    L.s.slice(0,keep).forEach(s=>{
+      const plan=maskPlan(s), sid=lv+'-'+s.n;
+      let wi=-1;
+      chunkJP(s.j).forEach((c,ci)=>{ if(!c.w) return; wi++;
+        if(plan.j(wi)) markSolved(sid+'-j'+ci,r); });
+      wi=-1;
+      chunkKO(s.k).forEach((c,ci)=>{ if(c.plain) return; wi++;
+        if(plan.k(wi)) markSolved(sid+'-k'+ci,r); });
+      a.push(s.n);
+    });
+    saveDone(); save(); build(); centerLv();
+    say(lv+'단계 '+r+'회차 — '+keep+'/'+L.s.length+' 채웠습니다');
+  }
+})();
 </script>
 
 <script src="quiz.js"></script>
