@@ -94,10 +94,10 @@
   --c-v:#E9938C;
   --c-p:#9A968D;
   --c-x:#E6E1D8;
-  /* 어두운 판에서는 50% 가 너무 세게 튄다. 30% 면 경계는 서면서
+  /* 어두운 판에서는 50% 가 너무 세게 튄다. 20% 면 경계는 서면서
      팝업이 화면에서 떠 보이는 느낌을 해치지 않는다 */
-  --popline:rgba(255,255,255,.3);
-  --bandline:rgba(255,255,255,.3);
+  --popline:rgba(255,255,255,.2);
+  --bandline:rgba(255,255,255,.2);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;padding:0;}
@@ -522,7 +522,7 @@ body.hidehira .kcell .hi{color:transparent;background:var(--green-l);border-radi
 
    색과 진하기는 바탕을 따라간다. 밝은 판은 50% — 초록 띠 팝업은
    흰 선, 카드 팝업은 흰 카드 위라 먹색이다. 어두운 판은 둘 다 흰
-   선이되 30% 로 눅인다 */
+   선이되 20% 로 눅인다 */
 .pop,.qpop,.mpop{border:1px solid var(--bandline);}
 .npop,.cpop,.cel,.sheet{border:1px solid var(--popline);}
 /* 색종이. 손가락을 막지 않게 통과시킨다 */
