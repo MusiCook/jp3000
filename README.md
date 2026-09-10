@@ -37,6 +37,7 @@ tools/
   quiz-audit.js       퀴즈 보기 검사기
   sw-test.js          서비스 워커가 캐시를 갱신하는지 검사
   append.py           문장 배치 추가 도구
+  tts.js              문장 음성을 미리 굽는다 (docs/VOICE.md)
 
 dist/               배포용. Pages가 이 폴더를 그대로 내보낸다
   jp3000.html         합본 (이것만 열면 동작)
@@ -46,12 +47,19 @@ dist/               배포용. Pages가 이 폴더를 그대로 내보낸다
   icon-*.png
 
 docs/
+  README.md           문서 지도와 기록 규칙  ← 여기부터
+  APP.md              이 앱이 무엇인가 · 다른 학습앱과의 차이
   PLAN.md             전체 작업 규칙과 60단계 구성
   ROUNDS.md           회차 학습 시스템 — 구조와 고칠 자리
   NOTES-PLAN.md       「더 배워보기」 설명 계획
+  VOICE.md            문장 음성 — 목소리를 고른 과정과 안 되는 것
+  BACKLOG.md          남은 일을 한 곳에
   REVIEW.md           시스템 구조 검토 기록
   CHANGELOG.md        바뀐 내역
 ```
+
+새 대화를 시작할 때는 `CLAUDE.md` 와 `docs/README.md` 를 먼저 읽는다.
+`docs/` 는 **왜 그렇게 만들었는지**를, 이 문서는 **손이 움직이는 순서**를 적는 곳이다.
 
 ---
 
