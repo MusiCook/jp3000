@@ -44,13 +44,15 @@ def main():
     sw = DIST / "sw.js"
     if sw.exists():
         t = sw.read_text(encoding="utf-8")
-        t2 = re.sub(r"const BUILD = '[^']*';",
-                    "const BUILD = '" + stamp.replace(" ", "-").replace(":", "") + "';", t)
-        if t2 != t:
-            sw.write_text(t2, encoding="utf-8")
-            print(f"dist/sw.js       : 판 {stamp}")
-        else:
+        t2, n = re.subn(r"const BUILD = '[^']*';",
+                        "const BUILD = '" + stamp.replace(" ", "-").replace(":", "") + "';", t)
+        if not n:
             print("[경고] sw.js 에 BUILD 줄이 없습니다", file=sys.stderr)
+        else:
+            # 같은 분에 두 번 만들면 내용이 그대로다. 그건 잘못이 아니다
+            if t2 != t:
+                sw.write_text(t2, encoding="utf-8")
+            print(f"dist/sw.js       : 판 {stamp}")
 
 
 if __name__ == "__main__":

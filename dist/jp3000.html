@@ -651,7 +651,7 @@ body.hidehira .kcell .hi{color:transparent;background:var(--green-l);border-radi
     <button class="btn" id="bUpd">최신으로 받기</button>
   </div>
   <p style="margin:9px 0 0;font-size:11.5px;color:var(--ink3);text-align:center">
-    지금 판 <span id="ver">2026-09-10 08:55</span></p>
+    지금 판 <span id="ver">2026-09-10 09:03</span></p>
 
   <h3 style="margin-top:26px">초기화</h3>
   <p>진도·북마크·퀴즈 기록을 모두 지웁니다. 되돌릴 수 없습니다.</p>
@@ -8644,6 +8644,9 @@ const KANA={
   ["びゃ","ビャ","bya"],["びゅ","ビュ","byu"],["びょ","ビョ","byo"],null,null,
   ["ぴゃ","ピャ","pya"],["ぴゅ","ピュ","pyu"],["ぴょ","ピョ","pyo"],null,null]};
 const KNOTE=`<div class="knote">
+<b>가리고 외우기</b><br>
+가린 글자를 누르면 그 자리만 보이고 소리가 난다. 다시 누르면 도로 가려진다<br>
+<span class="pair">모두 가리기</span> 는 히라가나·가타카나를 함께 가려 <b>발음만</b> 남긴다<br><br>
 <b>모양이 닮아 헷갈리는 가타카나</b><br>
 <span class="pair">シ</span> shi 와 <span class="pair">ツ</span> tsu — 점의 방향. シ는 아래에서 위로, ツ는 위에서 아래로 긋는다<br>
 <span class="pair">ソ</span> so 와 <span class="pair">ン</span> n — 같은 규칙. ソ는 위에서, ン는 아래에서<br>
@@ -8916,6 +8919,11 @@ function centerLv(){
   const sb=side.querySelector(`.sideb[data-n="${ST.lv}"]`);
   if(sb&&sb.offsetParent&&sb.scrollIntoView) sb.scrollIntoView({block:'nearest'});
 }
+/* 히라가나·가타카나를 둘 다 가렸는가 */
+function bothHidden(){
+  const c=document.body.classList;
+  return c.contains('hidekata')&&c.contains('hidehira');
+}
 function buildKana(){
   $('#stg').textContent='STAGE 00';
   $('#ttl').textContent='가나 표';
@@ -8936,6 +8944,8 @@ function buildKana(){
     '<div class="ktabs">'+
       `<button class="ktab" id="hideK" aria-pressed="${document.body.classList.contains('hidekata')}">가타카나 가리기</button>`+
       `<button class="ktab" id="hideH" aria-pressed="${document.body.classList.contains('hidehira')}">히라가나 가리기</button>`+
+      /* 둘 다 가리면 발음만 남는다. 소리를 보고 글자를 떠올리는 연습이다 */
+      `<button class="ktab" id="hideA" aria-pressed="${bothHidden()}">모두 가리기</button>`+
     '</div>'+
     rows.join('')+KNOTE+'</div>';
   document.querySelectorAll('.lv').forEach(el=>el.setAttribute('aria-current','false'));
@@ -9217,10 +9227,13 @@ list.addEventListener('click',e=>{
   if(dg&&dg.ax==='x')return;
   const kt=e.target.closest('.ktab');
   if(kt){
-    if(kt.id==='hideK'){ const on=document.body.classList.toggle('hidekata');
-      if(on)document.body.classList.remove('hidehira'); buildKana(); return; }
-    if(kt.id==='hideH'){ const on=document.body.classList.toggle('hidehira');
-      if(on)document.body.classList.remove('hidekata'); buildKana(); return; }
+    /* 셋은 따로 논다. 둘 다 가려 두는 것이 「모두 가리기」이므로
+       예전처럼 한쪽을 켜면 다른 쪽을 끄지 않는다 */
+    if(kt.id==='hideK'){ document.body.classList.toggle('hidekata'); buildKana(); return; }
+    if(kt.id==='hideH'){ document.body.classList.toggle('hidehira'); buildKana(); return; }
+    if(kt.id==='hideA'){ const off=bothHidden();
+      document.body.classList.toggle('hidekata',!off);
+      document.body.classList.toggle('hidehira',!off); buildKana(); return; }
     kanaTab=kt.dataset.kt; buildKana(); return; }
   const kc=e.target.closest('.kcell:not(.empty)');
   if(kc){
