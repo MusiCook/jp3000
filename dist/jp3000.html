@@ -51,6 +51,7 @@
   --c-v:#9E2A2B;   /* 동사·형용사·서술 — 벽돌색 */
   --c-p:#9C948A;   /* 조사 — 따뜻한 회색 */
   --c-x:#2B2B28;   /* 그 밖 */
+  --popline:rgba(43,43,40,.5);  /* 팝업 테두리. 흰 카드 위라 먹색으로 긋는다 */
   --jp:"Noto Sans JP","Hiragino Sans","Yu Gothic","Meiryo",sans-serif;
   --ko:"Apple SD Gothic Neo","Pretendard","Noto Sans KR","Malgun Gothic",sans-serif;
   --sr:"Iowan Old Style",Georgia,serif;
@@ -92,6 +93,7 @@
   --c-v:#E9938C;
   --c-p:#9A968D;
   --c-x:#E6E1D8;
+  --popline:rgba(255,255,255,.5);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;padding:0;}
@@ -510,6 +512,15 @@ body.hidehira .kcell .hi{color:transparent;background:var(--green-l);border-radi
 .cel p{margin:0 0 18px;font-size:13px;color:var(--ink2);line-height:1.8;}
 .cel p b{color:var(--ink);font-weight:600;}
 .cel .brow{display:flex;gap:8px;}
+
+/* 팝업 테두리. 뒤가 흐려진 화면과 색이 붙어 가장자리가 묻혔다.
+   반투명한 선 한 줄로 경계를 세운다 — 굵기와 진하기(50%)는 모두 같다.
+
+   다만 색은 바탕을 따라간다. 초록 띠 팝업은 두 판 모두 어두우니 늘
+   흰 선이고, 카드 팝업은 밝은 판에서 흰 카드 위에 올라앉아 흰 선이
+   보이지 않으므로 --popline 이 판마다 먹색과 흰색으로 갈린다 */
+.pop,.qpop,.mpop{border:1px solid rgba(255,255,255,.5);}
+.npop,.cpop,.cel,.sheet{border:1px solid var(--popline);}
 /* 색종이. 손가락을 막지 않게 통과시킨다 */
 .fx{position:fixed;inset:0;z-index:99;pointer-events:none;display:none;}
 .fx.on{display:block;}
@@ -651,7 +662,7 @@ body.hidehira .kcell .hi{color:transparent;background:var(--green-l);border-radi
     <button class="btn" id="bUpd">최신으로 받기</button>
   </div>
   <p style="margin:9px 0 0;font-size:11.5px;color:var(--ink3);text-align:center">
-    지금 판 <span id="ver">2026-09-10 09:07</span></p>
+    지금 판 <span id="ver">2026-09-10 19:27</span></p>
 
   <h3 style="margin-top:26px">초기화</h3>
   <p>진도·북마크·퀴즈 기록을 모두 지웁니다. 되돌릴 수 없습니다.</p>

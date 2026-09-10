@@ -4,3 +4,8 @@ __pycache__/
 *.pyc
 .test-codes.txt
 jp3000.zip
+.gemini-key
+dist/voice/
+API_key.txt
+*key*.txt
+.env
