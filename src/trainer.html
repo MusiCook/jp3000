@@ -1502,27 +1502,35 @@ function hasNote(s){
    단추를 되살릴 때 이 줄을 지우면 「모두 보기」가 가림 끄기가 된다 */
 let MODE='jp';
 let QSTAT={}; try{ QSTAT=JSON.parse(DB.get('jp3000-quiz')||'{}'); }catch(e){ QSTAT={}; }
-Object.keys(QSTAT).forEach(k=>{ if(k.indexOf('ko:')===0) delete QSTAT[k]; });
 function saveStat(){ DB.set('jp3000-quiz',JSON.stringify(QSTAT)); }
-/* 옛 기록 되살리기. 일본어 문제를 「ginkou|wa」처럼 덩어리째 적어 두던
-   때가 있었다. 사전에 없는 키라 오답노트에도 통계에도 잡히지 않고
-   쌓이기만 했다. 앞말로 접어 넣어 그동안 틀린 것이 살아나게 한다 */
-(function(){
-  let moved=0;
-  Object.keys(QSTAT).forEach(k=>{
-    if(k.indexOf('|')<0) return;
-    const head=k.split('|')[0], v=QSTAT[k]||{};
-    delete QSTAT[k];
-    if(!WORDS[head]) return;
-    const t=QSTAT[head]||(QSTAT[head]={o:0,x:0});
-    t.o=(t.o||0)+(v.o||0); t.x=(t.x||0)+(v.x||0);
-    /* 예정일과 단계는 이른 쪽·낮은 쪽을 남긴다. 늦추지 않는다 */
+/* 퀴즈 기록을 지금 쓰는 꼴로 손본다. 두 가지를 고친다.
+
+   - 「ko:」로 시작하던 옛 키는 버린다
+   - 「ginkou|wa」처럼 덩어리째 적던 키는 앞말로 접는다. 사전에 없는
+     키라 오답노트에도 통계에도 잡히지 않고 쌓이기만 했다
+
+   **동기화도 반드시 이 함수를 쓴다.** 이 기기에서만 손보면, 서버에 남은
+   옛 키가 합쳐질 때마다 되살아나 「받았습니다 → 새로 열기」가 끝없이
+   돈다. 실제로 그 일이 있었다 — 양쪽을 같은 자로 손봐야 멈춘다.
+
+   손본 결과를 다시 손봐도 그대로여야 한다(멱등). 그래야 고리가 선다 */
+function cleanQuiz(q){
+  const o={}; let changed=false;
+  Object.keys(q||{}).forEach(k=>{
+    const v=q[k]||{};
+    if(k.indexOf('ko:')===0){ changed=true; return; }      /* 옛 키는 버린다 */
+    const head=k.indexOf('|')<0?k:k.split('|')[0];
+    if(head!==k) changed=true;
+    if(!WORDS[head]){ changed=true; return; }              /* 사전에 없으면 버린다 */
+    const t=o[head]||(o[head]={o:0,x:0});
+    t.o=(t.o||0)+(+v.o||0); t.x=(t.x||0)+(+v.x||0);
+    /* 예정일과 단계는 이른 쪽·낮은 쪽을 남긴다. 되살리며 복습을 늦추지 않는다 */
     if(v.due!=null) t.due=(t.due==null?v.due:Math.min(t.due,v.due));
-    if(v.lv!=null)  t.lv =(t.lv ==null?v.lv :Math.min(t.lv, v.lv));
-    moved++;
+    if(v.lv!=null)  t.lv =(t.lv==null?v.lv:Math.min(t.lv,v.lv));
   });
-  if(moved) saveStat();
-})();
+  return {q:o, changed:changed};
+}
+(function(){ const r=cleanQuiz(QSTAT); if(r.changed){ QSTAT=r.q; saveStat(); } })();
 /* 맞힌 자리. 값은 회차 비트를 모은 것이다.
    1이면 1회차에서만, 3이면 1·2회차에서, 7이면 세 회차 모두 맞혔다는 뜻.
    옛 기록은 값이 모두 1이라 그대로 1회차 기록으로 읽힌다 */

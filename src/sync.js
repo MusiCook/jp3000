@@ -25,6 +25,7 @@ const DOC  = u => 'https://firestore.googleapis.com/v1/projects/'+CFG.project
 let acct  = null;        /* 로그인 정보 */
 let tok   = '', tokAt=0; /* 인증표. 한 시간짜리라 메모리에만 둔다 */
 let timer = 0, busy=false;
+const RLD = 'jp3000-reloaded';   /* 이 판에서 이미 새로 열었는가 */
 
 try{ acct = JSON.parse(DB.get(AKEY)||'null'); }catch(e){ acct=null; }
 
@@ -91,6 +92,14 @@ async function push(data, last){
 }
 
 /* ── 이 기기의 진도 ────────────────────── */
+
+/* 합치기 전에 양쪽을 같은 자로 손본다.
+   한쪽만 손보면 저쪽에 남은 옛 키가 합칠 때마다 되살아나,
+   「받았습니다 → 새로 열기」가 끝없이 돈다 */
+function tidy(s){
+  if(s && typeof window.cleanQuiz==='function') s.quiz=window.cleanQuiz(s.quiz).q;
+  return s;
+}
 
 function snap(){
   const g = k => { try{ return JSON.parse(DB.get(k)||'null'); }catch(e){ return null; } };
@@ -167,8 +176,8 @@ async function syncNow(loud){
   if(!acct || busy) return;
   busy = true;
   try{
-    const mine = snap();
-    const theirs = await pull();
+    const mine = tidy(snap());
+    const theirs = tidy(await pull());
     const base = merge(mine, mine);        /* 견줄 수 있게 같은 모양으로 만든다 */
     const both = merge(mine, theirs);
     const changed = canon(both) !== canon(base);
@@ -176,7 +185,12 @@ async function syncNow(loud){
     await push(both);
     if(changed){
       say('다른 기기의 진도를 받았습니다');
-      setTimeout(()=>location.reload(), 1200);
+      /* 새로 열기는 한 번만. 합치기가 어긋나 「받았다」가 계속 서면
+         앱이 열리자마자 다시 열리기를 되풀이해 아무것도 할 수 없다.
+         한 번 놓치는 편이 갇히는 것보다 낫다 */
+      let again=false;
+      try{ again=sessionStorage.getItem(RLD)==='1'; sessionStorage.setItem(RLD,'1'); }catch(e){}
+      if(!again) setTimeout(()=>location.reload(), 1200);
     }else if(loud) say('이미 맞춰져 있습니다');
   }catch(e){
     if(loud) say(msg(e));
