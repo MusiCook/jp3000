@@ -274,13 +274,16 @@ function quizOpts(type, o){
     const headP=WORDS[head]&&WORDS[head].p;
     const swappable=(headP==='n'||headP==='d')&&tail[0]!=='ka';
     if(!isUnit&&swappable&&tail.length===1&&WORDS[tail[0]]&&WORDS[tail[0]].p==='p'){
-      /* 조사만 바꾼 보기 둘 + 앞말을 바꾼 보기 하나 */
+      /* 조사만 바꾼 보기 **하나** + 앞말을 바꾼 보기 둘.
+         전에는 이 비가 거꾸로였다. 그러면 넷 중 셋이 같은 앞말이라
+         낱말을 몰라도 조사만 보고 고르게 되어, 정작 낱말을 묻지 못한다.
+         그래도 하나는 남긴다 — 조사가 맞는지도 물어야 하기 때문이다 */
       const pt=PARTICLES.filter(k=>WORDS[k]&&k!==tail[0]&&k!=='ka');
-      [Math.floor(seeded(seed*1.7)*pt.length),
-       Math.floor(seeded(seed*2.9)*pt.length)].forEach(i=>{
-        const v=head+'|'+pt[i]; if(pt[i]&&cand.indexOf(v)<0) cand.push(v); });
-      const near=pick3(jpCands(head).filter(c=>c.v!==head&&canAttach(c.v,tail[0])),seed)[0];
-      if(near&&cand.length<3) cand.push(near+'|'+tail[0]);
+      const pi=Math.floor(seeded(seed*1.7)*pt.length);
+      if(pt[pi]){ const v=head+'|'+pt[pi]; if(cand.indexOf(v)<0) cand.push(v); }
+      pick3(jpCands(head).filter(c=>c.v!==head&&canAttach(c.v,tail[0])),seed)
+        .forEach(k=>{ const v=k+'|'+tail[0];
+          if(cand.length<3&&cand.indexOf(v)<0&&v!==ans) cand.push(v); });
     }
     if(cand.length<3&&!isUnit){
       /* 동사에 격조사를 붙이면 「来られますは」 같은 말이 나온다.
@@ -314,9 +317,11 @@ function quizOpts(type, o){
     const cand=[];
     if(part){
       if(!CHUNKPOOL) buildChunkPool();
-      /* 1순위: 같은 앞말이 다른 조사와 쓰인 실제 덩어리 */
+      /* 1순위: 같은 앞말이 다른 조사와 쓰인 실제 덩어리. **하나만** 쓴다.
+         셋을 채우면 「저는 / 저도 / 저의 / 저의 것」처럼 넷이 모두 같은
+         앞말이 되어, 낱말을 몰라도 조사만 보고 고르게 된다 */
       (CHUNKPOOL.byHead[hw]||[]).forEach(v=>{
-        if(cand.length<3&&v!==ans&&cand.indexOf(v)<0) cand.push(v); });
+        if(cand.length<1&&v!==ans&&cand.indexOf(v)<0) cand.push(v); });
       /* 2순위: 같은 뜻갈래의 다른 낱말이 만든 실제 덩어리 */
       if(cand.length<3&&g){
         const gl=(CHUNKPOOL.byGroup[g]||[]).filter(v=>v!==ans&&!v.startsWith(hw));

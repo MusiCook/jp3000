@@ -163,6 +163,30 @@ function audit(ctx){
           note(where,'정답과 뜻이 같은 보기','「'+o.v+'」 — 정답 「'+q.ans+'」와 같은 뜻',list); });
     }
 
+    /* 넷 중 셋 이상이 같은 앞말이고, **다른 것이 조사뿐**이면
+       낱말을 묻지 못한다. 뒤의 조사만 보고 고를 수 있기 때문이다.
+       (受付は / 受付も / 受付の — 受付 를 몰라도 맞힌다)
+
+       수사+조수사는 걸러선 안 된다. 五個 / 五枚 / 五番 은 앞말이 같아도
+       **변하는 쪽(조수사)이 바로 묻고 싶은 내용**이라 문제가 성립한다.
+       조사는 p='p', 조수사는 p='n' 이라 품사로 갈린다 */
+    const KOJOSA=/(은|는|이|가|을|를|의|도|와|과|에서|에|까지|부터|으로|로|\s*것)$/;
+    const headOf = (o,i) => jp ? String(o.v).split('|')[0]
+                               : String(o.v).replace(KOJOSA,'').trim();
+    if(q.ans!=null && q.opts.length>=4){
+      const ah = jp ? String(q.ans).split('|')[0]
+                    : String(q.ans).replace(KOJOSA,'').trim();
+      const hit = q.opts.filter(o=>headOf(o)===ah);
+      /* 같은 앞말을 쓴 보기들의 꼬리가 모두 조사인가 */
+      const onlyJosa = !jp || hit.every(o=>{
+        const t=String(o.v).split('|').slice(1);
+        return t.length>0 && t.every(k=>WORDS[k]&&WORDS[k].p==='p');
+      });
+      if(hit.length>=3 && onlyJosa)
+        note(where,'같은 앞말이 셋 이상',
+             '「'+ah+'」가 '+hit.length+'개 — 조사만 보고 고를 수 있다', list);
+    }
+
     if(q.ans!=null && !q.opts.some(o=>o.v===q.ans))
       note(where,'정답 없음','정답 「'+q.ans+'」', list);
   }
