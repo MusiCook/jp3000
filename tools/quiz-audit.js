@@ -187,6 +187,19 @@ function audit(ctx){
              '「'+ah+'」가 '+hit.length+'개 — 조사만 보고 고를 수 있다', list);
     }
 
+    /* 평서문 자리에 의문사를 내놓으면, 뜻을 몰라도 말이 안 되는 쪽을
+       지워 맞힐 수 있다. 정답이 의문사면 그때는 그대로 둔다 */
+    const ASKKO=/^(누구|어느|무엇|어디|언제|얼마|몇|어떤|어떻)/;
+    const askOf = v => jp
+      ? (()=>{ const k=String(v).split('|')[0], w=WORDS[k];
+               return !!(w&&w.m&&w.m.split(',').some(x=>ASKKO.test(x.trim()))); })()
+      : ASKKO.test(String(v).trim());
+    if(q.ans!=null && !askOf(q.ans)){
+      const bad=q.opts.filter(o=>o.v!==q.ans&&askOf(o.v));
+      if(bad.length) note(where,'평서문에 의문사 보기',
+        bad.map(o=>'「'+o.v+'」').join(' ')+' — 말이 안 돼 지워진다', list);
+    }
+
     if(q.ans!=null && !q.opts.some(o=>o.v===q.ans))
       note(where,'정답 없음','정답 「'+q.ans+'」', list);
   }

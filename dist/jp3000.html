@@ -666,7 +666,7 @@ body.hidehira .kcell .hi{color:transparent;background:var(--green-l);border-radi
     <button class="btn" id="bUpd">최신으로 받기</button>
   </div>
   <p style="margin:9px 0 0;font-size:11.5px;color:var(--ink3);text-align:center">
-    지금 판 <span id="ver">2026-09-15 08:27</span></p>
+    지금 판 <span id="ver">2026-09-15 08:45</span></p>
 
   <h3 style="margin-top:26px">초기화</h3>
   <p>진도·북마크·퀴즈 기록을 모두 지웁니다. 되돌릴 수 없습니다.</p>
@@ -10459,6 +10459,18 @@ function kNorm(t){
 }
 /* 문장에 실제로 나온 「말+조사」 덩어리.
    보기를 만들어 내기 전에 여기 있는 것부터 쓴다 */
+/* 의문사. 평서문 자리의 오답으로 쓰면 안 된다.
+   「저분은 접수처 누구입니다」는 말이 안 되어, 뜻을 몰라도 지워진다.
+   낱말을 묻는 문제가 「말이 되는 것 고르기」로 바뀌어 버린다.
+
+   정답 자체가 의문사일 때는 그대로 둔다 — 「어디」와 「어느 쪽」은
+   서로 좋은 오답이고, 그때는 가려내는 것이 물어야 할 바다.
+   사전 뜻으로 가리므로 낱말이 늘어도 따라온다 */
+const ASKKO=/^(누구|어느|무엇|어디|언제|얼마|몇|어떤|어떻)/;
+function isAskKO(t){ return ASKKO.test(String(t).trim()); }
+function isAskId(k){ const w=WORDS[k];
+  return !!(w&&w.m&&w.m.split(',').some(x=>isAskKO(x))); }
+
 let CHUNKPOOL=null;
 function buildChunkPool(){
   CHUNKPOOL={byHead:{}, byGroup:{}, all:[], jpByHead:{}, jpAll:[]};
@@ -10560,10 +10572,12 @@ function jpCands(ans){
   const kanjiOf=t=>t.replace(/\{([^|{}]+)\|[^|{}]+\}/g,'$1');
   const kanaOf =t=>t.replace(/\{[^|{}]+\|([^|{}]+)\}/g,'$1');
   const aK=kanjiOf(w.t), aY=kanaOf(w.t);
+  const askAns=isAskId(ans);
   const cands=Object.keys(WORDS).map(k=>{ const t=WORDS[k].t;
     let s=Math.max(sim(aK,kanjiOf(t)),sim(aY,kanaOf(t)));
     if(s<0) return {v:k,s:-1};
     if(eqOf(ans,k)!=null) return {v:k,s:-1};
+    if(!askAns&&isAskId(k)) return {v:k,s:-1};   /* 평서문 자리에 의문사 금지 */
     /* 何(なん) 과 何(なに) 처럼 한자가 같으면 화면에서 구별되지 않는다.
        「何」와 「何か」처럼 가나 한둘만 더 붙은 것도 마찬가지다 */
     if(k!==ans&&alike(kanjiOf(t),aK)) return {v:k,s:-1};
@@ -10588,7 +10602,10 @@ function optsKO(ans,seed){
   if(!KOPOOL) buildKoPool();
   const w=WORDS[ans], m=(w.m||'').split(',')[0].trim();
   const syn=koSyn(ans);
-  const pool=koPool(w.g,w.p).filter(v=>v===m||syn.indexOf(kNorm(v))<0);
+  const askAns=isAskKO(m);
+  const pool=koPool(w.g,w.p)
+    .filter(v=>v===m||syn.indexOf(kNorm(v))<0)
+    .filter(v=>v===m||askAns||!isAskKO(v));       /* 평서문 자리에 의문사 금지 */
   const cands=pool.map(v=>({v,s:sim(m,v)+0.4}));
   return shuffle4(pick3(cands,seed).concat([m]),seed);
 }
@@ -10605,6 +10622,12 @@ function quizOpts(type, o){
     jkey=head;
     const show=l=>l.map(i=>ruby(WORDS[i].t)).join('');
     const cand=[];
+    /* 정답이 의문사가 아니면 의문사 덩어리를 오답으로 내지 않는다.
+       「四番です」 자리에 「何番」이 오면 말이 안 돼 지워지므로,
+       수를 몰라도 맞힐 수 있다. isUnit 분기는 jpCands 를 타지 않아
+       여기서 따로 걸러야 한다 */
+    const askHead=isAskId(head);
+    const askChunk=v=>isAskId(String(v).split('|')[0]);
     if(!CHUNKPOOL) buildChunkPool();
     /* 단위·접미사가 붙은 덩어리는 실제로 쓰인 것만 쓴다 (三時 ○ / 万時 ×) */
     const isUnit=tail.some(t=>SUFJP.has(t));
@@ -10612,7 +10635,8 @@ function quizOpts(type, o){
       const same=[];
       Object.keys(CHUNKPOOL.jpByHead).forEach(hd=>{
         (CHUNKPOOL.jpByHead[hd]||[]).forEach(v=>{
-          if(v!==ans&&v.split('|').slice(1).join('|')===tail.join('|')) same.push(v); }); });
+          if(v!==ans&&v.split('|').slice(1).join('|')===tail.join('|')
+             &&(askHead||!askChunk(v))) same.push(v); }); });
       pick3(same.map(v=>({v,s:sim(show(ans.split('|')),show(v.split('|')))+0.4})),seed)
         .forEach(v=>{ if(cand.length<3&&cand.indexOf(v)<0) cand.push(v); });
       (CHUNKPOOL.jpByHead[head]||[]).forEach(v=>{
@@ -10644,7 +10668,7 @@ function quizOpts(type, o){
         if(cand.length<3&&cand.indexOf(v)<0&&v!==ans) cand.push(v); });
     }
     if(cand.length<3&&isUnit){
-      pick3(CHUNKPOOL.jpAll.filter(v=>v!==ans&&cand.indexOf(v)<0)
+      pick3(CHUNKPOOL.jpAll.filter(v=>v!==ans&&cand.indexOf(v)<0&&(askHead||!askChunk(v)))
         .map(v=>({v,s:sim(show(ans.split('|')),show(v.split('|')))+0.3})),seed)
         .forEach(v=>{ if(cand.length<3) cand.push(v); });
     }
@@ -10664,6 +10688,10 @@ function quizOpts(type, o){
     if(!jkey) jkey=s.j.find(id=>{ const x=WORDS[id];
       return x&&x.m&&x.m.split(',').some(m=>kNorm(m)===kNorm(hw)); })||null;
     if(!g&&jkey) g=WORDS[jkey].g;
+    /* 정답이 의문사가 아니면 의문사 보기를 내지 않는다.
+       덩어리 분기도 실제 문장에서 뽑아 오므로 「어느 분 것」처럼
+       의문사로 시작하는 덩어리가 섞여 들어온다 */
+    const askAns=isAskKO(ans);
     const cand=[];
     if(part){
       if(!CHUNKPOOL) buildChunkPool();
@@ -10671,10 +10699,11 @@ function quizOpts(type, o){
          셋을 채우면 「저는 / 저도 / 저의 / 저의 것」처럼 넷이 모두 같은
          앞말이 되어, 낱말을 몰라도 조사만 보고 고르게 된다 */
       (CHUNKPOOL.byHead[hw]||[]).forEach(v=>{
-        if(cand.length<1&&v!==ans&&cand.indexOf(v)<0) cand.push(v); });
+        if(cand.length<1&&v!==ans&&cand.indexOf(v)<0&&(askAns||!isAskKO(v))) cand.push(v); });
       /* 2순위: 같은 뜻갈래의 다른 낱말이 만든 실제 덩어리 */
       if(cand.length<3&&g){
-        const gl=(CHUNKPOOL.byGroup[g]||[]).filter(v=>v!==ans&&!v.startsWith(hw));
+        const gl=(CHUNKPOOL.byGroup[g]||[])
+          .filter(v=>v!==ans&&!v.startsWith(hw)&&(askAns||!isAskKO(v)));
         pick3(gl.map(v=>({v,s:sim(ans,v)+0.4})),seed).forEach(v=>{
           if(cand.length<3&&cand.indexOf(v)<0) cand.push(v); });
       }
@@ -10714,6 +10743,7 @@ function quizOpts(type, o){
     const cutAns=CUTEND(ans);
     const pool=koPool(g,toks[0][1])
       .filter(v=>syn.indexOf(kNorm(v))<0)          /* 뜻이 같은 말은 오답이 못 된다 */
+      .filter(v=>askAns||!isAskKO(v))              /* 평서문 자리에 의문사 금지 */
       .filter(v=>cutAns||!CUTEND(v))
       .filter(v=>!part||(!NOSUF.test(v)&&!HASJOSA.test(v)&&!CUTEND(v)&&v.length>=hw.length-1));
     if(!part){
