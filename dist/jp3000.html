@@ -666,7 +666,7 @@ body.hidehira .kcell .hi{color:transparent;background:var(--green-l);border-radi
     <button class="btn" id="bUpd">최신으로 받기</button>
   </div>
   <p style="margin:9px 0 0;font-size:11.5px;color:var(--ink3);text-align:center">
-    지금 판 <span id="ver">2026-09-11 08:56</span></p>
+    지금 판 <span id="ver">2026-09-15 08:00</span></p>
 
   <h3 style="margin-top:26px">초기화</h3>
   <p>진도·북마크·퀴즈 기록을 모두 지웁니다. 되돌릴 수 없습니다.</p>
@@ -9086,7 +9086,7 @@ function reviewQueue(){
   return Object.entries(QSTAT)
     .filter(([k,v])=>v.x>0&&WORDS[k]&&(v.lv||0)<STEP.length&&due(k)<=t)
     .sort((a,b)=>b[1].x-a[1].x)
-    .slice(0,20).map(([k])=>k);
+    .map(([k])=>k);
 }
 function nextDueDay(){
   const t=today(), ds=Object.entries(QSTAT)
@@ -9103,14 +9103,24 @@ function sampleSentence(k){
   return null;
 }
 const RVHIT=2;                 /* 한 말을 몇 번 맞혀야 끝나는가 */
+/* 한 판에 내는 말의 수. 쌓인 것이 백 개여도 오늘 치는 이만큼만 낸다 —
+   끝이 안 보이면 아예 손을 놓는다. 단추에 찍히는 숫자는 상한을 두지
+   않고 쌓인 그대로 보여 준다. 전에는 상한이 쌓이는 쪽에 걸려 있어서,
+   스무 개가 넘으면 아무리 틀려도 숫자가 20 에서 멈췄다 */
+const RVMAX=20;
 let RVQ=[];                    /* 아직 남은 말. 앞에서부터 낸다 */
 let RVN={};                    /* 말마다 남은 횟수 */
 let RVtot=0, RVo=0, RVx=0, RVdone=false;
 function startReview(){
-  RVQ=reviewQueue(); RVtot=RVQ.length; RVN={};
+  RVQ=reviewQueue().slice(0,RVMAX); RVtot=RVQ.length; RVN={};
   RVQ.forEach(k=>{ RVN[k]=RVHIT; });
   RVo=0; RVx=0; RVdone=false;
 }
+/* 오답노트로 들어간다. 풀던 판이 있으면 건드리지 않는다 — 단추를 다시
+   누르거나 단계를 다녀와도 풀던 자리에서 잇는다. 아직 시작을 안 했거나
+   이미 다 끝낸 판이면 그때 새로 짠다.
+   「한 번 더」(#rvAgain)만은 일부러 startReview 를 그대로 부른다 */
+function enterReview(){ if(!RVQ.length||RVdone) startReview(); }
 const rvEnd=()=>RVtot-RVQ.length;      /* 끝낸 말의 수 */
 function buildReview(){
   $('#stg').textContent='REVIEW';
@@ -9180,10 +9190,10 @@ side.innerHTML='<h4>STAGES</h4>'+
     `<span class="no">${i+1}</span><span class="tt">${t}</span>`+
     `<span class="crown sidecrown" data-s="0"><i>${ICO.star}</i><i>${ICO.star}</i><i>${ICO.star}</i></span></button>`).join('');
 side.addEventListener('click',e=>{const b=e.target.closest('.sideb'); if(!b||b.disabled)return;
-  ST.lv=+b.dataset.n; ST.pg=0; if(ST.lv===RV) startReview();
+  ST.lv=+b.dataset.n; ST.pg=0; if(ST.lv===RV) enterReview();
   save(); build(); scrollTo({top:0}); centerLv();});
 nav.addEventListener('click',e=>{const b=e.target.closest('.lv'); if(!b||b.disabled||navMoved)return;
-  ST.lv=+b.dataset.n; ST.pg=0; if(ST.lv===RV) startReview();
+  ST.lv=+b.dataset.n; ST.pg=0; if(ST.lv===RV) enterReview();
   save(); build(); scrollTo({top:0}); centerLv();});
 /* 세로 휠을 가로 이동으로 */
 nav.addEventListener('wheel',e=>{ if(Math.abs(e.deltaY)<=Math.abs(e.deltaX))return;
@@ -9442,6 +9452,25 @@ let MODE='jp';
 let QSTAT={}; try{ QSTAT=JSON.parse(DB.get('jp3000-quiz')||'{}'); }catch(e){ QSTAT={}; }
 Object.keys(QSTAT).forEach(k=>{ if(k.indexOf('ko:')===0) delete QSTAT[k]; });
 function saveStat(){ DB.set('jp3000-quiz',JSON.stringify(QSTAT)); }
+/* 옛 기록 되살리기. 일본어 문제를 「ginkou|wa」처럼 덩어리째 적어 두던
+   때가 있었다. 사전에 없는 키라 오답노트에도 통계에도 잡히지 않고
+   쌓이기만 했다. 앞말로 접어 넣어 그동안 틀린 것이 살아나게 한다 */
+(function(){
+  let moved=0;
+  Object.keys(QSTAT).forEach(k=>{
+    if(k.indexOf('|')<0) return;
+    const head=k.split('|')[0], v=QSTAT[k]||{};
+    delete QSTAT[k];
+    if(!WORDS[head]) return;
+    const t=QSTAT[head]||(QSTAT[head]={o:0,x:0});
+    t.o=(t.o||0)+(v.o||0); t.x=(t.x||0)+(v.x||0);
+    /* 예정일과 단계는 이른 쪽·낮은 쪽을 남긴다. 늦추지 않는다 */
+    if(v.due!=null) t.due=(t.due==null?v.due:Math.min(t.due,v.due));
+    if(v.lv!=null)  t.lv =(t.lv ==null?v.lv :Math.min(t.lv, v.lv));
+    moved++;
+  });
+  if(moved) saveStat();
+})();
 /* 맞힌 자리. 값은 회차 비트를 모은 것이다.
    1이면 1회차에서만, 3이면 1·2회차에서, 7이면 세 회차 모두 맞혔다는 뜻.
    옛 기록은 값이 모두 1이라 그대로 1회차 기록으로 읽힌다 */
@@ -9507,7 +9536,12 @@ function openQuiz(el){
   qpop.innerHTML='<div class="qq">'+(type==='j'?'어느 일본어가 맞을까요':'어느 뜻이 맞을까요')+'</div>'+
     opts.map(o=>`<button class="qopt ${cls}" data-v="${esc(o.v)}">${o.html}</button>`).join('')+
     '<div class="qmsg"></div>';
-  qpop.dataset.ans=ans; qpop.dataset.type=type; qpop.dataset.jkey=jkey||''; qpop.dataset.raw=rawAns||''; qpop.dataset.first='1'; qpop.dataset.key=(type==='j'?ans:jkey)||'';
+  /* 오답 기록의 열쇠는 반드시 사전에 있는 낱말 키여야 한다.
+     일본어 문제의 답(ans)은 「ginkou|wa」처럼 덩어리 전체다. 그대로 쓰면
+     WORDS 에서 찾을 수 없어, 적어 놓고도 영영 못 읽는 기록이 된다 —
+     오답노트도 통계도 WORDS[k] 로 거르기 때문이다. 앞말(jkey)로 적는다.
+     가릴 수 있는 일본어 덩어리의 48%가 이 꼴이라 절반 가까이 새고 있었다 */
+  qpop.dataset.ans=ans; qpop.dataset.type=type; qpop.dataset.jkey=jkey||''; qpop.dataset.raw=rawAns||''; qpop.dataset.first='1'; qpop.dataset.key=jkey||'';
   /* 앞서 열었던 문제의 깜빡임을 먼저 지운다 */
   document.querySelectorAll('.blink').forEach(x=>x.classList.remove('blink'));
   qpop._el=el; el.classList.add('blink');
@@ -9688,7 +9722,7 @@ addEventListener('keydown',e=>{
 });
 $('#lvKana').onclick=()=>{ ST.lv=0; ST.pg=0; save(); build(); scrollTo({top:0}); };
 $('#bJump').onclick=jump;
-$('#bRv').onclick=()=>{ ST.lv=RV; ST.pg=0; startReview(); save(); build(); centerLv(); scrollTo({top:0}); };
+$('#bRv').onclick=()=>{ ST.lv=RV; ST.pg=0; enterReview(); save(); build(); centerLv(); scrollTo({top:0}); };
 /* 오늘 볼 것이 몇 개인지 배지로 알린다 */
 function paintRv(){
   const n=reviewQueue().length, b=$('#bRv');
@@ -9825,7 +9859,7 @@ function renderStat(){
         `<span class="pc">${p}%</span></div>`).join(''):'')+
     (bad.length?`<button class="rvlink" id="goRv">오답노트 <b>${bad.length}</b>개 ${ICO.ar}</button>`:'');
   const g2=$('#goRv');
-  if(g2) g2.onclick=()=>{ closeSheet(); ST.lv=RV; ST.pg=0; startReview(); save(); build(); scrollTo({top:0}); centerLv(); };
+  if(g2) g2.onclick=()=>{ closeSheet(); ST.lv=RV; ST.pg=0; enterReview(); save(); build(); scrollTo({top:0}); centerLv(); };
 }
 function paintSnd(){
   $('#sndrow').innerHTML=Object.entries(SNDSET).map(([k,v])=>
@@ -10157,7 +10191,7 @@ function celebrate(r){
   const rv=$('#celRv');
   if(rv) rv.onclick=()=>{ celDone(false);
     /* 별이 왕관에 앉은 뒤에 옮긴다. 「다음 단계」와 같은 박자다 */
-    setTimeout(()=>{ ST.lv=RV; ST.pg=0; startReview();
+    setTimeout(()=>{ ST.lv=RV; ST.pg=0; enterReview();
       save(); build(); scrollTo({top:0}); centerLv(); },700); };
 }
 /* 팝업을 닫으면서 별을 왕관 자리로 날려 보낸다.
@@ -10238,7 +10272,7 @@ function showUpdate(){
 if(/[?&]u=/.test(location.search))
   history.replaceState(null,'',location.pathname);
 applyMode();
-if(ST.lv===RV) startReview();
+if(ST.lv===RV) enterReview();
 build();
 centerLv();
 /* 마지막에 보던 자리로. 적어 둔 것이 없으면 북마크로 간다 */
