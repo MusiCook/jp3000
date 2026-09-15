@@ -150,13 +150,19 @@ function mergeDone(a,b){
   const o={}; keys(a,b).forEach(k=>{ o[k] = ((a||{})[k]|0) | ((b||{})[k]|0); }); return o;
 }
 
-/* 맞힘·틀림 횟수. 더하면 부풀고 한쪽만 두면 사라져서 큰 쪽을 남긴다.
-   복습 차례를 정하는 참고값이라 이 정도면 된다 */
+/* 맞힘·틀림 횟수는 큰 쪽을 남긴다. 더하면 맞춘 횟수가 부풀고,
+   한쪽만 고르면 다른 기기에서 쌓은 기록이 사라지기 때문이다.
+   복습 단계와 예정일은 낮고 이른 쪽을 남긴다. 한 기기에서 아직
+   복습할 것이 다른 기기의 졸업 기록에 밀려 사라지면 안 된다. */
 function mergeQuiz(a,b){
   const o={};
   keys(a,b).forEach(k=>{
     const x=(a||{})[k]||{}, y=(b||{})[k]||{};
-    o[k] = { o:Math.max(+x.o||0,+y.o||0), x:Math.max(+x.x||0,+y.x||0) };
+    const q=o[k]={o:Math.max(+x.o||0,+y.o||0), x:Math.max(+x.x||0,+y.x||0)};
+    if(x.lv!=null||y.lv!=null)
+      q.lv=Math.min(x.lv==null?Infinity:+x.lv, y.lv==null?Infinity:+y.lv);
+    if(x.due!=null||y.due!=null)
+      q.due=Math.min(x.due==null?Infinity:+x.due, y.due==null?Infinity:+y.due);
   });
   return o;
 }

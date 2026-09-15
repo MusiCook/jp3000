@@ -666,7 +666,7 @@ body.hidehira .kcell .hi{color:transparent;background:var(--green-l);border-radi
     <button class="btn" id="bUpd">최신으로 받기</button>
   </div>
   <p style="margin:9px 0 0;font-size:11.5px;color:var(--ink3);text-align:center">
-    지금 판 <span id="ver">2026-09-15 09:29</span></p>
+    지금 판 <span id="ver">2026-09-15 22:29</span></p>
 
   <h3 style="margin-top:26px">초기화</h3>
   <p>진도·북마크·퀴즈 기록을 모두 지웁니다. 되돌릴 수 없습니다.</p>
@@ -9320,23 +9320,34 @@ document.addEventListener('pointerdown',e=>{
 /* ── 더 알아보기 ────────────────────────────
    문장 설명(손으로 쓴 것)과 낱말 정보(사전에서 자동)를 함께 보여준다 */
 const NSKIP=/^(desu|deshita|janaidesu|janakattadesu|kudasai|teimasu|teimasen|teimashita|ka|da|janai|datta|janakatta|nai|ra|ri|koto|to|ne|yo|yone|moiidesuka|moiidesu|tewaikemasen|dekudasai|kadouka|deshou|kamoshiremasen|tearimasu|tearimashita|itadakemasuka|kudasaimasenka|onegaishimasu|arimasu|imasu)$/;
-const NPRIO=/^(반대말|짝이 되는 말|짝|뜻 구분|입는 곳에 따라)$/;   /* 늘 넣는다 */
-const NFORM=/^형태$/;                                          /* 처음 나올 때만 */
-const NSEEN={};
-/* 그 단계까지 이미 나온 낱말을 미리 기록해 둔다 */
-function markSeenUpto(lv,n){
+const NFORM=/^형태$/;                         /* 이 갈래만 처음 나올 때 넣는다 */
+const NORDER=[                                /* 버리는 필터가 아니라 보일 차례다 */
+  /^(주의|쓰임|쓰임 차이|뜻 구분|입는 곳에 따라)$/,
+  /^(반대말|짝이 되는 말|짝)$/,
+  /^(정중한 정도|어감)$/,
+  /^(참고|안내판|읽는 법)$/
+];
+const NWORDMAX=4, NITEMMAX=4;
+function noteRank(g){
+  const i=NORDER.findIndex(re=>re.test(g));
+  if(i>=0) return i;
+  return NFORM.test(g)?NORDER.length+1:NORDER.length;
+}
+/* 그 문장보다 앞에서 이미 나온 낱말을 모은다 */
+function seenUpto(lv,n){
+  const seen={};
   for(const l in SENT){ if(+l>lv||+l===RV) continue;
     for(const s of SENT[l].s){ if(+l===lv&&s.n>=n) break;
-      s.j.forEach(id=>{ NSEEN[id]=1; }); } }
+      s.j.forEach(id=>{ seen[id]=1; }); } }
+  return seen;
 }
-function wordNotes(s){
+function wordNotes(s,seen){
   const out=[]; 
   s.j.forEach(id=>{
-    const w=WORDS[id]; if(!w||!w.f||NSKIP.test(id)||out.length>=2) return;
-    const prio=w.f.filter(g=>NPRIO.test(g.g));
-    const form=w.f.filter(g=>NFORM.test(g.g));
-    let use=prio;
-    if(!use.length&&form.length&&!NSEEN[id]) use=form;
+    const w=WORDS[id]; if(!w||!w.f||NSKIP.test(id)||out.length>=NWORDMAX) return;
+    /* 모든 갈래를 후보로 삼되 「형태」만 첫 등장 뒤에는 되풀이하지 않는다 */
+    const use=w.f.filter(g=>!NFORM.test(g.g)||!seen[id])
+                 .sort((a,b)=>noteRank(a.g)-noteRank(b.g));
     if(!use.length) return;
     out.push({w,g:use[0]});
   });
@@ -9345,8 +9356,6 @@ function wordNotes(s){
 function openNote(row){
   const s=SENT[ST.lv].s.find(x=>x.n===+row.dataset.n); if(!s) return;
   closeAllPop('npop');
-  Object.keys(NSEEN).forEach(k=>delete NSEEN[k]);
-  markSeenUpto(ST.lv,s.n);
   const blocks=[];
   /* 손으로 쓴 설명. 문자열이면 한 갈래로 감싼다 */
   const T=Array.isArray(s.t)?s.t:(s.t?[['설명',s.t,'']]:[]);
@@ -9367,12 +9376,12 @@ function openNote(row){
     blocks.push(`<div class="ngrp"><div class="ngl">${esc(g)}</div>${body}</div>`);
   });
   /* 사전에서 가져온 낱말 정보. 여러 개여도 한 갈래로 묶는다 */
-  const wn=wordNotes(s);
+  const wn=wordNotes(s,seenUpto(ST.lv,s.n));
   if(wn.length){
     blocks.push(`<div class="ngrp"><div class="ngl">이 문장의 말</div>`+
       wn.map(({w,g},i)=>
         `<div class="nword"${i?' style="margin-top:13px"':''}>${paren(w.t)}<em>${esc(w.m||'')}</em></div>`+
-        '<dl>'+g.items.slice(0,5).map(([a,b,c])=>
+        '<dl>'+g.items.slice(0,NITEMMAX).map(([a,b,c])=>
           `<dt>${esc(a)}</dt><dd>${paren(b)}${c?`<em>${esc(c)}</em>`:''}</dd>`).join('')+'</dl>'
       ).join('')+'</div>');
   }
@@ -9452,8 +9461,8 @@ function rollRound(lv){
 /* 설명이나 낱말 정보가 있는 문장인지 */
 function hasNote(s){
   if(s.t) return true;
-  return s.j.some(id=>{ const w=WORDS[id];
-    return w&&w.f&&!NSKIP.test(id)&&w.f.some(g=>NPRIO.test(g.g)||NFORM.test(g.g)); });
+  /* 단추 조건과 실제 내용을 같은 함수로 판단해야 빈 단추가 생기지 않는다 */
+  return wordNotes(s,seenUpto(ST.lv,s.n)).length>0;
 }
 
 /* ── 표시 모드 · 퀴즈 ────────────────────────
@@ -10936,13 +10945,19 @@ function mergeDone(a,b){
   const o={}; keys(a,b).forEach(k=>{ o[k] = ((a||{})[k]|0) | ((b||{})[k]|0); }); return o;
 }
 
-/* 맞힘·틀림 횟수. 더하면 부풀고 한쪽만 두면 사라져서 큰 쪽을 남긴다.
-   복습 차례를 정하는 참고값이라 이 정도면 된다 */
+/* 맞힘·틀림 횟수는 큰 쪽을 남긴다. 더하면 맞춘 횟수가 부풀고,
+   한쪽만 고르면 다른 기기에서 쌓은 기록이 사라지기 때문이다.
+   복습 단계와 예정일은 낮고 이른 쪽을 남긴다. 한 기기에서 아직
+   복습할 것이 다른 기기의 졸업 기록에 밀려 사라지면 안 된다. */
 function mergeQuiz(a,b){
   const o={};
   keys(a,b).forEach(k=>{
     const x=(a||{})[k]||{}, y=(b||{})[k]||{};
-    o[k] = { o:Math.max(+x.o||0,+y.o||0), x:Math.max(+x.x||0,+y.x||0) };
+    const q=o[k]={o:Math.max(+x.o||0,+y.o||0), x:Math.max(+x.x||0,+y.x||0)};
+    if(x.lv!=null||y.lv!=null)
+      q.lv=Math.min(x.lv==null?Infinity:+x.lv, y.lv==null?Infinity:+y.lv);
+    if(x.due!=null||y.due!=null)
+      q.due=Math.min(x.due==null?Infinity:+x.due, y.due==null?Infinity:+y.due);
   });
   return o;
 }

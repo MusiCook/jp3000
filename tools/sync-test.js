@@ -50,7 +50,11 @@ function device(local){
   const phone = device({
     'jp3000v2': JSON.stringify({v:3,lv:2,pg:0,r:{1:2},done:{1:{1:[1,2,3]},2:{},3:{}},star:{1:1},bm:{1:2},at:{1:3,2:7}}),
     'jp3000-solved': JSON.stringify({'a':1,'b':1}),
-    'jp3000-quiz'  : JSON.stringify({'a':{o:3,x:1}})
+    'jp3000-quiz'  : JSON.stringify({
+      'a':{o:3,x:1,lv:2,due:2000},
+      'b':{o:1,x:0,lv:3,due:3000},
+      'plain':{o:2,x:0}
+    })
   });
   await phone.run();
   console.log('폰 올림  →', JSON.stringify(server));
@@ -59,7 +63,7 @@ function device(local){
   const pc = device({
     'jp3000v2': JSON.stringify({v:3,lv:1,pg:1,r:{2:1},done:{1:{2:[7,8]},2:{1:[1]},3:{}},star:{},bm:{2:9},at:{1:20}}),
     'jp3000-solved': JSON.stringify({'a':2,'c':1}),
-    'jp3000-quiz'  : JSON.stringify({'a':{o:1,x:5}})
+    'jp3000-quiz'  : JSON.stringify({'a':{o:1,x:5,lv:1,due:1000}})
   });
   await pc.run();
 
@@ -79,6 +83,10 @@ function device(local){
   t('폰에만 있던 b 살아있음',           dn.b===1);
   t('PC에만 있던 c 살아있음',           dn.c===1);
   t('퀴즈 기록 큰 쪽 o=3 x=5',         qz.a.o===3&&qz.a.x===5);
+  t('복습 단계는 낮은 쪽 lv=1',         qz.a.lv===1);
+  t('복습 예정일은 이른 쪽 due=1000',   qz.a.due===1000);
+  t('한 기기에만 있는 복습 일정 유지',  qz.b.lv===3&&qz.b.due===3000);
+  t('일정 없는 기록에는 빈 값 안 만듦', !('lv' in qz.plain)&&!('due' in qz.plain));
   t('받은 게 있으니 새로 연다',         pc.ctx.reloaded===true);
   /* 마지막에 보던 자리는 기기마다 다르다. 이 기기 것을 남기되,
      이 기기에 없는 단계는 저쪽 것을 받아 둔다 */
