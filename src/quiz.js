@@ -298,16 +298,29 @@ function quizOpts(type, o){
     const headP=WORDS[head]&&WORDS[head].p;
     const swappable=(headP==='n'||headP==='d')&&tail[0]!=='ka';
     if(!isUnit&&swappable&&tail.length===1&&WORDS[tail[0]]&&WORDS[tail[0]].p==='p'){
-      /* 조사만 바꾼 보기 **하나** + 앞말을 바꾼 보기 둘.
-         전에는 이 비가 거꾸로였다. 그러면 넷 중 셋이 같은 앞말이라
-         낱말을 몰라도 조사만 보고 고르게 되어, 정작 낱말을 묻지 못한다.
-         그래도 하나는 남긴다 — 조사가 맞는지도 물어야 하기 때문이다 */
-      const pt=PARTICLES.filter(k=>WORDS[k]&&k!==tail[0]&&k!=='ka');
-      const pi=Math.floor(seeded(seed*1.7)*pt.length);
-      if(pt[pi]){ const v=head+'|'+pt[pi]; if(cand.indexOf(v)<0) cand.push(v); }
-      pick3(jpCands(head).filter(c=>c.v!==head&&canAttach(c.v,tail[0])),seed)
-        .forEach(k=>{ const v=k+'|'+tail[0];
+      /* 낱말 둘 × 조사 둘 을 짝지어 넷을 만든다.
+
+           受付の(정답)  受付は     ← 같은 낱말, 다른 조사
+           交番の        交番は     ← 다른 낱말, 같은·다른 조사
+
+         요점은 반복을 없애는 것이 아니라 **반복을 단서로 못 쓰게** 하는
+         것이다. 낱말도 조사도 저마다 꼭 두 번씩 나오니, 어느 쪽을 세어도
+         답이 드러나지 않는다. 낱말과 조사를 **둘 다** 알아야 풀린다.
+
+         전에는 1:2 (조사 하나 + 낱말 둘)이라 정답 낱말이 2:1:1 로 남아,
+         많이 나온 쪽을 고르면 낱말을 몰라도 절반은 맞았다.
+
+         고른 조사는 두 낱말 모두에 붙을 수 있어야 한다. 한쪽에만 붙으면
+         「来られますは」 같은 말이 생겨 그것만 지워도 답이 좁혀진다.
+         재료가 안 되면 아무것도 넣지 않고 아래 되채우기에 맡긴다 */
+      const pt=PARTICLES.filter(k=>WORDS[k]&&k!==tail[0]&&k!=='ka'&&canAttach(head,k));
+      const p2=pt[Math.floor(seeded(seed*1.7)*pt.length)];
+      const w2=pick3(jpCands(head).filter(c=>c.v!==head&&canAttach(c.v,tail[0])
+                 &&(!p2||canAttach(c.v,p2))),seed)[0];
+      if(p2&&w2){
+        [head+'|'+p2, w2+'|'+tail[0], w2+'|'+p2].forEach(v=>{
           if(cand.length<3&&cand.indexOf(v)<0&&v!==ans) cand.push(v); });
+      }
     }
     if(cand.length<3&&!isUnit){
       /* 동사에 격조사를 붙이면 「来られますは」 같은 말이 나온다.
