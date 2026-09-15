@@ -1260,11 +1260,9 @@ side.innerHTML='<h4>STAGES</h4>'+
     `<span class="no">${i+1}</span><span class="tt">${t}</span>`+
     `<span class="crown sidecrown" data-s="0"><i>${ICO.star}</i><i>${ICO.star}</i><i>${ICO.star}</i></span></button>`).join('');
 side.addEventListener('click',e=>{const b=e.target.closest('.sideb'); if(!b||b.disabled)return;
-  ST.lv=+b.dataset.n; ST.pg=0; if(ST.lv===RV) enterReview();
-  save(); build(); scrollTo({top:0}); centerLv();});
+  goStage(+b.dataset.n);});
 nav.addEventListener('click',e=>{const b=e.target.closest('.lv'); if(!b||b.disabled||navMoved)return;
-  ST.lv=+b.dataset.n; ST.pg=0; if(ST.lv===RV) enterReview();
-  save(); build(); scrollTo({top:0}); centerLv();});
+  goStage(+b.dataset.n);});
 /* 세로 휠을 가로 이동으로 */
 nav.addEventListener('wheel',e=>{ if(Math.abs(e.deltaY)<=Math.abs(e.deltaX))return;
   e.preventDefault(); nav.scrollLeft+=e.deltaY; },{passive:false});
@@ -1794,7 +1792,7 @@ addEventListener('keydown',e=>{
     const o=document.querySelectorAll('.rvopt')[+k-1]; if(o) o.click(); e.preventDefault(); return; }
   if(k==='ArrowRight'||k==='ArrowLeft'){
     const d=(k==='ArrowRight')?1:-1, n=ST.lv+d;
-    if(n>=0&&n<=60&&(n===0||SENT[n])){ ST.lv=n; ST.pg=0; save(); build(); centerLv(); scrollTo({top:0}); }
+    if(n>=0&&n<=60&&(n===0||SENT[n])) goStage(n);
     e.preventDefault(); return; }
   if(k==='['||k===']'){ goPage(k===']'?1:-1); e.preventDefault(); return; }
 });
@@ -1826,6 +1824,19 @@ function jump(){const b=ST.bm[ST.lv]; if(b==null)return;
    마지막으로 문제를 연 문장까지 되찾아 그 자리에서 잇는다.
    되찾았으면 true. 적어 둔 자리가 없으면 false 를 돌려주고,
    그때는 북마크로 간다 */
+/* 단계를 연다. 그 단계에 마지막으로 풀던 자리가 적혀 있으면 —
+   곧 진행 중인 단계면 — 첫 쪽이 아니라 그 자리에서 잇는다.
+   전에는 늘 첫 쪽으로 떨어져서, 26번을 풀다 잠깐 딴 단계를 보고
+   돌아오면 1번부터 다시 찾아 내려가야 했다.
+
+   회차를 마칠 때 ST.at 을 지우므로 끝낸 단계는 첫 쪽에서 시작한다.
+   쪽을 옮기는 일은 resume() 이 하니 여기서는 부르기만 한다 */
+function goStage(n){
+  ST.lv=n; ST.pg=0;
+  if(n===RV) enterReview();
+  save(); build(); centerLv(); scrollTo({top:0});
+  resume();
+}
 function resume(){
   const n=(ST.at||{})[ST.lv];
   if(n==null) return false;
