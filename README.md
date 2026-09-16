@@ -50,9 +50,11 @@ docs/
   README.md           문서 지도와 기록 규칙  ← 여기부터
   APP.md              이 앱이 무엇인가 · 다른 학습앱과의 차이
   PLAN.md             전체 작업 규칙과 60단계 구성
+  STAGES-32-60.md     남은 단계별 문장 제작 명세와 결정 기록
   ROUNDS.md           회차 학습 시스템 — 구조와 고칠 자리
   NOTES-PLAN.md       「더 배워보기」 설명 계획
   VOICE.md            문장 음성 — 목소리를 고른 과정과 안 되는 것
+  RELEASE-PLAN.md     AI·결제·스토어를 포함한 정식 출시 전환 계획
   BACKLOG.md          남은 일을 한 곳에
   REVIEW.md           시스템 구조 검토 기록
   CHANGELOG.md        바뀐 내역
