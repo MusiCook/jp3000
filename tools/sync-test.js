@@ -12,16 +12,20 @@ const SRC=fs.readFileSync(path.join(__dirname,'..','src','sync.js'),'utf8');
 
 let server=null;                    /* Firestore 문서 한 개를 흉내낸다 */
 let pushes=0;
+let version=0, beforePatch=null, corrupt=false;
 
 function device(local){
   const store={...local, 'jp3000-auth':JSON.stringify({uid:'u1',email:'a@b.c',refresh:'R'})};
   const timers=[];
+  const listeners={};
+  const buttons={bSyncNow:{}};
   const ctx={
     KEY:'jp3000v2',
     DB:{ get:k=>store[k]!==undefined?store[k]:null, set:(k,v)=>{store[k]=v;return true;} },
     say:m=>{ctx.said.push(m);}, said:[],
-    window:{}, location:{reload(){ctx.reloaded=true;}}, reloaded:false,
-    document:{ getElementById:()=>null, addEventListener:()=>{} },
+    window:{}, applied:0,
+    document:{ visibilityState:'visible', getElementById:id=>buttons[id]||null,
+               addEventListener:(name,fn)=>{listeners[name]=fn;} },
     setTimeout:(f,ms)=>{timers.push(f);return timers.length;}, clearTimeout:()=>{},
     console,
     fetch: async (url,opt={})=>{
@@ -29,20 +33,32 @@ function device(local){
         return {ok:true,status:200,json:async()=>({id_token:'T',refresh_token:'R'})};
       if(url.includes('firestore')){
         if(opt.method==='PATCH'){
-          pushes++;
+          if(beforePatch){ const f=beforePatch; beforePatch=null; f(); }
+          const guard=new URL(url).searchParams;
+          const want=guard.get('currentDocument.updateTime');
+          if((want && want!=='v'+version) ||
+             (guard.get('currentDocument.exists')==='false' && server!==null))
+            return {ok:false,status:412,json:async()=>({error:{status:'FAILED_PRECONDITION'}})};
+          pushes++; version++;
           server=JSON.parse(JSON.parse(opt.body).fields.data.stringValue);
           return {ok:true,status:200,json:async()=>({})};
         }
         if(server===null) return {ok:false,status:404,json:async()=>({})};
-        return {ok:true,status:200,json:async()=>({fields:{data:{stringValue:JSON.stringify(server)}}})};
+        return {ok:true,status:200,json:async()=>({updateTime:'v'+version,
+          fields:{data:{stringValue:corrupt?'{bad':JSON.stringify(server)}}})};
       }
       throw new Error('예상 못한 호출 '+url);
     }
   };
+  ctx.live=JSON.parse(store.jp3000v2||'{}');
+  ctx.window.applySyncedProgress=s=>{ ctx.live=s.st; ctx.applied++; };
+  ctx.window.save=()=>{ store.jp3000v2=JSON.stringify(ctx.live); };
   ctx.globalThis=ctx;
   vm.createContext(ctx);
   vm.runInContext(SRC,ctx);
-  return {ctx, store, run:async()=>{ while(timers.length){ await timers.shift()(); await new Promise(r=>setImmediate(r)); } }};
+  return {ctx, store, sync:()=>buttons.bSyncNow.onclick(), visibility:state=>{
+    ctx.document.visibilityState=state; return listeners.visibilitychange();
+  }, run:async()=>{ while(timers.length){ await timers.shift()(); await new Promise(r=>setImmediate(r)); } }};
 }
 
 (async()=>{
@@ -87,7 +103,7 @@ function device(local){
   t('복습 예정일은 이른 쪽 due=1000',   qz.a.due===1000);
   t('한 기기에만 있는 복습 일정 유지',  qz.b.lv===3&&qz.b.due===3000);
   t('일정 없는 기록에는 빈 값 안 만듦', !('lv' in qz.plain)&&!('due' in qz.plain));
-  t('받은 게 있으니 새로 연다',         pc.ctx.reloaded===true);
+  t('받은 진도를 화면 상태에도 적용한다',pc.ctx.applied===1&&pc.ctx.live.done[1][1].length===3);
   /* 마지막에 보던 자리는 기기마다 다르다. 이 기기 것을 남기되,
      이 기기에 없는 단계는 저쪽 것을 받아 둔다 */
   t('보던 자리는 이 기기 것 우선',       st.at && st.at[1]===20);
@@ -101,7 +117,34 @@ function device(local){
     'jp3000-quiz': pc.store['jp3000-quiz']
   });
   await again.run();
-  t('두 번째에는 새로 열지 않는다',     again.ctx.reloaded===false);
+  t('두 번째에는 다시 적용하지 않는다',again.ctx.applied===0);
+
+  /* 예전에는 공부 직후 서버를 읽지 않고 PATCH 해 폰의 새 진도를 지웠다. */
+  server.st.done[1][3]=[11]; version++;
+  pc.ctx.live.done[1][2].push(9);
+  pc.ctx.window.save(); await pc.run();
+  t('공부 직후에도 서버 진도를 보존한다',server.st.done[1][3][0]===11&&server.st.done[1][2].includes(9));
+  t('받은 뒤 저장해도 서버 진도가 기기에 남는다',
+    JSON.parse(pc.store.jp3000v2).done[1][3][0]===11);
+
+  /* 읽고 쓰는 사이 다른 기기가 먼저 올리면 버전을 다시 읽어 합쳐야 한다. */
+  beforePatch=()=>{ server.st.done[1][4]=[12]; version++; };
+  pc.ctx.live.done[1][2].push(10);
+  pc.ctx.window.save(); await pc.run();
+  t('동시 저장 충돌 뒤에도 양쪽 진도를 살린다',
+    server.st.done[1][4][0]===12&&server.st.done[1][2].includes(10));
+
+  server.st.done[1][5]=[13]; version++;
+  await pc.visibility('visible'); await pc.run();
+  t('앱으로 돌아오면 다른 기기 진도를 받는다',pc.ctx.live.done[1][5][0]===13);
+
+  server.st.done[1][6]=[14]; version++;
+  await pc.sync();
+  t('같은 탭에서 다시 눌러도 진도를 받는다',pc.ctx.live.done[1][6][0]===14);
+
+  const before=JSON.stringify(server), count=pushes;
+  corrupt=true; await pc.visibility('visible'); corrupt=false;
+  t('서버 사본이 깨졌으면 덮어쓰지 않는다',JSON.stringify(server)===before&&pushes===count);
 
   console.log(ok.every(Boolean) ? '\n=== 전부 통과 ===' : '\n=== 실패 있음 ===');
   process.exit(ok.every(Boolean)?0:1);

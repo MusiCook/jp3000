@@ -34,6 +34,7 @@ tools/
   build.py            src → dist/jp3000.html 합치기
   check.js            데이터 검사기
   sync-test.js        진도 합치기 검사기
+  review-test.js      오답노트 진도 검사기
   quiz-audit.js       퀴즈 보기 검사기
   sw-test.js          서비스 워커가 캐시를 갱신하는지 검사
   append.py           문장 배치 추가 도구
@@ -72,6 +73,8 @@ docs/
 
 # 2. 검사
 node tools/check.js
+node tools/sync-test.js      # 기기 간 진도를 손댔다면
+node tools/review-test.js    # 오답노트를 손댔다면
 node tools/quiz-audit.js     # 보기를 손댔다면
 
 # 3. 합치기

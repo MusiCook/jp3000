@@ -1211,24 +1211,28 @@ function sampleSentence(k){
   return null;
 }
 const RVHIT=2;                 /* 한 말을 몇 번 맞혀야 끝나는가 */
-/* 한 판에 내는 말의 수. 쌓인 것이 백 개여도 오늘 치는 이만큼만 낸다 —
-   끝이 안 보이면 아예 손을 놓는다. 단추에 찍히는 숫자는 상한을 두지
-   않고 쌓인 그대로 보여 준다. 전에는 상한이 쌓이는 쪽에 걸려 있어서,
-   스무 개가 넘으면 아무리 틀려도 숫자가 20 에서 멈췄다 */
+/* 한 번에 내는 말의 수. 오늘 전체 수와 진도는 자르지 않는다. */
 const RVMAX=20;
 let RVQ=[];                    /* 아직 남은 말. 앞에서부터 낸다 */
+let RVpending=[];              /* 다음 묶음에서 낼 말 */
 let RVN={};                    /* 말마다 남은 횟수 */
-let RVtot=0, RVo=0, RVx=0, RVdone=false;
-function startReview(){
-  RVQ=reviewQueue().slice(0,RVMAX); RVtot=RVQ.length; RVN={};
+let RVtot=0, RVfin=0, RVo=0, RVx=0, RVdone=false;
+function nextReviewBatch(){
+  RVQ=RVpending.splice(0,RVMAX); RVN={};
   RVQ.forEach(k=>{ RVN[k]=RVHIT; });
-  RVo=0; RVx=0; RVdone=false;
+}
+function finishReviewWord(k){
+  schedule(k,true); RVQ.shift(); RVfin++;
+}
+function startReview(){
+  RVpending=reviewQueue(); RVtot=RVpending.length; RVfin=0;
+  nextReviewBatch(); RVo=0; RVx=0; RVdone=false;
 }
 /* 오답노트로 들어간다. 풀던 판이 있으면 건드리지 않는다 — 단추를 다시
    누르거나 단계를 다녀와도 풀던 자리에서 잇는다. 아직 시작을 안 했거나
    이미 다 끝낸 판이면 그때 새로 짠다.
    「한 번 더」(#rvAgain)만은 일부러 startReview 를 그대로 부른다 */
-function enterReview(){ if(!RVQ.length||RVdone) startReview(); }
+function enterReview(){ if(!RVtot||RVdone) startReview(); }
 /* 오답노트로 들어간다. **온 자리를 적어 둔다** — 단추를 다시 눌러 끄면
    그 자리로 돌아가야 하기 때문이다. 앱을 닫았다 열어도 살아 있도록
    ST 에 얹어 둔다. 오답노트 안에서 또 부르면 적어 둔 자리를 덮지 않는다 */
@@ -1247,8 +1251,9 @@ function leaveReview(){
   /* 마지막으로 풀던 문장으로. 적어 둔 자리가 없으면 쪽 맨 위에서 잇는다 */
   if(!resume()) scrollTo({top:0});
 }
-const rvEnd=()=>RVtot-RVQ.length;      /* 끝낸 말의 수 */
+const rvEnd=()=>RVfin;               /* 오늘 끝낸 말의 수 */
 function buildReview(){
+  if(RVtot&&!RVQ.length&&!RVpending.length) RVdone=true;
   $('#stg').textContent='REVIEW';
   $('#ttl').textContent='오답노트';
   document.querySelectorAll('.lv').forEach(el=>el.setAttribute('aria-current',+el.dataset.n===RV));
@@ -1271,6 +1276,15 @@ function buildReview(){
       '<div class="brow"><button class="btn" id="rvAgain">한 번 더</button>'+
       '<button class="btn dark" id="rvBack">단계로 돌아가기</button></div></div>';
     $('#rvAgain').onclick=()=>{ startReview(); build(); };
+    $('#rvBack').onclick=()=>leaveReview();
+    return;
+  }
+  if(!RVQ.length){
+    list.innerHTML='<div class="rvend"><div class="big">'+fin+' / '+tot+'</div>'+
+      '<p>여기까지 마쳤습니다.<br>오늘 남은 '+RVpending.length+'개를 이어서 풀 수 있습니다.</p>'+
+      '<div class="brow"><button class="btn" id="rvNext">다음 '+Math.min(RVMAX,RVpending.length)+'개</button>'+
+      '<button class="btn dark" id="rvBack">단계로 돌아가기</button></div></div>';
+    $('#rvNext').onclick=()=>{ nextReviewBatch(); buildReview(); };
     $('#rvBack').onclick=()=>leaveReview();
     return;
   }
@@ -1396,14 +1410,14 @@ list.addEventListener('click',e=>{
     if(ok){ RVo++; beepOk(); } else { RVx++; beepNg(); }
     if(ok){
       RVN[k]--;
-      if(RVN[k]<=0){ schedule(k,true); RVQ.shift(); }   /* 두 번 다 맞혔다 */
+      if(RVN[k]<=0) finishReviewWord(k); /* 두 번 다 맞혔다 */
       else RVQ.push(RVQ.shift());                       /* 뒤로 돌려 한 번 더 */
     }else{
       RVN[k]=RVHIT;                                     /* 처음부터 다시 */
       schedule(k,false); RVQ.push(RVQ.shift());
     }
     paintRv();
-    setTimeout(()=>{ if(!RVQ.length) RVdone=true; buildReview(); }, ok?650:1400);
+    setTimeout(()=>buildReview(), ok?650:1400);
     return;
   }
   const pb=e.target.closest('.pgbtn');
@@ -2482,6 +2496,17 @@ setTimeout(()=>{ if(!resume() && ST.bm[ST.lv]!=null) jump(); },120);
     say(lv+'단계 '+r+'회차 — '+keep+'/'+L.s.length+' 채웠습니다');
   }
 })();
+/* 다른 기기에서 받은 진도를 현재 화면과 메모리에도 넣는다.
+   저장소만 바꾸면 다음 save()가 예전 ST를 다시 덮어쓴다. */
+window.applySyncedProgress=function(s){
+  ST=s.st; QDONE=s.done; QSTAT=s.quiz;
+  if(ST.lv===RV) enterReview();
+  build(); centerLv(); renderStat();
+  if(sheet.classList.contains('on')){
+    if(document.activeElement!==$('#code')) $('#code').value=encST();
+    if(document.activeElement!==$('#qcode')) $('#qcode').value=encQ();
+  }
+};
 </script>
 
 <script src="quiz.js"></script>

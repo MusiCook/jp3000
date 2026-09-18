@@ -24,8 +24,7 @@ const DOC  = u => 'https://firestore.googleapis.com/v1/projects/'+CFG.project
 
 let acct  = null;        /* 로그인 정보 */
 let tok   = '', tokAt=0; /* 인증표. 한 시간짜리라 메모리에만 둔다 */
-let timer = 0, busy=false;
-const RLD = 'jp3000-reloaded';   /* 이 판에서 이미 새로 열었는가 */
+let timer = 0, syncing=null;
 
 try{ acct = JSON.parse(DB.get(AKEY)||'null'); }catch(e){ acct=null; }
 
@@ -69,26 +68,38 @@ async function token(){
    Firestore 의 자료형을 쓰지 않으므로 나중에 항목이 늘어도 서버는 그대로다 */
 async function pull(){
   const r = await fetch(DOC(acct.uid), {headers:{Authorization:'Bearer '+(await token())}});
-  if(r.status===404) return null;                    /* 아직 올린 적이 없다 */
+  if(r.status===404) return {data:null, version:null}; /* 아직 올린 적이 없다 */
   if(!r.ok) throw new Error('HTTP '+r.status);
   const j = await r.json();
   const s = j.fields && j.fields.data && j.fields.data.stringValue;
-  try{ return s ? JSON.parse(s) : null; }catch(e){ return null; }
+  if(!s || !j.updateTime) throw new Error('서버의 진도를 읽을 수 없습니다');
+  try{
+    const data=JSON.parse(s);
+    if(!data || typeof data!=='object' || !data.st || typeof data.st!=='object')
+      throw new Error('invalid progress');
+    return {data, version:j.updateTime};
+  }
+  catch(e){ throw new Error('서버의 진도를 읽을 수 없습니다'); }
 }
 
-/* last 는 앱을 덮는 참에 보내는 것. 그때만 keepalive 를 쓴다.
-   keepalive 는 보낼 수 있는 양이 64KB로 묶여 있어, 문장이 3,000개로
-   늘면 진도가 그 언저리에 닿는다. 평소에는 쓰지 않는다 */
-async function push(data, last){
-  const r = await fetch(DOC(acct.uid), {
-    method:'PATCH', keepalive:!!last,
+/* 읽은 판이 그대로일 때만 쓴다. 다른 기기가 먼저 올렸으면 다시 받아 합친다. */
+async function push(data, version){
+  const guard = version ? 'currentDocument.updateTime='+encodeURIComponent(version)
+                        : 'currentDocument.exists=false';
+  const r = await fetch(DOC(acct.uid)+'?'+guard, {
+    method:'PATCH',
     headers:{Authorization:'Bearer '+(await token()), 'Content-Type':'application/json'},
     body: JSON.stringify({fields:{
       data:{stringValue: JSON.stringify(data)},
       at  :{integerValue: String(Date.now())}
     }})
   });
-  if(!r.ok) throw new Error('HTTP '+r.status);
+  if(!r.ok){
+    const j=await r.json().catch(()=>({}));
+    if(r.status===409 || r.status===412 || (j.error&&j.error.status==='FAILED_PRECONDITION')) return false;
+    throw new Error((j.error&&j.error.message)||('HTTP '+r.status));
+  }
+  return true;
 }
 
 /* ── 이 기기의 진도 ────────────────────── */
@@ -176,39 +187,45 @@ function canon(v){
 }
 
 /* ── 맞추기 ────────────────────────────
-   내려받아 합치고, 달라졌으면 저장한 뒤 다시 올린다.
-   화면에 이미 그려진 진도가 있어서, 받은 게 있으면 새로 연다 */
-async function syncNow(loud){
-  if(!acct || busy) return;
-  busy = true;
-  try{
-    const mine = tidy(snap());
-    const theirs = tidy(await pull());
-    const base = merge(mine, mine);        /* 견줄 수 있게 같은 모양으로 만든다 */
-    const both = merge(mine, theirs);
-    const changed = canon(both) !== canon(base);
-    if(changed) put(both);
-    await push(both);
+   어느 길에서 올리든 먼저 내려받는다. 그대로 덮어쓰면 다른 기기의
+   새 기록이 사라진다. 쓰는 사이 서버가 바뀌면 그 판부터 다시 합친다. */
+async function mergeOnServer(){
+  for(let i=0;i<5;i++){
+    const mine=tidy(snap());
+    const remote=await pull();
+    const theirs=tidy(remote.data);
+    const both=merge(mine,theirs);
+    if(!theirs || canon(both)!==canon(theirs)){
+      if(!await push(both,remote.version)) continue;
+    }
+    /* 통신하는 동안 이 기기에서 더 공부했으면 그것도 서버에 보내야 한다. */
+    const latest=tidy(snap());
+    if(canon(merge(latest,both))!==canon(both)) continue;
+    const changed=canon(both)!==canon(merge(latest,latest));
     if(changed){
-      say('다른 기기의 진도를 받았습니다');
-      /* 새로 열기는 한 번만. 합치기가 어긋나 「받았다」가 계속 서면
-         앱이 열리자마자 다시 열리기를 되풀이해 아무것도 할 수 없다.
-         한 번 놓치는 편이 갇히는 것보다 낫다 */
-      let again=false;
-      try{ again=sessionStorage.getItem(RLD)==='1'; sessionStorage.setItem(RLD,'1'); }catch(e){}
-      if(!again) setTimeout(()=>location.reload(), 1200);
-    }else if(loud) say('이미 맞춰져 있습니다');
-  }catch(e){
-    if(loud) say(msg(e));
-  }finally{ busy=false; }
+      put(both);
+      if(typeof window.applySyncedProgress==='function') window.applySyncedProgress(both);
+    }
+    return changed;
+  }
+  throw new Error('동시에 저장한 기록이 많습니다. 다시 맞춰 주세요');
 }
 
-/* 공부하는 중에는 올리기만 한다. 내려받아 합치면 화면을 새로 열어야 하는데,
-   문제를 푸는 중에 그러면 안 된다. 받는 것은 앱을 열 때와 「지금 맞추기」뿐이다 */
+async function syncNow(loud){
+  if(!acct) return;
+  if(!syncing) syncing=mergeOnServer().finally(()=>{ syncing=null; });
+  try{
+    const changed=await syncing;
+    if(changed) say('다른 기기의 진도를 받았습니다');
+    else if(loud) say('이미 맞춰져 있습니다');
+  }catch(e){ if(loud) say(msg(e)); }
+}
+
+/* 공부한 뒤에도 먼저 서버와 합친다. 업로드만 하면 다른 기기 기록을 덮는다. */
 function touch(){
   if(!acct) return;
   clearTimeout(timer);
-  timer = setTimeout(()=>{ push(snap()).catch(()=>{}); }, 15000);
+  timer = setTimeout(()=>syncNow(false), 15000);
 }
 
 function msg(e){
@@ -220,6 +237,7 @@ function msg(e){
   if(/USER_DISABLED/.test(m))        return '멈춰 둔 계정입니다';
   if(/Failed to fetch|NetworkError|Load failed/i.test(m))
                                      return '인터넷에 연결되어 있지 않습니다';
+  if(/서버의 진도|동시에 저장한/.test(m)) return m;
   if(/HTTP 40[0-9]/.test(m))         return '서버 설정을 확인해 주세요 ('+m+')';
   return '맞추지 못했습니다';
 }
@@ -259,7 +277,7 @@ on('bSyncOut', function(){
   signOut(); paint(); say('로그아웃했습니다. 진도는 이 기기에 그대로 있습니다');
 });
 
-on('bSyncNow', function(){ say('맞추는 중…'); syncNow(true); });
+on('bSyncNow', function(){ say('맞추는 중…'); return syncNow(true); });
 
 on('bSyncPw', async function(){
   const em=document.getElementById('syncmail');
@@ -293,11 +311,11 @@ window.syncWipe = async function(){
   window[n] = function(){ const r=f.apply(this,arguments); touch(); return r; };
 });
 
-/* 앱을 덮을 때 밀린 것을 마저 올린다 */
+/* 앱으로 돌아왔을 때 다른 기기의 새 진도도 받는다. */
 document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='hidden' && acct){
-    clearTimeout(timer); push(snap(), true).catch(()=>{});
-  }
+  if(!acct) return;
+  if(document.visibilityState==='hidden') clearTimeout(timer);
+  return syncNow(false);
 });
 
 paint();
