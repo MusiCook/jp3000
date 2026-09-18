@@ -64,7 +64,7 @@ function device(local){
 (async()=>{
   /* 폰: 1단계를 1회차로 25개 풀고, 3번 자리를 1회차에서 맞혔다 */
   const phone = device({
-    'jp3000v2': JSON.stringify({v:3,lv:2,pg:0,r:{1:2},done:{1:{1:[1,2,3]},2:{},3:{}},star:{1:1},bm:{1:2},at:{1:3,2:7}}),
+    'jp3000v2': JSON.stringify({v:3,lv:2,pg:0,r:{1:2},done:{1:{1:[1,2,3]},2:{},3:{}},star:{1:1},bm:{1:2},at:{1:3,2:7},read:{R1:1}}),
     'jp3000-solved': JSON.stringify({'a':1,'b':1}),
     'jp3000-quiz'  : JSON.stringify({
       'a':{o:3,x:1,lv:2,due:2000},
@@ -93,6 +93,7 @@ function device(local){
   t('1회차 2단계 유지 [7,8]',          JSON.stringify(st.done[1][2])==='[7,8]');
   t('2회차 진도 유지 [1]',             JSON.stringify(st.done[2][1])==='[1]');
   t('별 합쳐짐',                        st.star[1]===1);
+  t('R1 읽음은 별과 별도로 합쳐짐',       st.read.R1===1&&!st.star.R1);
   t('회차 큰 쪽 r={1:2,2:1}',          st.r[1]===2&&st.r[2]===1);
   t('북마크는 이 기기 것 우선',         st.bm[2]===9&&st.bm[1]===2);
   t('맞힌 자리 OR  a=1|2=3',           dn.a===3);

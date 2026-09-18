@@ -498,6 +498,7 @@ body.hidehira .kcell .hi{color:transparent;background:var(--green-l);border-radi
   .sideb[aria-current="true"]{background:var(--green);color:#fff;}
   .sideb .no{grid-area:no;width:22px;font-family:var(--sr);font-size:11.5px;text-align:right;opacity:.7;}
   .sideb .tt{grid-area:tt;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .sideb.rstage{grid-template-areas:"no tt";align-items:center;}
   .crown.sidecrown{grid-area:crown;position:static;display:flex;gap:5px;
     height:18px;margin:0;padding:0;background:none;overflow:visible;
     justify-content:flex-start;}
@@ -589,6 +590,58 @@ body.hidehira .kcell .hi{color:transparent;background:var(--green-l);border-radi
   font-family:inherit;font-size:13px;padding:11px;border-radius:999px;cursor:pointer;}
 .pgbtn:disabled{border-color:var(--line);color:var(--ink3);cursor:default;}
 .pgnow{flex:0 0 auto;font-family:var(--sr);font-size:12px;color:var(--ink2);letter-spacing:.06em;}
+/* R1은 문제·회차가 없는 읽기 화면이다. 긴 번역과 단어장은 문서 흐름에 둔다. */
+.dialogue-view .gauge,.dialogue-view #rnd,.dialogue-view .done-meta,
+.dialogue-view #bColor,.dialogue-view #bEye,.dialogue-view #bJump,
+.dialogue-view .afterlist,.dialogue-view #bReset{display:none;}
+.lv.rstage{min-width:38px;border-radius:9px;font-size:11px;font-weight:700;}
+.lv.rstage.read{border-color:var(--green);}
+.lv.rstage.read::after{content:"✓";position:absolute;top:-7px;right:-5px;display:grid;place-items:center;
+  width:14px;height:14px;border-radius:50%;background:var(--green);color:#fff;font-size:10px;}
+.sideb.rstage.read .tt::after{content:" · 읽음";color:var(--acc);font-size:11px;}
+.sideb.rstage.read[aria-current="true"] .tt::after{color:#fff;}
+.dialogue{max-width:760px;margin:0 auto;padding:18px 16px calc(44px + env(safe-area-inset-bottom));}
+.dintro{padding:4px 2px 16px;}
+.dintro h2{margin:0 0 5px;font-size:19px;color:var(--ink);}
+.dintro p{margin:0;color:var(--ink2);font-size:13px;line-height:1.75;}
+.dpeople{margin-top:9px;color:var(--ink3);font-size:12px;}
+.dcard,.dsec{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;}
+.dturn{display:grid;grid-template-columns:30px minmax(0,1fr) 34px;gap:10px;align-items:start;
+  padding:14px 15px;border-bottom:1px solid var(--line);}
+.dturn:last-child{border-bottom:0;}
+.dspeaker{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:var(--sub);color:var(--acc);font-family:var(--sr);font-weight:700;font-size:12px;}
+.djp{min-width:0;font-family:var(--jp);font-size:21px;line-height:2;overflow-wrap:anywhere;}
+.djp rt{font-size:.43em;opacity:.8;}
+.dspk{width:32px;height:32px;border:1px solid var(--line);border-radius:50%;background:var(--card);
+  color:var(--ink2);display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.dspk svg{width:17px;height:17px;}
+.dspk:hover,.dspk.on{color:var(--green);border-color:var(--green);}
+body.notts .dspk{display:none;}
+.dsec{margin-top:14px;}
+.dsec summary{cursor:pointer;list-style:none;padding:15px 17px;font-size:14px;font-weight:650;color:var(--ink);}
+.dsec summary::-webkit-details-marker{display:none;}
+.dsec summary::after{content:"⌄";float:right;color:var(--ink2);font-size:20px;line-height:19px;}
+.dsec[open] summary{border-bottom:1px solid var(--line);}
+.dsec[open] summary::after{transform:rotate(180deg);}
+.dko{grid-template-columns:30px minmax(0,1fr);font-size:14px;line-height:1.8;color:var(--ink2);}
+.dnotes{padding:4px 17px 16px;}
+.dnotes h3{margin:18px 0 6px;font-size:13px;color:var(--acc);}
+.dgword{padding:10px 0;border-bottom:1px solid var(--line);}
+.dgword:last-of-type{border-bottom:0;}
+.dgword .term{font-family:var(--jp);font-size:17px;color:var(--ink);}
+.dgword .meaning{margin-left:9px;font-size:13px;color:var(--ink2);}
+.dgword p,.dculture p{margin:5px 0 0;font-size:13px;line-height:1.8;color:var(--ink2);}
+.dculture{margin-top:12px;padding:12px 0 0;border-top:1px solid var(--line);}
+.dculture b{font-size:13px;color:var(--ink);}
+.dculture a{display:inline-block;margin-top:5px;color:var(--acc);font-size:11px;}
+.dactions{display:flex;flex-wrap:wrap;gap:9px;margin-top:20px;}
+.dactions button{border:1px solid var(--green);border-radius:999px;padding:11px 17px;
+  font-family:inherit;font-size:13px;cursor:pointer;}
+.dread{background:var(--green);color:#fff;}
+.dread:disabled{background:var(--sub);border-color:var(--line);color:var(--ink2);cursor:default;}
+.dnext{background:var(--card);color:var(--green);}
+@media (min-width:700px){.djp{font-size:24px;}.dturn{padding:17px 20px;}}
 .legend{padding:14px 16px 6px;display:flex;flex-wrap:wrap;gap:7px 14px;font-size:11.5px;color:var(--ink2);}
 .legend span::before{content:"■";margin-right:4px;}
 .legend .lgu::before{content:none;}
@@ -624,7 +677,7 @@ body.hidehira .kcell .hi{color:transparent;background:var(--green-l);border-radi
     <div class="gauge"><i id="gauge"></i></div>
     <div class="hmeta">
       <span id="rnd" class="rnd"></span>
-      <span><b id="cnt">0</b> / <span id="tot">0</span> 완료</span>
+      <span class="done-meta"><b id="cnt">0</b> / <span id="tot">0</span> 완료</span>
       <span class="sp">
         <button class="tgl ic" id="bColor" aria-pressed="true" aria-label="색 구분"></button>
         <button class="tgl ic eye" id="bEye" aria-label="표시 모드"></button>
@@ -723,7 +776,7 @@ body.hidehira .kcell .hi{color:transparent;background:var(--green-l);border-radi
     <button class="btn" id="bUpd">최신으로 받기</button>
   </div>
   <p style="margin:9px 0 0;font-size:11.5px;color:var(--ink3);text-align:center">
-    지금 판 <span id="ver">2026-09-18 09:52</span></p>
+    지금 판 <span id="ver">2026-09-18 15:58</span></p>
 
   <h3 style="margin-top:26px">초기화</h3>
   <p>진도·북마크·퀴즈 기록을 모두 지웁니다. 되돌릴 수 없습니다.</p>
@@ -8686,6 +8739,48 @@ SENT[31] = {
 
 </script>
 <script>
+/* ---- dialogues.js ---- */
+/* 번호 있는 문장과 별도로 두는 대화 복습. 단계·문장 번호는 건드리지 않는다. */
+window.DIALOGUES={
+  R1:{
+    title:'숙소에서 방 안내받기',
+    scene:'예약한 숙소에 도착한 여행자가 직원과 방을 확인합니다.',
+    speakers:{A:'여행자',B:'직원'},
+    turns:[
+      {who:'A',jp:'すみません。{予約|よやく}があります。',ko:'실례합니다. 예약이 있습니다.'},
+      {who:'B',jp:'はい。お{名前|なまえ}をお{願|ねが}いします。',ko:'네. 성함을 알려 주세요.'},
+      {who:'A',jp:'キムです。',ko:'김입니다.'},
+      {who:'B',jp:'キムさんですね。こちらです。',ko:'김 님이시군요. 이쪽입니다.'},
+      {who:'B',jp:'こちらの{部屋|へや}です。どうぞ。',ko:'이 방입니다. 들어오세요.'},
+      {who:'A',jp:'きれいですね。この{部屋|へや}は{静|しず}かですか。',ko:'깨끗하네요. 이 방은 조용한가요?'},
+      {who:'B',jp:'はい、とても{静|しず}かです。',ko:'네, 아주 조용합니다.'},
+      {who:'A',jp:'{部屋|へや}にトイレはありますか。',ko:'방에 화장실이 있나요?'},
+      {who:'B',jp:'はい、あります。あちらです。',ko:'네, 있습니다. 저쪽입니다.'},
+      {who:'A',jp:'ありがとうございます。',ko:'감사합니다.'}
+    ],
+    glossary:[
+      {key:'sumimasen',meaning:'실례합니다, 저기요',note:'사람을 부르거나 말을 시작할 때도 쓴다. 사과할 때와 가벼운 감사를 전할 때도 쓰인다.'},
+      {key:'yoyaku',meaning:'예약',note:'「予約があります」는 예약이 있다고 알리는 말이다.'},
+      {key:'onamae',meaning:'성함',note:'상대의 이름을 물을 때 「お」를 붙인다. 자기 이름을 말할 때는 「名前」라고 한다.'},
+      {key:'onegaishimasu',meaning:'부탁드립니다',note:'「お名前をお願いします」는 성함을 알려 달라는 요청이다. 「を」를 쓴 이 말투는 미리 보는 표현이다.'},
+      {key:'heya',meaning:'방',note:'「この部屋」는 이 방, 「部屋に」는 방에라는 뜻이다.'},
+      {key:'shizuka',meaning:'조용하다',note:'「静かです」는 조용합니다. 명사 앞에서는 「静かな部屋」처럼 「な」를 붙인다.'},
+      {key:'arimasu',meaning:'있습니다',note:'화장실·예약처럼 사물이나 사실의 존재에는 「あります」를 쓴다. 사람·동물에는 「います」를 쓴다.'},
+      {key:'toire',meaning:'화장실',note:'「トイレ」는 일상적인 말이다. 안내판에는 「お手洗い」라는 표기도 자주 보인다.'},
+      {key:'achira',meaning:'저쪽',note:'「こちら」는 이쪽, 「あちら」는 저쪽. 사람을 안내할 때도 쓴다.'}
+    ],
+    expressions:[
+      {jp:'ですね',ko:'~네요, ~이시군요',note:'상대의 말을 확인하거나 감상을 부드럽게 덧붙일 때 쓰는 미리 보는 표현이다.'}
+    ],
+    culture:[
+      {title:'말을 걸 때',text:'직원에게 질문을 시작할 때 「すみません」이라고 부르면 된다. 이 말은 상황에 따라 사과나 가벼운 감사에도 쓰인다.',source:'일본정부관광국(JNTO)',url:'https://www.japan.travel/en/guide/japanese-manners-dos-and-donts/'},
+      {title:'화장실 표기',text:'일본어 안내판에는 「お手洗い」나 「化粧室」라고 적힌 곳도 있다. 대화에서는 「トイレ」라고 물어도 된다.',source:'국제교류기금 『이로도리』',url:'https://www.irodori.jpf.go.jp/assets/data/starter/pdf/X_L15.pdf'}
+    ]
+  }
+};
+
+</script>
+<script>
 /* ── 0단계 · 가나 표 데이터 ────────────────── */
 const KANA={
  sei:[["あ","ア","a"],["い","イ","i"],["う","ウ","u"],["え","エ","e"],["お","オ","o"],
@@ -8774,6 +8869,12 @@ const TITLES=[
 "쇼핑과 면세","잡담과 인사",
 "안내방송과 공지 읽기","표지판 읽기",
 "축약 구어체","종합 마무리"];
+/* R1은 번호 있는 단계 사이에 놓이지만 단계 번호·문장 키는 차지하지 않는다. */
+const R1='R1';
+const NAV_ORDER=Array.from({length:61},(_,i)=>i);
+NAV_ORDER.splice(6,0,R1);
+const activeStage=()=>ST.view===R1?R1:ST.lv;
+const nextStage=n=>NAV_ORDER[NAV_ORDER.indexOf(n)+1];
 
 const $=s=>document.querySelector(s), list=$('#list'), side=$('#side'), pop=$('#pop'), qpop=$('#qpop'), mpop=$('#mpop'), npop=$('#npop'), cpop=$('#cpop'), cel=$('#cel'), bd=$('#bd'), toast=$('#toast'), sheet=$('#sheet');
 /* 움직임을 줄이라고 해 둔 기기에서는 연출을 건너뛴다 */
@@ -8849,7 +8950,7 @@ applyTheme();
    star  얻은 별 개수  ST.star[단계] */
 const RN=3;
 const PG=25;                    /* 한 쪽에 보이는 문장 수 */
-let ST={v:3,lv:1,pg:0,r:{},done:{1:{},2:{},3:{}},star:{},bm:{},at:{},rv:null};
+let ST={v:3,lv:1,pg:0,r:{},done:{1:{},2:{},3:{}},star:{},bm:{},at:{},rv:null,read:{}};
 try{
   const raw=DB.get(KEY); const o=raw&&JSON.parse(raw);
   if(o&&o.v===3) ST=Object.assign(ST,o);
@@ -8869,6 +8970,8 @@ try{
 }catch(e){}
 if(!ST.done||!ST.done[1]) ST.done={1:{},2:{},3:{}};
 if(!ST.r) ST.r={}; if(!ST.star) ST.star={};
+if(!ST.read) ST.read={};
+if(ST.view!==R1||ST.lv!==5) delete ST.view;
 /* 그 단계가 지금 도는 회차 */
 function curR(lv){ const r=+ST.r[lv]||1; return r<1?1:(r>RN?RN:r); }
 /* 회차 하나를 비트 하나에 담는다. 1회차=1, 2회차=2, 3회차=4 */
@@ -8998,11 +9101,66 @@ function koHTML(t,mask,sid){
 
 /* ── 화면 그리기 ──────────────────────────── */
 function centerLv(){
-  const el=nav.querySelector(`.lv[data-n="${ST.lv}"]`);
+  const current=activeStage();
+  const el=nav.querySelector(`.lv[data-n="${current}"]`);
   if(el&&el.scrollIntoView) el.scrollIntoView({inline:'center',block:'nearest'});
   /* PC 의 왼쪽 목록도 같이 맞춘다. 화면 밖에 있으면 별이 그리로 날아가 버린다 */
-  const sb=side.querySelector(`.sideb[data-n="${ST.lv}"]`);
+  const sb=side.querySelector(`.sideb[data-n="${current}"]`);
   if(sb&&sb.offsetParent&&sb.scrollIntoView) sb.scrollIntoView({block:'nearest'});
+}
+function paintDialogue(){
+  const read=!!ST.read.R1;
+  const b=$('#dDone');
+  if(b){ b.disabled=read; b.textContent=read?'✓ 읽음 완료':'대화 읽음 표시'; }
+  paintDialogueNav();
+  document.querySelectorAll('.lv,.sideb').forEach(el=>{
+    el.setAttribute('aria-current',el.dataset.n===R1);
+  });
+  $('#lvKana').setAttribute('aria-current','false');
+  paintRv();
+}
+function paintDialogueNav(){
+  const read=!!ST.read.R1;
+  document.querySelectorAll('.lv.rstage,.sideb.rstage').forEach(el=>{
+    el.classList.toggle('read',read);
+    el.setAttribute('aria-label',read?'R1 대화 복습, 읽음':'R1 대화 복습');
+  });
+}
+function buildDialogue(){
+  const d=window.DIALOGUES.R1;
+  $('#stg').textContent=R1;
+  $('#ttl').textContent=d.title;
+  $('#rnd').textContent='';
+  $('#cnt').textContent='—'; $('#tot').textContent='—'; $('#gauge').style.width='0';
+  const turns=d.turns.map((t,i)=>
+    `<div class="dturn"><span class="dspeaker" aria-label="${esc(d.speakers[t.who])}">${esc(t.who)}</span>`+
+    `<div class="djp" lang="ja">${ruby(t.jp)}</div>`+
+    `<button class="dspk" data-i="${i}" aria-label="${i+1}번째 일본어 발음 듣기">${ICO.sp}</button></div>`).join('');
+  const translation=d.turns.map(t=>
+    `<div class="dturn dko"><span class="dspeaker" aria-label="${esc(d.speakers[t.who])}">${esc(t.who)}</span>`+
+    `<div lang="ko">${esc(t.ko)}</div></div>`).join('');
+  const words=d.glossary.map(g=>{
+    const w=WORDS[g.key];
+    return `<div class="dgword"><span class="term" lang="ja">${ruby(w?w.t:g.key)}</span>`+
+      `<span class="meaning">${esc(g.meaning)}</span><p>${esc(g.note)}</p></div>`;
+  }).join('');
+  const preview=d.expressions.map(x=>
+    `<div class="dgword"><span class="term" lang="ja">${ruby(x.jp)}</span>`+
+    `<span class="meaning">${esc(x.ko)}</span><p>${esc(x.note)}</p></div>`).join('');
+  const culture=d.culture.map(x=>
+    `<div class="dculture"><b>${esc(x.title)}</b><p>${esc(x.text)}</p>`+
+    `<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">자료: ${esc(x.source)}</a></div>`).join('');
+  list.innerHTML=`<article class="dialogue"><div class="dintro"><h2>${esc(d.title)}</h2>`+
+    `<p>${esc(d.scene)}</p><div class="dpeople">A · ${esc(d.speakers.A)} &nbsp; B · ${esc(d.speakers.B)}</div></div>`+
+    `<section class="dcard" aria-label="일본어 대화">${turns}</section>`+
+    `<details class="dsec"><summary>한국어 번역</summary><div>${translation}</div></details>`+
+    `<details class="dsec"><summary>대화 속 단어·표현</summary><div class="dnotes">`+
+    `<h3>대화에 나온 말 · 더 배워보기</h3>${words}`+
+    `<h3>미리 보는 표현</h3>${preview}`+
+    `<h3>대화 예절·문화</h3>${culture}</div></details>`+
+    `<div class="dactions"><button class="dread" id="dDone">대화 읽음 표시</button>`+
+    `<button class="dnext" id="dNext">6단계로 가기</button></div></article>`;
+  paintDialogue();
 }
 function buildKana(){
   $('#stg').textContent='STAGE 00';
@@ -9029,10 +9187,14 @@ function buildKana(){
   document.querySelectorAll('.lv').forEach(el=>el.setAttribute('aria-current','false'));
   $('#lvKana').setAttribute('aria-current','true');
   side.querySelectorAll('.sideb').forEach(el=>el.setAttribute('aria-current',+el.dataset.n===0));
+  paintDialogueNav();
   paintRv();
 }
 let kanaTab='sei';
 function build(){
+  document.body.classList.toggle('dialogue-view',ST.view===R1);
+  paintDialogueNav();
+  if(ST.view===R1){ buildDialogue(); return; }
   if(ST.lv===0){ buildKana(); return; }
   if(ST.lv===RV){ buildReview(); return; }
   const L=SENT[ST.lv];
@@ -9070,14 +9232,17 @@ function build(){
   paint();
 }
 function goPage(d){
+  if(ST.view===R1) return;
   const L=SENT[ST.lv]; if(!L) return;
   const max=Math.ceil(L.s.length/25)-1;
   ST.pg=Math.max(0,Math.min(max,(ST.pg||0)+d));
   save(); build(); scrollTo({top:0});
 }
 function paint(){
+  if(ST.view===R1){ paintDialogue(); return; }
   if(ST.lv===0||ST.lv===RV) return;
   const L=SENT[ST.lv]; if(!L) return;
+  paintDialogueNav();
   const d=doneList(ST.lv), b=ST.bm[ST.lv];
   $('#tot').textContent=L.s.length; $('#cnt').textContent=d.length;
   $('#gauge').style.width=(L.s.length?d.length/L.s.length*100:0)+'%';
@@ -9088,6 +9253,7 @@ function paint(){
     if(rb) rb.querySelector('.bmk').setAttribute('aria-pressed',b===n);
   });
   document.querySelectorAll('.lv').forEach(el=>{
+    if(el.dataset.n===R1){ el.setAttribute('aria-current','false'); return; }
     const n=+el.dataset.n, dd=doneList(n).length, tt=SENT[n]?SENT[n].s.length:0;
     el.classList.toggle('part',dd>0&&dd<tt);
     el.classList.toggle('full',tt>0&&dd===tt);
@@ -9099,7 +9265,8 @@ function paint(){
   side.querySelectorAll('.crown').forEach(cr=>{
     const n=+cr.closest('.sideb').dataset.n; cr.dataset.s=ST.star[n]||0; });
   $('#bJump').style.display=(b==null?'none':''); paintRv();
-  side.querySelectorAll('.sideb').forEach(el=>el.setAttribute('aria-current',+el.dataset.n===ST.lv));
+  side.querySelectorAll('.sideb').forEach(el=>{
+    el.setAttribute('aria-current',+el.dataset.n===ST.lv); });
 }
 
 /* ── 팝업 ─────────────────────────────────── */
@@ -9202,7 +9369,8 @@ function enterReview(){ if(!RVtot||RVdone) startReview(); }
    그 자리로 돌아가야 하기 때문이다. 앱을 닫았다 열어도 살아 있도록
    ST 에 얹어 둔다. 오답노트 안에서 또 부르면 적어 둔 자리를 덮지 않는다 */
 function openReview(){
-  if(ST.lv!==RV) ST.rv={lv:ST.lv, pg:ST.pg||0};
+  if(ST.lv!==RV) ST.rv={lv:ST.lv, pg:ST.pg||0, view:ST.view===R1?R1:null};
+  delete ST.view;
   ST.lv=RV; ST.pg=0; enterReview();
 }
 /* 오답노트를 나간다. 적어 둔 자리로 돌아가고, 그 단계에서 마지막으로
@@ -9211,6 +9379,8 @@ function openReview(){
 function leaveReview(){
   const f=ST.rv||{};
   ST.lv=(f.lv!=null&&(f.lv===0||SENT[f.lv]))?f.lv:1;
+  if(f.view===R1&&ST.lv===5) ST.view=R1;
+  else delete ST.view;
   ST.pg=+f.pg||0;
   save(); build(); centerLv();
   /* 마지막으로 풀던 문장으로. 적어 둔 자리가 없으면 쪽 맨 위에서 잇는다 */
@@ -9293,18 +9463,22 @@ function buildReview(){
   list.dataset.rvans=askJP?k:(w.m||'').split(',')[0].trim();
 }
 /* ── 단계 내비 ────────────────────────────── */
-nav.innerHTML=TITLES.map((t,i)=>
- `<button class="lv" data-n="${i+1}" title="${t}" ${SENT[i+1]?'':'disabled'}>`+
- `<span class="crown" data-s="0"><i>${ICO.star}</i><i>${ICO.star}</i><i>${ICO.star}</i></span>${i+1}</button>`).join('');
+nav.innerHTML=NAV_ORDER.slice(1).map(n=>n===R1
+  ? `<button class="lv rstage" data-n="${R1}" title="대화 복습 R1">R1</button>`
+  : `<button class="lv" data-n="${n}" title="${TITLES[n-1]}" ${SENT[n]?'':'disabled'}>`+
+    `<span class="crown" data-s="0"><i>${ICO.star}</i><i>${ICO.star}</i><i>${ICO.star}</i></span>${n}</button>`).join('');
 side.innerHTML='<h4>STAGES</h4>'+
   '<button class="sideb" data-n="0"><span class="no" style="font-family:var(--jp)">あ</span><span class="tt">가나 표</span></button>'+
-  TITLES.map((t,i)=>`<button class="sideb" data-n="${i+1}" ${SENT[i+1]?'':'disabled'}>`+
-    `<span class="no">${i+1}</span><span class="tt">${t}</span>`+
-    `<span class="crown sidecrown" data-s="0"><i>${ICO.star}</i><i>${ICO.star}</i><i>${ICO.star}</i></span></button>`).join('');
+  NAV_ORDER.slice(1).map(n=>n===R1
+    ? `<button class="sideb rstage" data-n="${R1}"><span class="no">R1</span>`+
+      `<span class="tt">대화 복습 · 숙소</span></button>`
+    : `<button class="sideb" data-n="${n}" ${SENT[n]?'':'disabled'}>`+
+      `<span class="no">${n}</span><span class="tt">${TITLES[n-1]}</span>`+
+      `<span class="crown sidecrown" data-s="0"><i>${ICO.star}</i><i>${ICO.star}</i><i>${ICO.star}</i></span></button>`).join('');
 side.addEventListener('click',e=>{const b=e.target.closest('.sideb'); if(!b||b.disabled)return;
-  goStage(+b.dataset.n);});
+  goStage(b.dataset.n===R1?R1:+b.dataset.n);});
 nav.addEventListener('click',e=>{const b=e.target.closest('.lv'); if(!b||b.disabled||navMoved)return;
-  goStage(+b.dataset.n);});
+  goStage(b.dataset.n===R1?R1:+b.dataset.n);});
 /* 세로 휠을 가로 이동으로 */
 nav.addEventListener('wheel',e=>{ if(Math.abs(e.deltaY)<=Math.abs(e.deltaX))return;
   e.preventDefault(); nav.scrollLeft+=e.deltaY; },{passive:false});
@@ -9353,6 +9527,16 @@ function endDrag(){
 
 list.addEventListener('click',e=>{
   if(dg&&dg.ax==='x')return;
+  if(ST.view===R1){
+    if(e.target.closest('#dDone')){ ST.read.R1=1; save(); say('R1 대화를 읽음으로 표시했습니다'); return; }
+    if(e.target.closest('#dNext')){ goStage(6); return; }
+    const audio=e.target.closest('.dspk');
+    if(audio){
+      const t=window.DIALOGUES.R1.turns[+audio.dataset.i];
+      if(t) speakText(t.jp.replace(/\{([^|{}]+)\|[^|{}]+\}/g,'$1'));
+    }
+    return;
+  }
   const kt=e.target.closest('.ktab');
   if(kt){
     /* 둘은 따로 논다. 함께 켜면 발음만 남는다.
@@ -9852,12 +10036,12 @@ addEventListener('keydown',e=>{
   if(rv&&/^[1-4]$/.test(k)){
     const o=document.querySelectorAll('.rvopt')[+k-1]; if(o) o.click(); e.preventDefault(); return; }
   if(k==='ArrowRight'||k==='ArrowLeft'){
-    const d=(k==='ArrowRight')?1:-1, n=ST.lv+d;
-    if(n>=0&&n<=60&&(n===0||SENT[n])) goStage(n);
+    const i=NAV_ORDER.indexOf(activeStage()), n=NAV_ORDER[i+(k==='ArrowRight'?1:-1)];
+    if(i>=0&&n!=null&&(n===R1||n===0||SENT[n])) goStage(n);
     e.preventDefault(); return; }
   if(k==='['||k===']'){ goPage(k===']'?1:-1); e.preventDefault(); return; }
 });
-$('#lvKana').onclick=()=>{ ST.lv=0; ST.pg=0; save(); build(); scrollTo({top:0}); };
+$('#lvKana').onclick=()=>{ delete ST.view; ST.lv=0; ST.pg=0; save(); build(); scrollTo({top:0}); };
 $('#bJump').onclick=jump;
 /* 켜면 오답노트, 다시 누르면 꺼지면서 풀던 자리로 돌아간다 */
 $('#bRv').onclick=()=>{
@@ -9893,12 +10077,15 @@ function jump(){const b=ST.bm[ST.lv]; if(b==null)return;
    회차를 마칠 때 ST.at 을 지우므로 끝낸 단계는 첫 쪽에서 시작한다.
    쪽을 옮기는 일은 resume() 이 하니 여기서는 부르기만 한다 */
 function goStage(n){
-  ST.lv=n; ST.pg=0;
+  if(n===R1){ ST.view=R1; ST.lv=5; }
+  else { delete ST.view; ST.lv=n; }
+  ST.pg=0;
   if(n===RV) enterReview();
   save(); build(); centerLv(); scrollTo({top:0});
   resume();
 }
 function resume(){
+  if(ST.view===R1) return false;
   const n=(ST.at||{})[ST.lv];
   if(n==null) return false;
   const L=SENT[ST.lv]; if(!L) return false;
@@ -9961,7 +10148,7 @@ function decMap(str){ const o={};
   return o; }
 function encST(){
   return 'J3|'+ST.lv+'|'+encDone(ST.done[1])+'|'+encDone(ST.done[2])+'|'+encDone(ST.done[3])
-    +'|'+encMap(ST.bm)+'|'+encMap(ST.star)+'|'+encMap(ST.r);
+    +'|'+encMap(ST.bm)+'|'+encMap(ST.star)+'|'+encMap(ST.r)+'|'+(ST.read.R1?'R1':'');
 }
 /* 옛 J2 코드도 읽는다. 그때는 회차가 없었으므로 1회차 진도로 넣는다 */
 function decST(s){
@@ -9969,7 +10156,7 @@ function decST(s){
   if(p[0]==='J2'){
     const one=decDone(p[2]);
     const st={v:3,lv:(p[1]===''||p[1]==null)?1:+p[1],pg:0,
-      r:{},done:{1:one,2:{},3:{}},star:{},bm:decMap(p[3])};
+      r:{},done:{1:one,2:{},3:{}},star:{},bm:decMap(p[3]),read:{}};
     Object.keys(one).forEach(lv=>{ const L=SENT[lv];
       if(L&&one[lv].length>=L.s.length) st.star[lv]=1; });
     return st;
@@ -9977,9 +10164,11 @@ function decST(s){
   if(p[0]!=='J3') throw new Error('형식이 다릅니다');
   return {v:3,lv:(p[1]===''||p[1]==null)?1:+p[1],pg:0,
     done:{1:decDone(p[2]),2:decDone(p[3]),3:decDone(p[4])},
-    bm:decMap(p[5]), star:decMap(p[6]), r:decMap(p[7])};
+    bm:decMap(p[5]), star:decMap(p[6]), r:decMap(p[7]),
+    read:p[8]==='R1'?{R1:1}:{}};
 }
 function renderStat(){
+  if(ST.view===R1){ $('#qstat').textContent='R1은 문제풀이가 없는 대화 복습입니다.'; return; }
   const solved=Object.keys(QDONE).filter(k=>k.indexOf(ST.lv+'-')===0).length;
   const es=Object.entries(QSTAT).filter(([k])=>WORDS[k]);
   if(!es.length){ $('#qstat').innerHTML='<span style="color:#A79E93">아직 푼 문제가 없습니다.</span>'; return; }
@@ -10105,7 +10294,7 @@ $('#bWipe').onclick=()=>{
     '지금까지의 <b>진도·북마크·퀴즈 기록</b>이 모두 지워집니다.<br>되돌릴 수 없습니다.',
     '지웁니다',
     ()=>{
-      ST={v:3,lv:1,pg:0,r:{},done:{1:{},2:{},3:{}},star:{},bm:{},at:{},rv:null};
+      ST={v:3,lv:1,pg:0,r:{},done:{1:{},2:{},3:{}},star:{},bm:{},at:{},rv:null,read:{}};
       QSTAT={}; QDONE={};
       DB.set(KEY,JSON.stringify(ST)); saveStat(); saveDone();
       /* 서버에 둔 사본도 지운다. 안 그러면 다음에 맞출 때 되살아난다 */
@@ -10141,7 +10330,9 @@ $('#bQLoad').onclick=()=>{
 };
 $('#bCopy').onclick=()=>{const t=$('#code'); t.select(); t.setSelectionRange(0,99999);
   (navigator.clipboard?navigator.clipboard.writeText(t.value):Promise.reject()).then(()=>say('복사했습니다'),()=>{document.execCommand('copy');say('복사했습니다');});};
-$('#bLoad').onclick=()=>{ try{ ST=decST($('#code').value);
+$('#bLoad').onclick=()=>{ try{ const imported=decST($('#code').value);
+    if(ST.read.R1) imported.read.R1=1; /* 예전 코드에 이 필드가 없어도 읽음 기록은 남긴다 */
+    ST=imported;
     save(); build(); centerLv(); closeSheet(); say('진도를 불러왔습니다');
   }catch(e){ say('코드를 읽을 수 없습니다'); }};
 
@@ -10304,6 +10495,7 @@ function celMsg3(lv){
   const now=TITLES[lv-1]||'', nx=TITLES[lv]||'';
   const head=lv+'단계를 모두 완료하셨습니다';
   const learned='이번 단계에서는 <b>'+now+'</b>'+eul(now)+' 배웠습니다.';
+  if(lv===5) return [head,learned+'<br>다음은 <b>R1 대화 복습</b>입니다.'];
   if(!SENT[lv+1]) return [head,learned+'<br>여기까지가 지금 준비된 마지막 단계입니다.'];
   return [head, learned+'<br>이제 다음 단계에서는 <b>'+nx+'</b>'+eul(nx)+' 배우게 됩니다.<br>'+
     CHEER[Math.floor(Math.random()*CHEER.length)]];
@@ -10314,7 +10506,7 @@ function celebrate(r){
   /* 별이 날아와 박힐 때까지 그 자리는 비워 둔다 */
   const cr=crownEl(CELLV);
   if(cr) cr.dataset.hold=CELIX;
-  const hasNext=!!SENT[CELLV+1];
+  const n=nextStage(CELLV), hasNext=n===R1||!!SENT[n];
   const last=r>=RN;
   const m=last?celMsg3(CELLV):CELMSG[r];
   const badN=last?reviewQueue().length:0;
@@ -10354,8 +10546,8 @@ function celDone(next){
   cel.classList.remove('on'); bd.classList.remove('on');
   flyStar(a);
   /* 별이 왕관에 앉은 뒤에 화면을 바꾼다 */
-  if(next) setTimeout(()=>{ const n=CELLV+1; if(!SENT[n]) return;
-    ST.lv=n; ST.pg=0; save(); build(); scrollTo({top:0}); centerLv(); },700);
+  if(next) setTimeout(()=>{ const n=nextStage(CELLV); if(n!==R1&&!SENT[n]) return;
+    goStage(n); },700);
 }
 /* 별이 박히는 왕관. PC 는 왼쪽 목록, 그보다 좁으면 가로 내비를 쓴다.
    감춰진 쪽을 잡으면 크기가 0 이라 별이 날지 않는다 */
@@ -11049,6 +11241,8 @@ function mergeST(a,b){
      다른 기기의 화면으로 끌려가지 않게 이 기기 것을 남긴다. */
   o.lv = a.lv!=null ? +a.lv : (b.lv!=null ? +b.lv : 1);
   o.pg = +a.pg||0;                         /* 보던 쪽은 이 기기 것 */
+  if(a.view==='R1'&&o.lv===5) o.view='R1';
+  else delete o.view;                     /* 대화 화면 위치도 기기별로 남긴다 */
   o.done = {1:{},2:{},3:{}};
   for(let r=1;r<=3;r++){
     const A=(a.done||{})[r]||{}, B=(b.done||{})[r]||{};
@@ -11058,6 +11252,8 @@ function mergeST(a,b){
   }
   o.r={}; maxInto(o.r, a.r, b.r);          /* 회차는 더 나간 쪽 */
   o.star={}; maxInto(o.star, a.star, b.star);
+  o.read={};
+  if((a.read||{}).R1||(b.read||{}).R1) o.read.R1=1; /* 대화 읽음은 별과 별개 */
   /* 북마크와 마지막에 보던 자리는 단계마다 하나뿐이라 합칠 수 없다.
      단계별로 이 기기 것을 남기고, 이 기기에 없는 단계만 저쪽 것을 받는다 */
   o.bm = Object.assign({}, b.bm||{}, a.bm||{});
@@ -11109,7 +11305,7 @@ function canon(v){
 function progress(s){
   if(!s) return null;
   const st=Object.assign({},s.st||{});
-  delete st.lv; delete st.pg; delete st.rv; delete st.at;
+  delete st.lv; delete st.pg; delete st.rv; delete st.at; delete st.view;
   return {st, done:s.done, quiz:s.quiz};
 }
 

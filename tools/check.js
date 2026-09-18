@@ -99,4 +99,27 @@ console.log('  '+gS.map(([g,n])=>g+'('+n+')').join('  '));
 const gOnce=gS.filter(([,n])=>n===1).length;
 if(gOnce>6) console.log('  한 번만 쓰인 이름이 '+gOnce+'개다. 합칠 자리가 없는지 본다');
 
+/* 번호 없는 대화 복습은 문장 검사와 별도로 대응·단어 출처를 확인한다. */
+eval(fs.readFileSync(dir+'dialogues.js','utf8'));
+const D=window.DIALOGUES.R1;
+const plain=t=>t.replace(/\{([^|{}]+)\|([^|{}]+)\}/g,'$1');
+if(!D||D.turns.length<8||D.turns.length>12) err.push('R1  발화가 8~12개가 아님');
+else{
+  D.turns.forEach((t,i)=>{
+    if(!D.speakers[t.who]||!t.jp||!t.ko) err.push(`R1-${i+1}  화자·일본어·번역 누락`);
+  });
+  const jp=D.turns.map(t=>plain(t.jp)).join('');
+  const used=new Set();
+  D.glossary.forEach(g=>{
+    const w=W[g.key], term=w&&plain(w.t);
+    if(!w||!term||!jp.includes(term)) err.push(`R1  대화에 없는 단어: ${g.key}`);
+    if(used.has(g.key)) err.push(`R1  단어 중복: ${g.key}`);
+    if(!g.meaning||!g.note) err.push(`R1  단어 설명 누락: ${g.key}`);
+    used.add(g.key);
+  });
+  if(!D.culture.length||D.culture.some(x=>!x.text||!x.source||!/^https:\/\//.test(x.url)))
+    err.push('R1  예절·문화 설명이나 출처 누락');
+  console.log('R1 대화 : '+D.turns.length+'발화 · '+D.glossary.length+'단어·표현');
+}
+
 console.log(err.length?'\n[문제]\n'+err.join('\n'):'\n문제 없음');
