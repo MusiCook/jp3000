@@ -88,7 +88,7 @@ function device(local){
   const ok=[];
   const t=(n,c)=>{ ok.push(c); console.log((c?'  OK  ':'  실패  ')+n); };
   console.log('\nPC 에서 합친 결과');
-  t('단계는 더 나간 쪽(2)',            st.lv===2);
+  t('현재 보는 단계는 이 기기 것(1)',   st.lv===1);
   t('1회차 1단계 유지 [1,2,3]',        JSON.stringify(st.done[1][1])==='[1,2,3]');
   t('1회차 2단계 유지 [7,8]',          JSON.stringify(st.done[1][2])==='[7,8]');
   t('2회차 진도 유지 [1]',             JSON.stringify(st.done[2][1])==='[1]');

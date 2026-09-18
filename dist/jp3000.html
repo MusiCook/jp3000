@@ -723,7 +723,7 @@ body.hidehira .kcell .hi{color:transparent;background:var(--green-l);border-radi
     <button class="btn" id="bUpd">최신으로 받기</button>
   </div>
   <p style="margin:9px 0 0;font-size:11.5px;color:var(--ink3);text-align:center">
-    지금 판 <span id="ver">2026-09-18 09:31</span></p>
+    지금 판 <span id="ver">2026-09-18 09:40</span></p>
 
   <h3 style="margin-top:26px">초기화</h3>
   <p>진도·북마크·퀴즈 기록을 모두 지웁니다. 되돌릴 수 없습니다.</p>
@@ -11040,7 +11040,9 @@ function mergeST(a,b){
   a=a||{}; b=b||{};
   const o = Object.assign({}, b, a);       /* 모르는 항목은 이 기기 것을 남긴다 */
   o.v  = 3;
-  o.lv = Math.max(+a.lv||1, +b.lv||1);     /* 더 나간 단계를 쓴다 */
+  /* 단계 번호는 완료 진도가 아니라 지금 보는 화면이다. 61은 오답노트다.
+     다른 기기의 화면으로 끌려가지 않게 이 기기 것을 남긴다. */
+  o.lv = a.lv!=null ? +a.lv : (b.lv!=null ? +b.lv : 1);
   o.pg = +a.pg||0;                         /* 보던 쪽은 이 기기 것 */
   o.done = {1:{},2:{},3:{}};
   for(let r=1;r<=3;r++){
@@ -11089,6 +11091,16 @@ function canon(v){
   return JSON.stringify(v);
 }
 
+/* 화면 위치는 기기별로 달라도 된다. 실제 학습 기록만 비교해야
+   오답노트(61)와 일반 단계를 오갈 때마다 서버를 다시 쓰거나
+   다른 기기의 진도를 받았다고 알리는 일이 생기지 않는다. */
+function progress(s){
+  if(!s) return null;
+  const st=Object.assign({},s.st||{});
+  delete st.lv; delete st.pg; delete st.rv; delete st.at;
+  return {st, done:s.done, quiz:s.quiz};
+}
+
 /* ── 맞추기 ────────────────────────────
    어느 길에서 올리든 먼저 내려받는다. 그대로 덮어쓰면 다른 기기의
    새 기록이 사라진다. 쓰는 사이 서버가 바뀌면 그 판부터 다시 합친다. */
@@ -11098,16 +11110,17 @@ async function mergeOnServer(){
     const remote=await pull();
     const theirs=tidy(remote.data);
     const both=merge(mine,theirs);
-    if(!theirs || canon(both)!==canon(theirs)){
+    if(!theirs || canon(progress(both))!==canon(progress(theirs))){
       if(!await push(both,remote.version)) continue;
     }
     /* 통신하는 동안 이 기기에서 더 공부했으면 그것도 서버에 보내야 한다. */
     const latest=tidy(snap());
-    if(canon(merge(latest,both))!==canon(both)) continue;
-    const changed=canon(both)!==canon(merge(latest,latest));
+    const final=merge(latest,both); /* 그 사이 이동한 화면 위치도 남긴다 */
+    if(canon(progress(final))!==canon(progress(both))) continue;
+    const changed=canon(progress(final))!==canon(progress(merge(latest,latest)));
     if(changed){
-      put(both);
-      if(typeof window.applySyncedProgress==='function') window.applySyncedProgress(both);
+      put(final);
+      if(typeof window.applySyncedProgress==='function') window.applySyncedProgress(final);
     }
     return changed;
   }
@@ -11116,11 +11129,12 @@ async function mergeOnServer(){
 
 async function syncNow(loud){
   if(!acct) return;
-  if(!syncing) syncing=mergeOnServer().finally(()=>{ syncing=null; });
+  const started=!syncing;
+  if(started) syncing=mergeOnServer().finally(()=>{ syncing=null; });
   try{
     const changed=await syncing;
-    if(changed) say('다른 기기의 진도를 받았습니다');
-    else if(loud) say('이미 맞춰져 있습니다');
+    if(started && changed) say('다른 기기의 진도를 받았습니다');
+    else if(!changed && loud) say('이미 맞춰져 있습니다');
   }catch(e){ if(loud) say(msg(e)); }
 }
 
