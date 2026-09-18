@@ -6,13 +6,13 @@ const end=html.indexOf('/* ── 단계 내비',start);
 assert(start>=0&&end>start,'오답노트 코드를 찾지 못했습니다');
 const source=html.slice(start,end);
 
-function review(count){
+function review(count,dueCount=count){
   const elements={};
   const el=id=>elements[id]||(elements[id]={textContent:'',style:{},onclick:null});
   const words={}, stats={};
   for(let i=1;i<=count;i++){
     words['k'+i]={t:'말 '+i,m:'뜻 '+i};
-    stats['k'+i]={o:0,x:1,lv:0,due:0};
+    stats['k'+i]={o:0,x:1,lv:0,due:i<=dueCount?0:Math.floor(Date.now()/86400000)+3};
   }
   const ctx={
     QSTAT:stats, WORDS:words, SENT:{}, list:{innerHTML:'',dataset:{}},
@@ -53,4 +53,11 @@ small.run('startReview(); buildReview()');
 assert.match(small.ctx.list.innerHTML,/1 \/ 8/);
 small.run('for(let i=0;i<8;i++) finishReviewWord(RVQ[0]); buildReview()');
 assert.match(small.ctx.list.innerHTML,/오늘 복습을 마쳤습니다/);
-console.log('오답노트 49개·8개 진도와 다음 묶음 확인 완료');
+
+const scheduled=review(49,20);
+scheduled.run('startReview(); buildReview()');
+assert.match(scheduled.ctx.list.innerHTML,/오늘 1 \/ 20/);
+assert.match(scheduled.ctx.list.innerHTML,/전체 49개/);
+scheduled.run('for(let i=0;i<20;i++) finishReviewWord(RVQ[0]); buildReview()');
+assert.match(scheduled.ctx.list.innerHTML,/오늘 복습을 마쳤습니다/);
+console.log('오답노트 49개·8개·오늘 20개 진도 확인 완료');
