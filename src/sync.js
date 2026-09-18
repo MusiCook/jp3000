@@ -163,19 +163,26 @@ function mergeDone(a,b){
   const o={}; keys(a,b).forEach(k=>{ o[k] = ((a||{})[k]|0) | ((b||{})[k]|0); }); return o;
 }
 
-/* 맞힘·틀림 횟수는 큰 쪽을 남긴다. 더하면 맞춘 횟수가 부풀고,
-   한쪽만 고르면 다른 기기에서 쌓은 기록이 사라지기 때문이다.
-   복습 단계와 예정일은 낮고 이른 쪽을 남긴다. 한 기기에서 아직
-   복습할 것이 다른 기기의 졸업 기록에 밀려 사라지면 안 된다. */
+/* 맞힘·틀림 횟수는 큰 쪽을 남긴다. 더하면 횟수가 부푼다.
+   복습 단계와 예정일은 마지막으로 푼 결과를 남긴다. 시각이 없는
+   옛 기록끼리는 이른 일정으로 합쳐 복습 대상을 놓치지 않는다. */
 function mergeQuiz(a,b){
   const o={};
   keys(a,b).forEach(k=>{
     const x=(a||{})[k]||{}, y=(b||{})[k]||{};
     const q=o[k]={o:Math.max(+x.o||0,+y.o||0), x:Math.max(+x.x||0,+y.x||0)};
-    if(x.lv!=null||y.lv!=null)
-      q.lv=Math.min(x.lv==null?Infinity:+x.lv, y.lv==null?Infinity:+y.lv);
-    if(x.due!=null||y.due!=null)
-      q.due=Math.min(x.due==null?Infinity:+x.due, y.due==null?Infinity:+y.due);
+    const xr=+x.rev||0, yr=+y.rev||0;
+    if(xr!==yr){
+      const recent=xr>yr?x:y;
+      if(recent.lv!=null) q.lv=+recent.lv;
+      if(recent.due!=null) q.due=+recent.due;
+    }else{
+      if(x.lv!=null||y.lv!=null)
+        q.lv=Math.min(x.lv==null?Infinity:+x.lv, y.lv==null?Infinity:+y.lv);
+      if(x.due!=null||y.due!=null)
+        q.due=Math.min(x.due==null?Infinity:+x.due, y.due==null?Infinity:+y.due);
+    }
+    if(xr||yr) q.rev=Math.max(xr,yr);
   });
   return o;
 }

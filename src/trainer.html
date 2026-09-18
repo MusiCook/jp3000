@@ -1185,12 +1185,8 @@ function openPop(el,key){
 }
 
 /* ── 오답노트 · 카드형 복습 ─────────────────
-   틀린 말을 간격을 두고 다시 낸다.
-   틀림 → 오늘 / 1번 맞힘 → 3일 뒤 / 2번 → 1주 / 3번 → 3주 뒤 졸업
-
-   한 말은 그날 안에 두 번 맞혀야 끝난다. 한 번은 뜻으로, 한 번은
-   일본어로 묻는다. 한 번 맞힌 것은 뒤로 돌려 두었다가 다시 낸다.
-   틀리면 처음으로 돌아가 두 번을 새로 채워야 한다 */
+   처음 틀린 말은 오늘 오답노트에 넣는다. 복습에서는 한 말에 한 문제만
+   낸다. 맞히면 3일·7일·21일 뒤, 틀리면 다음 날 다시 낸다. */
 const RV=61;
 const STEP=[0,3,7,21];
 const today=()=>Math.floor(Date.now()/86400000);
@@ -1199,7 +1195,9 @@ function schedule(k,ok){
   const v=QSTAT[k]||(QSTAT[k]={o:0,x:0});
   if(ok){ v.lv=Math.min((v.lv||0)+1,STEP.length); }
   else  { v.lv=0; }
-  v.due=today()+(v.lv>=STEP.length?9999:STEP[v.lv]);
+  v.due=today()+(ok?(v.lv>=STEP.length?9999:STEP[v.lv]):1);
+  /* 다른 기기의 오래된 예정일이 오늘 푼 결과를 되돌리지 못하게 한다. */
+  v.rev=Math.max(Date.now(),(+v.rev||0)+1);
   saveStat();
 }
 /* 오늘 볼 것: 틀린 적이 있고, 예정일이 지났고, 아직 졸업하지 않은 말 */
@@ -1227,19 +1225,21 @@ function sampleSentence(k){
   }
   return null;
 }
-const RVHIT=2;                 /* 한 말을 몇 번 맞혀야 끝나는가 */
 /* 한 번에 내는 말의 수. 오늘 전체 수와 진도는 자르지 않는다. */
 const RVMAX=20;
 let RVQ=[];                    /* 아직 남은 말. 앞에서부터 낸다 */
 let RVpending=[];              /* 다음 묶음에서 낼 말 */
-let RVN={};                    /* 말마다 남은 횟수 */
 let RVtot=0, RVfin=0, RVo=0, RVx=0, RVdone=false;
 function nextReviewBatch(){
-  RVQ=RVpending.splice(0,RVMAX); RVN={};
-  RVQ.forEach(k=>{ RVN[k]=RVHIT; });
+  RVQ=RVpending.splice(0,RVMAX);
 }
-function finishReviewWord(k){
-  schedule(k,true); RVQ.shift(); RVfin++;
+function answerReview(ok){
+  const k=RVQ.shift(); if(!k) return;
+  schedule(k,ok);
+  RVfin++;
+  if(ok) RVo++; else RVx++;
+  paintRv();
+  paintReviewProgress();
 }
 function startReview(){
   RVpending=reviewQueue(); RVtot=RVpending.length; RVfin=0;
@@ -1269,6 +1269,13 @@ function leaveReview(){
   if(!resume()) scrollTo({top:0});
 }
 const rvEnd=()=>RVfin;               /* 오늘 끝낸 말의 수 */
+function paintReviewProgress(){
+  const tot=RVtot, fin=rvEnd();
+  $('#tot').textContent=tot; $('#cnt').textContent=fin;
+  $('#gauge').style.width=(tot?fin/tot*100:0)+'%';
+  const bar=list.querySelector&&list.querySelector('.rvbar i');
+  if(bar) bar.style.width=(tot?fin/tot*100:0)+'%';
+}
 function buildReview(){
   if(RVtot&&!RVQ.length&&!RVpending.length) RVdone=true;
   $('#stg').textContent='REVIEW';
@@ -1276,8 +1283,7 @@ function buildReview(){
   document.querySelectorAll('.lv').forEach(el=>el.setAttribute('aria-current',+el.dataset.n===RV));
   paintRv();
   const tot=RVtot, fin=rvEnd();
-  $('#tot').textContent=tot; $('#cnt').textContent=fin;
-  $('#gauge').style.width=(tot?fin/tot*100:0)+'%';
+  paintReviewProgress();
 
   if(!tot){
     const nd=nextDueDay();
@@ -1306,10 +1312,9 @@ function buildReview(){
     return;
   }
   const k=RVQ[0], w=WORDS[k], sm=sampleSentence(k);
-  /* 첫 번째는 뜻을, 두 번째는 일본어를 묻는다 */
-  const turn=RVHIT-(RVN[k]||RVHIT);
-  const askJP=(turn%2===1);
-  const seed=seedOf(k+'-'+turn);
+  /* 한 번만 묻되 뜻과 일본어 문제를 번갈아 낸다. */
+  const askJP=(fin%2===1);
+  const seed=seedOf(k+'-'+(askJP?'jp':'ko'));
   let opts;
   if(askJP){
     opts=optsJP(k,seed).map(x=>({v:x,html:ruby(WORDS[x].t)}));
@@ -1422,20 +1427,12 @@ list.addEventListener('click',e=>{
   const ro=e.target.closest('.rvopt');
   if(ro){
     if(ro.disabled) return;
-    const ans=list.dataset.rvans, k=RVQ[0], ok=(ro.dataset.v===ans);
+    const ans=list.dataset.rvans, ok=(ro.dataset.v===ans);
     document.querySelectorAll('.rvopt').forEach(b=>b.disabled=true);
     ro.classList.add(ok?'ok':'ng');
     if(!ok){ const t=document.querySelector('.rvopt[data-v="'+CSS.escape(ans)+'"]'); if(t) t.classList.add('ok'); }
-    if(ok){ RVo++; beepOk(); } else { RVx++; beepNg(); }
-    if(ok){
-      RVN[k]--;
-      if(RVN[k]<=0) finishReviewWord(k); /* 두 번 다 맞혔다 */
-      else RVQ.push(RVQ.shift());                       /* 뒤로 돌려 한 번 더 */
-    }else{
-      RVN[k]=RVHIT;                                     /* 처음부터 다시 */
-      schedule(k,false); RVQ.push(RVQ.shift());
-    }
-    paintRv();
+    if(ok) beepOk(); else beepNg();
+    answerReview(ok);
     setTimeout(()=>buildReview(), ok?650:1400);
     return;
   }
@@ -1638,9 +1635,17 @@ function cleanQuiz(q){
     if(!WORDS[head]){ changed=true; return; }              /* 사전에 없으면 버린다 */
     const t=o[head]||(o[head]={o:0,x:0});
     t.o=(t.o||0)+(+v.o||0); t.x=(t.x||0)+(+v.x||0);
-    /* 예정일과 단계는 이른 쪽·낮은 쪽을 남긴다. 되살리며 복습을 늦추지 않는다 */
-    if(v.due!=null) t.due=(t.due==null?v.due:Math.min(t.due,v.due));
-    if(v.lv!=null)  t.lv =(t.lv==null?v.lv:Math.min(t.lv,v.lv));
+    /* 같은 말로 접힌 옛 키 중에서는 최근 복습 결과를 남긴다.
+       복습 시각이 없는 옛 자료끼리는 이른 일정으로 합친다. */
+    const rev=+v.rev||0, old=+t.rev||0;
+    if(rev>old){
+      t.rev=rev;
+      if(v.due!=null) t.due=v.due;
+      if(v.lv!=null) t.lv=v.lv;
+    }else if(rev===old){
+      if(v.due!=null) t.due=(t.due==null?v.due:Math.min(t.due,v.due));
+      if(v.lv!=null)  t.lv =(t.lv==null?v.lv:Math.min(t.lv,v.lv));
+    }
   });
   return {q:o, changed:changed};
 }

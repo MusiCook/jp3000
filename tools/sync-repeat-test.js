@@ -5,15 +5,21 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const source = fs.readFileSync(path.join(__dirname, '..', 'src', 'sync.js'), 'utf8');
+const trainer = fs.readFileSync(path.join(__dirname, '..', 'src', 'trainer.html'), 'utf8');
+const cleanStart = trainer.indexOf('function cleanQuiz(q){');
+const cleanEnd = trainer.indexOf('\n(function(){ const r=cleanQuiz', cleanStart);
+assert(cleanStart >= 0 && cleanEnd > cleanStart);
+const cleanSource = trainer.slice(cleanStart, cleanEnd);
 let server = null;
 let version = 0;
 let writes = 0;
 
-function device(initial) {
+function device(initial, quiz) {
   const storage = {
     jp3000v2: JSON.stringify(initial),
     'jp3000-auth': JSON.stringify({uid:'u1', email:'a@b.c', refresh:'R'})
   };
+  if (quiz) storage['jp3000-quiz'] = JSON.stringify(quiz);
   const timers = [];
   const listeners = {};
   const button = {};
@@ -27,6 +33,7 @@ function device(initial) {
     messages: [],
     applied: 0,
     window: {},
+    WORDS: {word:{}},
     document: {
       visibilityState: 'visible',
       getElementById: id => id === 'bSyncNow' ? button : null,
@@ -58,9 +65,11 @@ function device(initial) {
   ctx.window.applySyncedProgress = value => { ctx.live = value.st; ctx.applied++; };
   ctx.window.save = () => { storage.jp3000v2 = JSON.stringify(ctx.live); };
   vm.createContext(ctx);
+  vm.runInContext(cleanSource, ctx);
+  ctx.window.cleanQuiz = ctx.cleanQuiz;
   vm.runInContext(source, ctx);
   return {
-    ctx,
+    ctx, storage,
     sync: () => button.onclick(),
     visible: () => listeners.visibilitychange(),
     startup: async () => {
@@ -106,5 +115,27 @@ function device(initial) {
   assert.equal(review.ctx.applied, 1);
   assert.equal(writes, afterReceive);
   assert.equal(review.ctx.messages.filter(m => m === '다른 기기의 진도를 받았습니다').length, 1);
+
+  // A new review schedule must beat an old due-today copy on another device.
+  const withDone = {...base, done:{1:{2:[1]},2:{},3:{}}};
+  const oldQuiz = {word:{o:0,x:1,lv:0,due:0}};
+  server.quiz = oldQuiz; version++;
+  const scheduled = device(withDone, {word:{o:0,x:1,lv:1,due:20000,rev:1000}});
+  await scheduled.startup();
+  assert.equal(server.quiz.word.lv, 1);
+  assert.equal(server.quiz.word.due, 20000);
+  assert.equal(server.quiz.word.rev, 1000);
+  const afterSchedule = writes;
+  const stale = device(withDone, oldQuiz);
+  await stale.startup();
+  assert.equal(JSON.parse(stale.storage['jp3000-quiz']).word.due, 20000);
+  assert.equal(writes, afterSchedule);
+
+  // A later wrong answer may move the review earlier again.
+  const failed = device(withDone, {word:{o:0,x:1,lv:0,due:19001,rev:2000}});
+  await failed.startup();
+  assert.equal(server.quiz.word.lv, 0);
+  assert.equal(server.quiz.word.due, 19001);
+  assert.equal(server.quiz.word.rev, 2000);
   console.log('sync repeat regression: OK');
 })().catch(error => { console.error(error); process.exitCode = 1; });
