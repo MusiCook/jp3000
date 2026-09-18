@@ -35,6 +35,7 @@ tools/
   check.js            데이터 검사기
   sync-test.js        진도 합치기 검사기
   review-test.js      오답노트 진도 검사기
+  storage-test.js     기기 저장소 실패 검사기
   quiz-audit.js       퀴즈 보기 검사기
   sw-test.js          서비스 워커가 캐시를 갱신하는지 검사
   append.py           문장 배치 추가 도구
@@ -75,6 +76,7 @@ docs/
 node tools/check.js
 node tools/sync-test.js      # 기기 간 진도를 손댔다면
 node tools/review-test.js    # 오답노트를 손댔다면
+node tools/storage-test.js   # 진도 저장소를 손댔다면
 node tools/quiz-audit.js     # 보기를 손댔다면
 
 # 3. 합치기
@@ -101,7 +103,8 @@ cd dist && python3 -m http.server 8000
 돌린 때다. 배포 뒤에도 옛 화면이 나오면 이 숫자를 먼저 본다.
 
 같은 칸의 **「최신으로 받기」** 를 누르면 담아 둔 파일을 버리고 새로 받는다.
-진도는 건드리지 않는다. 인터넷이 없으면 누르지 않는다 — 지우고 나면
+진도 저장소는 건드리지 않는다. 저장소에 쓸 수 없는 기기에서는 갱신을 멈추고
+진도 코드 복사를 안내한다. 인터넷이 없으면 누르지 않는다 — 지우고 나면
 받을 데가 없어 오프라인으로 열 것까지 사라진다. 그래서 막아 두었다.
 
 ### 그래도 옛 화면에서 못 벗어날 때
