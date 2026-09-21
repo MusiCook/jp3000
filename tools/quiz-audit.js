@@ -99,7 +99,7 @@ function audit(ctx){
       chunkJP(s.j).forEach((c,ci)=>{
         if(!c.w) return;
         try{
-          const q = quizOpts('j', {ans:c.ids.join('|'), seed:seedOf(sid+'-j'+ci)});
+          const q = quizOpts('j', {ans:c.ids.join('|'), sent:s, seed:seedOf(sid+'-j'+ci)});
           check(sid+' 일본어', q, 'j');
         }catch(e){ note(sid+' 일본어', '터짐', e.message, []); }
       });
@@ -227,7 +227,7 @@ function main(){
     });
     ctx.chunkJP(s.j).forEach((c,ci)=>{
       if(!c.w) return;
-      const q = ctx.quizOpts('j',{ans:c.ids.join('|'), seed:ctx.seedOf(one+'-j'+ci)});
+      const q = ctx.quizOpts('j',{ans:c.ids.join('|'), sent:s, seed:ctx.seedOf(one+'-j'+ci)});
       console.log('  일본어  정답 「'+bare(q.ans)+'」');
       q.opts.forEach(o=>console.log('        '+(o.v===q.ans?'○ ':'  ')+bare(o.html)));
     });
