@@ -24,18 +24,20 @@ function shuffle4(arr,seed){
 }
 /* 은/는처럼 앞 글자에 따라 갈리는 조사는 한 덩어리로 보여준다 */
 const KPAIR=[['은','는'],['이','가'],['을','를'],['와','과'],['이라고','라고'],['이에요','예요'],['으로','로']];
-/* 「どうですか / 어떻습니까」처럼 품사만으로 오답을 고르면
-   문장에 붙지 않는 부사·의문사가 섞이는 고정 질문은 자연스러운
-   서술형끼리 묶는다. 문장에 q가 있으면 그 상황에 맞는 보기로 덮는다. */
-const JP_PRED_ALTS={
-  'dou|desu|ka':['ii|desu|ka','warui|desu|ka','daijoubu|desu|ka']
+/* 「どうですか / 어떻습니까」나 「はい / 네」처럼 품사만으로
+   오답을 고르면 문장에 붙지 않는 말이 섞이는 고정 표현은
+   자연스러운 보기끼리 묶는다. 문장에 q가 있으면 상황에 맞게 덮는다. */
+const JP_FIXED_ALTS={
+  'dou|desu|ka':['ii|desu|ka','warui|desu|ka','daijoubu|desu|ka'],
+  'hai':['iie','tabun','mochiron']
 };
-const KO_PRED_ALTS={
-  '어떻습니까':['좋습니까','나쁩니까','괜찮습니까']
+const KO_FIXED_ALTS={
+  '어떻습니까':['좋습니까','나쁩니까','괜찮습니까'],
+  '네':['아니요','아마요','물론이죠']
 };
-function predAlts(type,ans,sent){
+function fixedAlts(type,ans,sent){
   const local=sent&&sent.q&&sent.q[type]&&sent.q[type][ans];
-  return local||(type==='j'?JP_PRED_ALTS:KO_PRED_ALTS)[ans]||[];
+  return local||(type==='j'?JP_FIXED_ALTS:KO_FIXED_ALTS)[ans]||[];
 }
 /* 받침이 있으면 true */
 function hasBat(w){
@@ -286,7 +288,7 @@ function quizOpts(type, o){
     jkey=head;
     const show=l=>l.map(i=>ruby(WORDS[i].t)).join('');
     const cand=[];
-    predAlts('j',ans,o.sent).forEach(v=>{
+    fixedAlts('j',ans,o.sent).forEach(v=>{
       if(cand.length<3&&v!==ans&&cand.indexOf(v)<0) cand.push(v); });
     /* 정답이 의문사가 아니면 의문사 덩어리를 오답으로 내지 않는다.
        「四番です」 자리에 「何番」이 오면 말이 안 돼 지워지므로,
@@ -372,7 +374,7 @@ function quizOpts(type, o){
        의문사로 시작하는 덩어리가 섞여 들어온다 */
     const askAns=isAskKO(ans);
     const cand=[];
-    predAlts('k',ans,s).forEach(v=>{
+    fixedAlts('k',ans,s).forEach(v=>{
       if(cand.length<3&&v!==ans&&cand.indexOf(v)<0) cand.push(v); });
     if(part){
       if(!CHUNKPOOL) buildChunkPool();
