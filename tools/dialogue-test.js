@@ -46,13 +46,38 @@ vm.runInContext('buildDialogue()',ctx);
 const page=ctx.list.innerHTML;
 const d=ctx.window.DIALOGUES.R1;
 const total=d.chapters.reduce((n,c)=>n+c.turns.length,0);
+const esc=ctx.esc;
 assert.equal(elements['#stg'].textContent,'R1');
 assert.ok(d.chapters.length>=2,'R1은 여러 장으로 나눈다');
 assert.ok(total>=40,'다섯 단계를 회수하려면 발화가 넉넉해야 한다');
 assert.equal((page.match(/<div class="dturn">/g)||[]).length,total);
 assert.equal((page.match(/<div class="dturn dko">/g)||[]).length,total);
-assert.equal((page.match(/class="dchap"/g)||[]).length,d.chapters.length,'장마다 제목과 상황을 낸다');
-assert.equal((page.match(/class="dchapko"/g)||[]).length,d.chapters.length,'번역도 같은 장 순서로 낸다');
+
+/* 장 하나가 통째로 접힌다. 열려 있는 채로 그려지는 장이 없어야 한다 */
+assert.equal((page.match(/<details class="dchapsec">/g)||[]).length,d.chapters.length,
+  '장마다 접기 카드 하나');
+assert.ok(!/<details[^>]*open/.test(page),'모든 접기는 닫힌 채로 시작한다');
+
+/* 번역과 단어장은 그 장 안에 있다 — 장 카드 바깥에는 남지 않는다 */
+const secs=page.split('<details class="dchapsec">').slice(1);
+assert.equal(secs.length,d.chapters.length);
+secs.forEach((sec,i)=>{
+  const c=d.chapters[i];
+  const body=sec.split('<div class="dactions">')[0];
+  assert.ok(body.includes(esc(c.title)),`#${i+1} 장 제목이 없다`);
+  assert.ok(body.includes(esc(c.scene)),`#${i+1} 장 상황이 없다`);
+  assert.ok(body.includes(esc(c.turns[0].ko)),`#${i+1} 번역이 그 장 안에 없다`);
+  assert.ok(body.includes('한국어 번역')&&body.includes('단어·표현'),
+    `#${i+1} 장 안에 번역·단어 접기가 둘 다 있어야 한다`);
+  const mine=(body.match(/<div class="dturn">/g)||[]).length;
+  assert.equal(mine,c.turns.length,`#${i+1} 발화 수가 다르다`);
+  (c.glossary||[]).forEach(g=>{
+    const w=ctx.WORDS[g.key];
+    assert.ok(w,'사전에 없는 단어 키: '+g.key);
+    assert.ok(body.includes(esc(g.meaning)),`#${i+1} 단어장에 ${g.key} 가 없다`);
+  });
+});
+
 /* 음성 단추 번호는 장을 넘어 0부터 통짜로 이어진다 */
 const ids=(page.match(/class="dspk" data-i="(\d+)"/g)||[]).map(m=>+m.match(/\d+/)[0]);
 assert.deepEqual(ids,Array.from({length:total},(x,i)=>i));
@@ -60,22 +85,22 @@ assert.equal(vm.runInContext('dialogueTurns(window.DIALOGUES.R1).length',ctx),to
 assert.equal(vm.runInContext('dialogueTurns(window.DIALOGUES.R1)['+(total-1)+'].jp',ctx),
   d.chapters[d.chapters.length-1].turns[d.chapters[d.chapters.length-1].turns.length-1].jp,
   '납작한 배열의 끝은 마지막 장의 마지막 발화다');
-assert.equal((page.match(/<details class="dsec">/g)||[]).length,2,'두 접기는 기본 닫힘');
-/* 단어장은 사전에 있는 키로만 만들고, 실제로 대화에 나온 말만 싣는다 */
-const plain=d.chapters.map(c=>c.turns.map(t=>t.jp).join('')).join('')
-  .replace(/\{([^|{}]+)\|[^|{}]+\}/g,'$1');
+
+/* 단어장은 장마다 두되 장을 건너뛰며 같은 말을 또 싣지 않는다 */
 const dup=new Set();
-d.glossary.forEach(g=>{
-  assert.ok(ctx.WORDS[g.key],'사전에 없는 단어 키: '+g.key);
-  assert.ok(!dup.has(g.key),'단어장이 겹친다: '+g.key); dup.add(g.key);
-  const w=ctx.WORDS[g.key].t.replace(/\{([^|{}]+)\|[^|{}]+\}/g,'$1');
-  const stem=w.replace(/(い|な|です)$/,'');
-  assert.ok(plain.includes(stem),'대화에 나오지 않는 단어: '+g.key+' ('+w+')');
+d.chapters.forEach((c,i)=>{
+  const jp=c.turns.map(t=>t.jp).join('').replace(/\{([^|{}]+)\|[^|{}]+\}/g,'$1');
+  assert.ok((c.glossary||[]).length,`#${i+1} 단어장이 없다`);
+  c.glossary.forEach(g=>{
+    assert.ok(!dup.has(g.key),'단어장이 겹친다: '+g.key); dup.add(g.key);
+    const w=ctx.WORDS[g.key].t.replace(/\{([^|{}]+)\|[^|{}]+\}/g,'$1');
+    const stem=w.replace(/(い|な|です)$/,'');
+    assert.ok(jp.includes(stem),`#${i+1} 에 나오지 않는 단어: ${g.key} (${w})`);
+  });
 });
+
 /* 장마다 나오는 인물만 소개한다 */
 d.chapters.forEach(c=>c.turns.forEach(t=>assert.ok((c.cast||[]).includes(t.who),'장의 인물 소개에 없는 화자: '+t.who)));
 d.chapters.forEach(c=>(c.cast||[]).forEach(k=>assert.ok(d.speakers[k],'이름 없는 화자: '+k)));
-assert.ok(page.indexOf('일본어 대화')<page.indexOf('한국어 번역'));
-assert.ok(page.indexOf('한국어 번역')<page.indexOf('대화 속 단어·표현'));
 assert.ok(!page.includes('class="msk"')&&!page.includes('class="crown"'));
-console.log('R1 화면 순서, 접기, 진도 코드와 단계 이동 확인 완료');
+console.log('R1 장별 접기, 장 안의 번역·단어장, 진도 코드와 단계 이동 확인 완료');

@@ -108,33 +108,41 @@ if(!CH||!CH.length) err.push('R1  장(chapters)이 없음');
 else{
   const turns=CH.reduce((all,c)=>all.concat(c.turns),[]);
   if(turns.length<40) err.push('R1  발화가 40개보다 적다 — 1~5단계를 회수하기 어렵다');
+  /* 단어장은 장마다 따로 두되, 장을 건너뛰며 같은 말을 또 싣지 않는다 */
+  const used=new Set();
+  let nw=0, ne=0, nc=0;
   CH.forEach((c,ci)=>{
-    if(!c.title||!c.scene) err.push(`R1-#${ci+1}  장 제목이나 상황 누락`);
-    if(c.turns.length<6) err.push(`R1-#${ci+1}  한 장의 발화가 6개보다 적다`);
-    (c.cast||[]).forEach(k=>{ if(!D.speakers[k]) err.push(`R1-#${ci+1}  이름 없는 화자: ${k}`); });
+    const tag=`R1-#${ci+1}`;
+    if(!c.title||!c.scene) err.push(`${tag}  장 제목이나 상황 누락`);
+    if(c.turns.length<6) err.push(`${tag}  한 장의 발화가 6개보다 적다`);
+    (c.cast||[]).forEach(k=>{ if(!D.speakers[k]) err.push(`${tag}  이름 없는 화자: ${k}`); });
     c.turns.forEach((t,i)=>{
-      if(!D.speakers[t.who]||!t.jp||!t.ko) err.push(`R1-#${ci+1}-${i+1}  화자·일본어·번역 누락`);
-      if(c.cast&&!c.cast.includes(t.who)) err.push(`R1-#${ci+1}-${i+1}  장의 인물 소개에 없는 화자: ${t.who}`);
+      if(!D.speakers[t.who]||!t.jp||!t.ko) err.push(`${tag}-${i+1}  화자·일본어·번역 누락`);
+      if(c.cast&&!c.cast.includes(t.who)) err.push(`${tag}-${i+1}  장의 인물 소개에 없는 화자: ${t.who}`);
+    });
+    const jp=c.turns.map(t=>plain(t.jp)).join('');
+    if(!c.glossary||!c.glossary.length) err.push(`${tag}  단어장이 없음`);
+    (c.glossary||[]).forEach(g=>{
+      const w=W[g.key], term=w&&plain(w.t);
+      /* 「暑い」가 「暑くないです」로 나오기도 한다. 활용 어미를 떼고 찾는다 */
+      const stem=term&&term.replace(/(い|な|です|ます)$/,'');
+      if(!w||!term||!jp.includes(stem)) err.push(`${tag}  이 장에 없는 단어: ${g.key}`);
+      if(used.has(g.key)) err.push(`R1  단어 중복: ${g.key}`);
+      if(!g.meaning||!g.note) err.push(`${tag}  단어 설명 누락: ${g.key}`);
+      used.add(g.key); nw++;
+    });
+    (c.expressions||[]).forEach(x=>{
+      if(!x.jp||!x.ko||!x.note) err.push(`${tag}  미리 보는 표현 설명 누락`);
+      ne++;
+    });
+    (c.culture||[]).forEach(x=>{
+      if(!x.text||!x.source||!/^https:\/\//.test(x.url)) err.push(`${tag}  예절·문화 설명이나 출처 누락`);
+      nc++;
     });
   });
-  const jp=turns.map(t=>plain(t.jp)).join('');
-  const used=new Set();
-  D.glossary.forEach(g=>{
-    const w=W[g.key], term=w&&plain(w.t);
-    /* 「暑い」가 「暑くないです」로 나오기도 한다. 활용 어미를 떼고 찾는다 */
-    const stem=term&&term.replace(/(い|な|です|ます)$/,'');
-    if(!w||!term||!jp.includes(stem)) err.push(`R1  대화에 없는 단어: ${g.key}`);
-    if(used.has(g.key)) err.push(`R1  단어 중복: ${g.key}`);
-    if(!g.meaning||!g.note) err.push(`R1  단어 설명 누락: ${g.key}`);
-    used.add(g.key);
-  });
-  D.expressions.forEach(x=>{
-    if(!x.jp||!x.ko||!x.note) err.push('R1  미리 보는 표현 설명 누락');
-  });
-  if(!D.culture.length||D.culture.some(x=>!x.text||!x.source||!/^https:\/\//.test(x.url)))
-    err.push('R1  예절·문화 설명이나 출처 누락');
+  if(!nc) err.push('R1  예절·문화 메모가 하나도 없음');
   console.log('R1 대화 : '+CH.length+'장 · '+turns.length+'발화 · '
-    +D.glossary.length+'단어 · '+D.expressions.length+'미리 보는 표현');
+    +nw+'단어 · '+ne+'미리 보는 표현 · '+nc+'문화 메모');
 }
 
 console.log(err.length?'\n[문제]\n'+err.join('\n'):'\n문제 없음');

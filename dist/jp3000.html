@@ -606,13 +606,31 @@ body.hidehira .kcell .hi{color:transparent;background:var(--green-l);border-radi
 .dintro p{margin:0;color:var(--ink2);font-size:13px;line-height:1.75;}
 .dpeople{margin-top:9px;color:var(--ink3);font-size:12px;}
 .dcard,.dsec{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;}
-.dchap{padding:22px 2px 11px;}
-.dchap h3{margin:0 0 4px;font-size:15px;color:var(--acc);}
-.dchap p{margin:0;color:var(--ink2);font-size:13px;line-height:1.7;}
-/* 장 제목은 대화 카드와 붙어 보여야 한 장면으로 읽힌다 */
-.dchapko{margin:16px 0 2px;padding:0 17px;font-size:13px;color:var(--acc);}
-.dkolist>.dchapko:first-child{margin-top:12px;}
+.dintro .dhint{margin-top:10px;color:var(--ink3);font-size:12px;}
+/* 장(#) 하나가 통째로 접히는 카드다. 한 장면을 열면 그 장면의 일본어·번역·단어장이
+   모두 그 안에 있어, 다른 장으로 눈이 흘러가지 않는다 */
+.dchapsec{margin-top:12px;background:var(--card);border:1px solid var(--line);
+  border-radius:14px;overflow:hidden;}
+.dchapsec>summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:10px;
+  padding:16px 17px;font-size:15px;font-weight:650;color:var(--ink);}
+.dchapsec>summary::-webkit-details-marker{display:none;}
+.dchapsec>summary::after{content:"⌄";margin-left:auto;color:var(--ink2);font-size:20px;line-height:19px;}
+.dchapsec[open]>summary::after{transform:rotate(180deg);}
+.dchapsec[open]>summary{border-bottom:1px solid var(--line);}
+.dno{font-family:var(--sr);font-weight:700;font-size:13px;color:var(--acc);}
+.dchaptitle{min-width:0;}
+.dchapcount{color:var(--ink3);font-size:11.5px;font-weight:400;white-space:nowrap;}
+.dchapbody{padding:2px 14px 16px;}
+.dchapbody .dscene{margin:12px 2px 0;color:var(--ink2);font-size:13px;line-height:1.7;}
+.dchapbody .dpeople{margin:7px 2px 12px;}
+/* 장 카드 안에서는 대화가 이미 카드 안이므로 테두리를 겹치지 않는다 */
+.dchapbody .dcard{border:0;border-radius:0;background:transparent;border-top:1px solid var(--line);}
+.dchapbody .dturn{padding-left:2px;padding-right:2px;}
+.dchapbody .dsec{background:var(--sub);}
+.dchapbody .dsec summary{padding:13px 15px;font-size:13.5px;}
 .dkolist{padding-bottom:6px;}
+.dkolist .dturn{padding-left:15px;padding-right:15px;}
+.dnotes .dgword:last-of-type{border-bottom:0;}
 .dturn{display:grid;grid-template-columns:30px minmax(0,1fr) 34px;gap:10px;align-items:start;
   padding:14px 15px;border-bottom:1px solid var(--line);}
 .dturn:last-child{border-bottom:0;}
@@ -783,7 +801,7 @@ body.notts .dspk{display:none;}
     <button class="btn" id="bUpd">최신으로 받기</button>
   </div>
   <p style="margin:9px 0 0;font-size:11.5px;color:var(--ink3);text-align:center">
-    지금 판 <span id="ver">2026-09-29 13:57</span></p>
+    지금 판 <span id="ver">2026-09-29 15:15</span></p>
 
   <h3 style="margin-top:26px">초기화</h3>
   <p>진도·북마크·퀴즈 기록을 모두 지웁니다. 되돌릴 수 없습니다.</p>
@@ -8749,194 +8767,216 @@ SENT[31] = {
 </script>
 <script>
 /* ---- dialogues.js ---- */
-/* 번호 있는 문장과 별도로 두는 대화 복습. 단계·문장 번호는 건드리지 않는다.
+/* 번호 없는 대화 복습. 단계·문장 번호는 건드리지 않는다.
    한 장면만으로는 다섯 단계에서 배운 말을 다 담을 수 없어 chapters 로 나눈다.
-   각 장(#)은 같은 하루의 이어지는 장면이고, 앞 장의 인물과 말이 뒤 장에 다시 나온다. */
+   각 장(#)은 같은 하루의 이어지는 장면이고, 앞 장의 인물과 말이 뒤 장에 다시 나온다.
+   일본어·번역·단어장·문화 메모를 모두 장 안에 둔다. 화면에서 장 하나가 통째로 접히므로
+   읽는 사람이 한 장면씩 끊어 읽고 그 자리에서 뜻을 확인할 수 있다.
+   expressions 와 culture 는 없는 장이 있다. 화면은 있는 것만 낸다. */
 window.DIALOGUES={
   R1:{
-    title:'숙소에 도착한 첫날',
-    scene:'예약한 숙소에 도착한 여행자 김민수 씨의 하루입니다. 체크인부터 방 안내, 친구와의 통화, 동네 산책, 내일 계획까지 다섯 장면이 이어집니다.',
-    speakers:{A:'여행자 김민수',B:'숙소 직원',C:'친구 다나카',D:'동네 사람'},
+    title:"숙소에 도착한 첫날",
+    scene:"예약한 숙소에 도착한 여행자 김민수 씨의 하루입니다. 체크인부터 방 안내, 친구와의 통화, 동네 산책, 내일 계획까지 다섯 장면이 이어집니다.",
+    speakers:{A:"여행자 김민수",B:"숙소 직원",C:"친구 다나카",D:"동네 사람"},
     chapters:[
       {
-        title:'프런트에서 체크인',
-        scene:'숙소 프런트. 예약을 확인하고 방 열쇠를 받습니다.',
-        cast:['A','B'],
+        title:"프런트에서 체크인",
+        scene:"숙소 프런트. 예약을 확인하고 방 열쇠를 받습니다.",
+        cast:["A","B"],
         turns:[
-          {who:'A',jp:'すみません。{予約|よやく}があります。',ko:'실례합니다. 예약이 있습니다.'},
-          {who:'B',jp:'はい。お{名前|なまえ}は{何|なん}ですか。',ko:'네. 성함은 무엇입니까?'},
-          {who:'A',jp:'キムです。{私|わたし}はキムミンスです。',ko:'김입니다. 저는 김민수입니다.'},
-          {who:'B',jp:'キムさんですね。パスポートはありますか。',ko:'김 씨시군요. 여권은 있으십니까?'},
-          {who:'A',jp:'はい、これです。{私|わたし}は{韓国人|かんこくじん}です。',ko:'네, 이것입니다. 저는 한국인입니다.'},
-          {who:'B',jp:'ありがとうございます。{観光|かんこう}ですか。',ko:'감사합니다. 관광이십니까?'},
-          {who:'A',jp:'はい、{観光|かんこう}です。{友達|ともだち}も{日本|にほん}にいます。',ko:'네, 관광입니다. 친구도 일본에 있습니다.'},
-          {who:'B',jp:'そうですか。これはお{部屋|へや}の{鍵|かぎ}です。',ko:'그렇습니까. 이것은 방 열쇠입니다.'},
-          {who:'A',jp:'ありがとうございます。{部屋|へや}はどこですか。',ko:'감사합니다. 방은 어디입니까?'},
-          {who:'B',jp:'お{部屋|へや}はあちらです。どうぞ、こちらです。',ko:'방은 저쪽입니다. 이쪽으로 오세요.'}
+          {who:"A",jp:"すみません。{予約|よやく}があります。",ko:"실례합니다. 예약이 있습니다."},
+          {who:"B",jp:"はい。お{名前|なまえ}は{何|なん}ですか。",ko:"네. 성함은 무엇입니까?"},
+          {who:"A",jp:"キムです。{私|わたし}はキムミンスです。",ko:"김입니다. 저는 김민수입니다."},
+          {who:"B",jp:"キムさんですね。パスポートはありますか。",ko:"김 씨시군요. 여권은 있으십니까?"},
+          {who:"A",jp:"はい、これです。{私|わたし}は{韓国人|かんこくじん}です。",ko:"네, 이것입니다. 저는 한국인입니다."},
+          {who:"B",jp:"ありがとうございます。{観光|かんこう}ですか。",ko:"감사합니다. 관광이십니까?"},
+          {who:"A",jp:"はい、{観光|かんこう}です。{友達|ともだち}も{日本|にほん}にいます。",ko:"네, 관광입니다. 친구도 일본에 있습니다."},
+          {who:"B",jp:"そうですか。これはお{部屋|へや}の{鍵|かぎ}です。",ko:"그렇습니까. 이것은 방 열쇠입니다."},
+          {who:"A",jp:"ありがとうございます。{部屋|へや}はどこですか。",ko:"감사합니다. 방은 어디입니까?"},
+          {who:"B",jp:"お{部屋|へや}はあちらです。どうぞ、こちらです。",ko:"방은 저쪽입니다. 이쪽으로 오세요."}
+        ],
+        glossary:[
+          {key:"sumimasen",meaning:"실례합니다, 저기요",note:"사람을 부르거나 말을 시작할 때 쓴다. 사과할 때와 가벼운 감사에도 쓰인다."},
+          {key:"yoyaku",meaning:"예약",note:"「予約があります」는 예약이 있다고 알리는 말이다. 프런트에서 가장 먼저 쓴다."},
+          {key:"onamae",meaning:"성함",note:"상대의 이름을 물을 때 「お」를 붙여 「お名前は何ですか」라고 한다. 자기 이름을 말할 때는 「名前」이다."},
+          {key:"pasupooto",meaning:"여권",note:"체크인과 입국심사에서 「パスポートはありますか」라고 묻는다."},
+          {key:"kankou",meaning:"관광",note:"방문 목적은 한 단어로 답해도 된다. 「観光です」면 충분하다."},
+          {key:"kagi",meaning:"열쇠",note:"「部屋の鍵」는 방 열쇠. 「の」로 무엇의 열쇠인지 밝힌다."},
+          {key:"heya",meaning:"방",note:"「この部屋」는 이 방, 「部屋に」는 방에. 직원은 손님의 방을 「お部屋」라고 부른다."},
+          {key:"arimasu",meaning:"있습니다",note:"화장실·예약·지도처럼 사물이나 사실의 존재에는 「あります」. 없으면 「ありません」."},
+          {key:"imasu",meaning:"있습니다 (사람·동물)",note:"친구·아이·개처럼 사람과 동물에는 「います」를 쓴다. 「友達も日本にいます」."},
+          {key:"tomodachi",meaning:"친구",note:"「友達も一緒です」. 사람이므로 존재는 「います」로 말한다."},
+          {key:"kochira",meaning:"이쪽, 이것 (공손)",note:"「こちら」는 이쪽. 물건을 건네며 「こちらです」라고도 한다."},
+          {key:"achira",meaning:"저쪽",note:"사람이나 장소를 가리켜 안내할 때 쓴다. 「あちらです」."},
+          {key:"arigatou",meaning:"감사합니다",note:"대화 어디에서나 쓴다. 답으로는 「いいえ」라고 가볍게 받는다."}
+        ],
+        expressions:[
+          {jp:"ですね",ko:"~네요, ~시군요",note:"상대의 말을 확인하거나 감상을 부드럽게 덧붙인다. 「キムさんですね」, 「きれいな部屋ですね」."}
+        ],
+        culture:[
+          {title:"말을 걸 때",text:"직원이나 지나가는 사람에게 질문을 시작할 때 「すみません」이라고 부르면 된다. 이 말은 상황에 따라 사과나 가벼운 감사에도 쓰인다.",source:"일본정부관광국(JNTO)",url:"https://www.japan.travel/en/guide/japanese-manners-dos-and-donts/"}
         ]
       },
       {
-        title:'방을 안내받다',
-        scene:'직원과 함께 방에 들어가 방 안을 살펴봅니다.',
-        cast:['A','B'],
+        title:"방을 안내받다",
+        scene:"직원과 함께 방에 들어가 방 안을 살펴봅니다.",
+        cast:["A","B"],
         turns:[
-          {who:'B',jp:'こちらのお{部屋|へや}です。どうぞ。',ko:'이 방입니다. 들어오세요.'},
-          {who:'A',jp:'きれいな{部屋|へや}ですね。とても{広|ひろ}いです。',ko:'깨끗한 방이네요. 아주 넓습니다.'},
-          {who:'B',jp:'ありがとうございます。{新|あたら}しい{部屋|へや}です。',ko:'감사합니다. 새로 만든 방입니다.'},
-          {who:'A',jp:'この{部屋|へや}は{静|しず}かですか。',ko:'이 방은 조용합니까?'},
-          {who:'B',jp:'はい、とても{静|しず}かです。あちらに{公園|こうえん}があります。',ko:'네, 아주 조용합니다. 저쪽에 공원이 있습니다.'},
-          {who:'A',jp:'{部屋|へや}にトイレはありますか。',ko:'방에 화장실은 있습니까?'},
-          {who:'B',jp:'はい、あります。あちらです。',ko:'네, 있습니다. 저쪽입니다.'},
-          {who:'A',jp:'エアコンもありますか。',ko:'에어컨도 있습니까?'},
-          {who:'B',jp:'はい、エアコンもあります。ベッドも{大|おお}きいです。',ko:'네, 에어컨도 있습니다. 침대도 큽니다.'},
-          {who:'A',jp:'{机|つくえ}はありますか。',ko:'책상은 있습니까?'},
-          {who:'B',jp:'はい、あそこにあります。{窓|まど}も{大|おお}きいです。',ko:'네, 저기에 있습니다. 창문도 큽니다.'},
-          {who:'A',jp:'とてもいい{部屋|へや}です。ありがとうございます。',ko:'아주 좋은 방입니다. 감사합니다.'},
-          {who:'B',jp:'いいえ。ゆっくりどうぞ。{失礼|しつれい}します。',ko:'아닙니다. 편히 쉬세요. 그럼 물러가겠습니다.'}
+          {who:"B",jp:"こちらのお{部屋|へや}です。どうぞ。",ko:"이 방입니다. 들어오세요."},
+          {who:"A",jp:"きれいな{部屋|へや}ですね。とても{広|ひろ}いです。",ko:"깨끗한 방이네요. 아주 넓습니다."},
+          {who:"B",jp:"ありがとうございます。{新|あたら}しい{部屋|へや}です。",ko:"감사합니다. 새로 만든 방입니다."},
+          {who:"A",jp:"この{部屋|へや}は{静|しず}かですか。",ko:"이 방은 조용합니까?"},
+          {who:"B",jp:"はい、とても{静|しず}かです。あちらに{公園|こうえん}があります。",ko:"네, 아주 조용합니다. 저쪽에 공원이 있습니다."},
+          {who:"A",jp:"{部屋|へや}にトイレはありますか。",ko:"방에 화장실은 있습니까?"},
+          {who:"B",jp:"はい、あります。あちらです。",ko:"네, 있습니다. 저쪽입니다."},
+          {who:"A",jp:"エアコンもありますか。",ko:"에어컨도 있습니까?"},
+          {who:"B",jp:"はい、エアコンもあります。ベッドも{大|おお}きいです。",ko:"네, 에어컨도 있습니다. 침대도 큽니다."},
+          {who:"A",jp:"{机|つくえ}はありますか。",ko:"책상은 있습니까?"},
+          {who:"B",jp:"はい、あそこにあります。{窓|まど}も{大|おお}きいです。",ko:"네, 저기에 있습니다. 창문도 큽니다."},
+          {who:"A",jp:"とてもいい{部屋|へや}です。ありがとうございます。",ko:"아주 좋은 방입니다. 감사합니다."},
+          {who:"B",jp:"いいえ。ゆっくりどうぞ。{失礼|しつれい}します。",ko:"아닙니다. 편히 쉬세요. 그럼 물러가겠습니다."}
+        ],
+        glossary:[
+          {key:"hiroi",meaning:"넓다",note:"い형용사. 반대말은 「狭い」. 명사를 꾸밀 때는 그대로 「広い部屋」."},
+          {key:"shizuka",meaning:"조용하다",note:"な형용사. 「静かです」, 명사 앞에서는 「静かな部屋」처럼 「な」를 붙인다."},
+          {key:"atarashii",meaning:"새롭다",note:"반대말은 「古い」. 건물이나 물건의 상태를 말할 때 자주 쓴다."},
+          {key:"kouen",meaning:"공원",note:"「あちらに公園があります」. 있는 곳에는 「に」, 있는 대상에는 「が」."},
+          {key:"toire",meaning:"화장실",note:"일상적인 말이다. 안내판에는 「お手洗い」라는 표기도 자주 보인다."},
+          {key:"eakon",meaning:"에어컨",note:"방 설비를 물을 때 「エアコンもありますか」처럼 「も」로 하나씩 덧붙인다."},
+          {key:"beddo",meaning:"침대",note:"「ベッドも大きいです」처럼 형용사와 묶어 방을 설명한다."},
+          {key:"tsukue",meaning:"책상",note:"「机はありますか」. 있는 곳을 답할 때는 「あそこにあります」."},
+          {key:"mado",meaning:"창문",note:"「窓も大きいです」. 방의 밝기를 말할 때 먼저 나오는 말이다."},
+          {key:"shitsurei",meaning:"실례하겠습니다",note:"방에 들어갈 때, 먼저 자리를 뜰 때, 전화를 끊을 때 모두 쓴다."}
+        ],
+        expressions:[
+          {jp:"ゆっくりどうぞ",ko:"편히 쉬세요",note:"직원이 손님을 방에 남기고 나갈 때 쓴다. 「ゆっくり」는 천천히·여유롭게라는 뜻이다."}
+        ],
+        culture:[
+          {title:"화장실 표기",text:"일본어 안내판에는 「お手洗い」나 「化粧室」라고 적힌 곳도 있다. 대화에서는 「トイレ」라고 물어도 된다.",source:"국제교류기금 『이로도리』",url:"https://www.irodori.jpf.go.jp/assets/data/starter/pdf/X_L15.pdf"}
         ]
       },
       {
-        title:'친구와 통화',
-        scene:'방에서 일본에 사는 친구 다나카 씨에게 전화를 겁니다.',
-        cast:['A','C'],
+        title:"친구와 통화",
+        scene:"방에서 일본에 사는 친구 다나카 씨에게 전화를 겁니다.",
+        cast:["A","C"],
         turns:[
-          {who:'A',jp:'もしもし、{田中|たなか}さんですか。',ko:'여보세요, 다나카 씨입니까?'},
-          {who:'C',jp:'あ、キムさん、こんにちは。{今|いま}、どこですか。',ko:'아, 김 씨, 안녕하세요. 지금 어디입니까?'},
-          {who:'A',jp:'{今|いま}、ホテルです。',ko:'지금 호텔입니다.'},
-          {who:'C',jp:'ホテルはどうですか。',ko:'호텔은 어떻습니까?'},
-          {who:'A',jp:'とてもきれいです。{部屋|へや}も{広|ひろ}いです。',ko:'아주 깨끗합니다. 방도 넓습니다.'},
-          {who:'C',jp:'よかったですね。ホテルはどこですか。',ko:'잘됐네요. 호텔은 어디입니까?'},
-          {who:'A',jp:'{駅|えき}の{右|みぎ}です。{大|おお}きい{建物|たてもの}です。',ko:'역 오른쪽입니다. 큰 건물입니다.'},
-          {who:'C',jp:'ああ、あの{新|あたら}しいホテルですね。{有名|ゆうめい}なホテルです。',ko:'아, 그 새 호텔이군요. 유명한 호텔입니다.'},
-          {who:'A',jp:'そうですか。{田中|たなか}さんは{今|いま}、{会社|かいしゃ}ですか。',ko:'그렇습니까. 다나카 씨는 지금 회사입니까?'},
-          {who:'C',jp:'いいえ、{今日|きょう}は{休|やす}みです。{明日|あした}も{休|やす}みです。',ko:'아니요, 오늘은 쉬는 날입니다. 내일도 쉽니다.'},
-          {who:'A',jp:'{明日|あした}、{時間|じかん}がありますか。',ko:'내일 시간이 있습니까?'},
-          {who:'C',jp:'はい、{明日|あした}は{暇|ひま}です。',ko:'네, 내일은 한가합니다.'},
-          {who:'A',jp:'じゃあ、{明日|あした}は{一緒|いっしょ}に{観光|かんこう}ですね。',ko:'그럼 내일은 함께 관광이네요.'},
-          {who:'C',jp:'はい。{浅草|あさくさ}はどうですか。とても{有名|ゆうめい}な{町|まち}です。',ko:'네. 아사쿠사는 어떻습니까? 아주 유명한 동네입니다.'},
-          {who:'A',jp:'いいですね。おいしい{食|た}べ{物|もの}もありますか。',ko:'좋네요. 맛있는 음식도 있습니까?'},
-          {who:'C',jp:'はい、たくさんあります。{楽|たの}しみですね。',ko:'네, 많이 있습니다. 기대되네요.'},
-          {who:'A',jp:'はい。じゃあ、また{明日|あした}。',ko:'네. 그럼 또 내일 봐요.'},
-          {who:'C',jp:'また{明日|あした}。',ko:'또 내일 봐요.'}
+          {who:"A",jp:"もしもし、{田中|たなか}さんですか。",ko:"여보세요, 다나카 씨입니까?"},
+          {who:"C",jp:"あ、キムさん、こんにちは。{今|いま}、どこですか。",ko:"아, 김 씨, 안녕하세요. 지금 어디입니까?"},
+          {who:"A",jp:"{今|いま}、ホテルです。",ko:"지금 호텔입니다."},
+          {who:"C",jp:"ホテルはどうですか。",ko:"호텔은 어떻습니까?"},
+          {who:"A",jp:"とてもきれいです。{部屋|へや}も{広|ひろ}いです。",ko:"아주 깨끗합니다. 방도 넓습니다."},
+          {who:"C",jp:"よかったですね。ホテルはどこですか。",ko:"잘됐네요. 호텔은 어디입니까?"},
+          {who:"A",jp:"{駅|えき}の{右|みぎ}です。{大|おお}きい{建物|たてもの}です。",ko:"역 오른쪽입니다. 큰 건물입니다."},
+          {who:"C",jp:"ああ、あの{新|あたら}しいホテルですね。{有名|ゆうめい}なホテルです。",ko:"아, 그 새 호텔이군요. 유명한 호텔입니다."},
+          {who:"A",jp:"そうですか。{田中|たなか}さんは{今|いま}、{会社|かいしゃ}ですか。",ko:"그렇습니까. 다나카 씨는 지금 회사입니까?"},
+          {who:"C",jp:"いいえ、{今日|きょう}は{休|やす}みです。{明日|あした}も{休|やす}みです。",ko:"아니요, 오늘은 쉬는 날입니다. 내일도 쉽니다."},
+          {who:"A",jp:"{明日|あした}、{時間|じかん}がありますか。",ko:"내일 시간이 있습니까?"},
+          {who:"C",jp:"はい、{明日|あした}は{暇|ひま}です。",ko:"네, 내일은 한가합니다."},
+          {who:"A",jp:"じゃあ、{明日|あした}は{一緒|いっしょ}に{観光|かんこう}ですね。",ko:"그럼 내일은 함께 관광이네요."},
+          {who:"C",jp:"はい。{浅草|あさくさ}はどうですか。とても{有名|ゆうめい}な{町|まち}です。",ko:"네. 아사쿠사는 어떻습니까? 아주 유명한 동네입니다."},
+          {who:"A",jp:"いいですね。おいしい{食|た}べ{物|もの}もありますか。",ko:"좋네요. 맛있는 음식도 있습니까?"},
+          {who:"C",jp:"はい、たくさんあります。{楽|たの}しみですね。",ko:"네, 많이 있습니다. 기대되네요."},
+          {who:"A",jp:"はい。じゃあ、また{明日|あした}。",ko:"네. 그럼 또 내일 봐요."},
+          {who:"C",jp:"また{明日|あした}。",ko:"또 내일 봐요."}
+        ],
+        glossary:[
+          {key:"eki",meaning:"역",note:"「駅の右」처럼 「の + 위치말」로 기준을 잡아 설명한다."},
+          {key:"migi",meaning:"오른쪽",note:"「銀行はコンビニの右です」. 「~の右」로 무엇의 오른쪽인지 밝힌다."},
+          {key:"tatemono",meaning:"건물",note:"「大きい建物」, 「あの建物の左」. 길을 묻고 답할 때 기준이 된다."},
+          {key:"yuumei",meaning:"유명하다",note:"な형용사. 「有名なホテル」, 「有名な町」."},
+          {key:"kaisha",meaning:"회사",note:"「今、会社ですか」처럼 있는 곳을 명사문으로 물을 수 있다."},
+          {key:"yasumi",meaning:"쉬는 날, 휴무",note:"가게의 휴무와 사람의 휴일에 모두 쓴다. 「今日は休みです」."},
+          {key:"jikan",meaning:"시간",note:"「時間がありますか」는 약속을 잡을 때 쓴다. 없으면 「時間がありません」."},
+          {key:"hima",meaning:"한가하다",note:"な형용사. 반대말은 「忙しい」. 「明日は暇です」."},
+          {key:"machi",meaning:"동네, 마을",note:"「静かな町」, 「有名な町」. な형용사가 꾸미는 자리를 확인할 수 있다."},
+          {key:"tabemono",meaning:"음식",note:"「おいしい食べ物」. 형용사가 명사를 꾸미는 기본 꼴이다."},
+          {key:"takusan",meaning:"많이",note:"「たくさんあります」, 「たくさんいます」. 「少し」와 짝으로 외운다."},
+          {key:"jaa",meaning:"그럼",note:"이야기를 마무리하거나 화제를 옮길 때 쓴다. 정중한 자리에서는 「では」."}
+        ],
+        expressions:[
+          {jp:"もしもし",ko:"여보세요",note:"전화를 걸거나 받을 때 첫마디다. 전화 말고는 쓰지 않는다."},
+          {jp:"{一緒|いっしょ}に",ko:"함께",note:"「明日は一緒に観光ですね」처럼 같이 하는 일을 말한다. 계산할 때는 「一緒で」."},
+          {jp:"{楽|たの}しみです",ko:"기대됩니다",note:"앞일을 기다리는 마음을 한마디로 전한다. 「楽しい」와 형태가 비슷하지만 뜻이 다르다."}
+        ],
+        culture:[
+          {title:"전화는 자리를 옮겨서",text:"전철과 버스 안에서는 목소리 크기와 상관없이 통화를 삼가는 것이 일반적이다. 대화도 작은 목소리로 한다. 친구에게 전화를 걸 때는 숙소 방처럼 조용한 자리가 좋다.",source:"일본정부관광국(JNTO)",url:"https://www.japan.travel/en/guide/japanese-manners-dos-and-donts/"}
         ]
       },
       {
-        title:'숙소 주변을 둘러보다',
-        scene:'숙소를 나와 동네를 걷다가 마주친 사람에게 길을 묻습니다.',
-        cast:['A','D'],
+        title:"숙소 주변을 둘러보다",
+        scene:"숙소를 나와 동네를 걷다가 마주친 사람에게 길을 묻습니다.",
+        cast:["A","D"],
         turns:[
-          {who:'A',jp:'すみません。コンビニはどこですか。',ko:'실례합니다. 편의점은 어디입니까?'},
-          {who:'D',jp:'コンビニはあちらです。あの{建物|たてもの}の{左|ひだり}にあります。',ko:'편의점은 저쪽입니다. 저 건물 왼쪽에 있습니다.'},
-          {who:'A',jp:'ありがとうございます。{銀行|ぎんこう}もありますか。',ko:'감사합니다. 은행도 있습니까?'},
-          {who:'D',jp:'はい。{銀行|ぎんこう}はコンビニの{右|みぎ}です。',ko:'네. 은행은 편의점 오른쪽입니다.'},
-          {who:'A',jp:'{郵便局|ゆうびんきょく}もこちらですか。',ko:'우체국도 이쪽입니까?'},
-          {who:'D',jp:'いいえ、{郵便局|ゆうびんきょく}はあちらです。{交番|こうばん}の{左|ひだり}です。',ko:'아니요, 우체국은 저쪽입니다. 파출소 왼쪽입니다.'},
-          {who:'A',jp:'{分|わ}かりました。ここはきれいな{町|まち}ですね。',ko:'알겠습니다. 여기는 깨끗한 동네네요.'},
-          {who:'D',jp:'はい、{静|しず}かな{町|まち}です。あちらに{公園|こうえん}があります。',ko:'네, 조용한 동네입니다. 저쪽에 공원이 있습니다.'},
-          {who:'A',jp:'あの{公園|こうえん}ですね。{子供|こども}がたくさんいます。',ko:'저 공원이군요. 아이들이 많이 있습니다.'},
-          {who:'D',jp:'はい。あの{犬|いぬ}は{私|わたし}の{犬|いぬ}です。',ko:'네. 저 개는 제 개입니다.'},
-          {who:'A',jp:'そうですか。かわいいですね。',ko:'그렇습니까. 귀엽네요.'},
-          {who:'D',jp:'ありがとうございます。じゃあ、{失礼|しつれい}します。',ko:'감사합니다. 그럼 이만 가겠습니다.'},
-          {who:'A',jp:'ありがとうございます。{失礼|しつれい}します。',ko:'감사합니다. 안녕히 가세요.'}
+          {who:"A",jp:"すみません。コンビニはどこですか。",ko:"실례합니다. 편의점은 어디입니까?"},
+          {who:"D",jp:"コンビニはあちらです。あの{建物|たてもの}の{左|ひだり}にあります。",ko:"편의점은 저쪽입니다. 저 건물 왼쪽에 있습니다."},
+          {who:"A",jp:"ありがとうございます。{銀行|ぎんこう}もありますか。",ko:"감사합니다. 은행도 있습니까?"},
+          {who:"D",jp:"はい。{銀行|ぎんこう}はコンビニの{右|みぎ}です。",ko:"네. 은행은 편의점 오른쪽입니다."},
+          {who:"A",jp:"{郵便局|ゆうびんきょく}もこちらですか。",ko:"우체국도 이쪽입니까?"},
+          {who:"D",jp:"いいえ、{郵便局|ゆうびんきょく}はあちらです。{交番|こうばん}の{左|ひだり}です。",ko:"아니요, 우체국은 저쪽입니다. 파출소 왼쪽입니다."},
+          {who:"A",jp:"{分|わ}かりました。ここはきれいな{町|まち}ですね。",ko:"알겠습니다. 여기는 깨끗한 동네네요."},
+          {who:"D",jp:"はい、{静|しず}かな{町|まち}です。あちらに{公園|こうえん}があります。",ko:"네, 조용한 동네입니다. 저쪽에 공원이 있습니다."},
+          {who:"A",jp:"あの{公園|こうえん}ですね。{子供|こども}がたくさんいます。",ko:"저 공원이군요. 아이들이 많이 있습니다."},
+          {who:"D",jp:"はい。あの{犬|いぬ}は{私|わたし}の{犬|いぬ}です。",ko:"네. 저 개는 제 개입니다."},
+          {who:"A",jp:"そうですか。かわいいですね。",ko:"그렇습니까. 귀엽네요."},
+          {who:"D",jp:"ありがとうございます。じゃあ、{失礼|しつれい}します。",ko:"감사합니다. 그럼 이만 가겠습니다."},
+          {who:"A",jp:"ありがとうございます。{失礼|しつれい}します。",ko:"감사합니다. 안녕히 가세요."}
+        ],
+        glossary:[
+          {key:"konbini",meaning:"편의점",note:"여행 중 가장 자주 찾는 곳이다. 위치를 묻는 연습에 좋다."},
+          {key:"ginkou",meaning:"은행",note:"환전할 곳을 찾을 때 쓴다."},
+          {key:"yuubinkyoku",meaning:"우체국",note:"엽서를 보낼 때 찾는다. 「郵便局はあちらです」."},
+          {key:"kouban",meaning:"파출소",note:"길을 잃거나 물건을 잃었을 때 찾는 곳이다. 동네 어디에나 있어 위치의 기준이 된다."},
+          {key:"hidari",meaning:"왼쪽",note:"「交番の左です」. 「右」와 짝으로 외운다."},
+          {key:"kodomo",meaning:"아이",note:"사람이므로 「子供がたくさんいます」처럼 「います」를 쓴다."},
+          {key:"inu",meaning:"개",note:"동물도 「います」. 「あの犬は私の犬です」."}
+        ],
+        expressions:[
+          {jp:"{分|わ}かりました",ko:"알겠습니다",note:"설명을 들은 뒤 이해했다고 답하는 말이다. 동사의 과거형은 9단계 뒤에 배운다."},
+          {jp:"かわいいですね",ko:"귀엽네요",note:"아이·동물·물건에 두루 쓴다. い형용사이므로 부정은 「かわいくないです」."}
         ]
       },
       {
-        title:'내일 계획을 세우다',
-        scene:'숙소로 돌아와 프런트에서 지도를 받고 내일 갈 곳을 확인합니다.',
-        cast:['A','B'],
+        title:"내일 계획을 세우다",
+        scene:"숙소로 돌아와 프런트에서 지도를 받고 내일 갈 곳을 확인합니다.",
+        cast:["A","B"],
         turns:[
-          {who:'A',jp:'すみません。{町|まち}の{地図|ちず}はありますか。',ko:'실례합니다. 동네 지도는 있습니까?'},
-          {who:'B',jp:'はい、あります。こちらです。',ko:'네, 있습니다. 이것입니다.'},
-          {who:'A',jp:'ありがとうございます。あの、{浅草|あさくさ}はどこですか。',ko:'감사합니다. 저, 아사쿠사는 어디입니까?'},
-          {who:'B',jp:'{浅草|あさくさ}はこちらです。{地下鉄|ちかてつ}がとても{便利|べんり}です。',ko:'아사쿠사는 이쪽입니다. 지하철이 아주 편리합니다.'},
-          {who:'A',jp:'{地下鉄|ちかてつ}の{入口|いりぐち}はどちらですか。',ko:'지하철 입구는 어느 쪽입니까?'},
-          {who:'B',jp:'あちらの{駅|えき}です。{入口|いりぐち}は{右|みぎ}にあります。',ko:'저쪽 역입니다. 입구는 오른쪽에 있습니다.'},
-          {who:'A',jp:'{切符|きっぷ}は{高|たか}いですか。',ko:'표는 비쌉니까?'},
-          {who:'B',jp:'いいえ、{高|たか}くないです。とても{安|やす}いです。',ko:'아니요, 비싸지 않습니다. 아주 쌉니다.'},
-          {who:'A',jp:'{明日|あした}の{天気|てんき}はどうですか。',ko:'내일 날씨는 어떻습니까?'},
-          {who:'B',jp:'{明日|あした}はいい{天気|てんき}です。{暑|あつ}くないです。',ko:'내일은 좋은 날씨입니다. 덥지 않습니다.'},
-          {who:'A',jp:'よかったです。{明日|あした}は{友達|ともだち}も{一緒|いっしょ}です。',ko:'잘됐습니다. 내일은 친구도 함께입니다.'},
-          {who:'B',jp:'{楽|たの}しい{旅行|りょこう}ですね。',ko:'즐거운 여행이네요.'},
-          {who:'A',jp:'はい。あの、{朝|あさ}ごはんはどこですか。',ko:'네. 저, 아침 식사는 어디입니까?'},
-          {who:'B',jp:'{朝|あさ}ごはんはこちらのレストランです。あちらの{入口|いりぐち}です。',ko:'아침 식사는 이쪽 레스토랑입니다. 저쪽 입구입니다.'},
-          {who:'A',jp:'{分|わ}かりました。ありがとうございます。',ko:'알겠습니다. 감사합니다.'},
-          {who:'B',jp:'いいえ。おやすみなさい。',ko:'아닙니다. 안녕히 주무세요.'},
-          {who:'A',jp:'おやすみなさい。',ko:'안녕히 계세요.'}
+          {who:"A",jp:"すみません。{町|まち}の{地図|ちず}はありますか。",ko:"실례합니다. 동네 지도는 있습니까?"},
+          {who:"B",jp:"はい、あります。こちらです。",ko:"네, 있습니다. 이것입니다."},
+          {who:"A",jp:"ありがとうございます。あの、{浅草|あさくさ}はどこですか。",ko:"감사합니다. 저, 아사쿠사는 어디입니까?"},
+          {who:"B",jp:"{浅草|あさくさ}はこちらです。{地下鉄|ちかてつ}がとても{便利|べんり}です。",ko:"아사쿠사는 이쪽입니다. 지하철이 아주 편리합니다."},
+          {who:"A",jp:"{地下鉄|ちかてつ}の{入口|いりぐち}はどちらですか。",ko:"지하철 입구는 어느 쪽입니까?"},
+          {who:"B",jp:"あちらの{駅|えき}です。{入口|いりぐち}は{右|みぎ}にあります。",ko:"저쪽 역입니다. 입구는 오른쪽에 있습니다."},
+          {who:"A",jp:"{切符|きっぷ}は{高|たか}いですか。",ko:"표는 비쌉니까?"},
+          {who:"B",jp:"いいえ、{高|たか}くないです。とても{安|やす}いです。",ko:"아니요, 비싸지 않습니다. 아주 쌉니다."},
+          {who:"A",jp:"{明日|あした}の{天気|てんき}はどうですか。",ko:"내일 날씨는 어떻습니까?"},
+          {who:"B",jp:"{明日|あした}はいい{天気|てんき}です。{暑|あつ}くないです。",ko:"내일은 좋은 날씨입니다. 덥지 않습니다."},
+          {who:"A",jp:"よかったです。{明日|あした}は{友達|ともだち}も{一緒|いっしょ}です。",ko:"잘됐습니다. 내일은 친구도 함께입니다."},
+          {who:"B",jp:"{楽|たの}しい{旅行|りょこう}ですね。",ko:"즐거운 여행이네요."},
+          {who:"A",jp:"はい。あの、{朝|あさ}ごはんはどこですか。",ko:"네. 저, 아침 식사는 어디입니까?"},
+          {who:"B",jp:"{朝|あさ}ごはんはこちらのレストランです。あちらの{入口|いりぐち}です。",ko:"아침 식사는 이쪽 레스토랑입니다. 저쪽 입구입니다."},
+          {who:"A",jp:"{分|わ}かりました。ありがとうございます。",ko:"알겠습니다. 감사합니다."},
+          {who:"B",jp:"いいえ。おやすみなさい。",ko:"아닙니다. 안녕히 주무세요."},
+          {who:"A",jp:"おやすみなさい。",ko:"안녕히 계세요."}
+        ],
+        glossary:[
+          {key:"chizu",meaning:"지도",note:"「町の地図はありますか」는 숙소에서 그대로 쓸 수 있다."},
+          {key:"chikatetsu",meaning:"지하철",note:"「地下鉄がとても便利です」. 교통편을 추천받을 때 나온다."},
+          {key:"iriguchi",meaning:"입구",note:"반대말은 「出口」. 「入口は右にあります」."},
+          {key:"dochira",meaning:"어느 쪽",note:"「どこ」보다 공손하다. 「入口はどちらですか」."},
+          {key:"kippu",meaning:"표",note:"「切符は高いですか」처럼 값을 형용사로 물을 수 있다. 숫자를 몰라도 된다."},
+          {key:"takai",meaning:"비싸다, 높다",note:"부정은 「高くないです」. 값과 높이에 모두 쓴다."},
+          {key:"yasui",meaning:"싸다",note:"「とても安いです」. 「高い」의 반대말이다."},
+          {key:"tenki",meaning:"날씨",note:"「明日の天気はどうですか」로 묻고, 「いい天気です」로 답한다."},
+          {key:"atsui",meaning:"덥다",note:"부정은 「暑くないです」. 반대말은 「寒い」."},
+          {key:"benri",meaning:"편리하다",note:"な형용사. 교통편을 말할 때 자주 쓴다."},
+          {key:"ryokou",meaning:"여행",note:"「楽しい旅行ですね」. 「長い旅行」, 「短い旅行」처럼 형용사로 꾸민다."},
+          {key:"tanoshii",meaning:"즐겁다",note:"い형용사. 「楽しい旅行」. 과거는 「楽しかったです」."}
+        ],
+        expressions:[
+          {jp:"{朝|あさ}ごはん",ko:"아침 식사",note:"「昼ごはん」, 「晩ごはん」도 같은 꼴이다. 숙소에서 자리를 물을 때 쓴다."},
+          {jp:"おやすみなさい",ko:"안녕히 주무세요",note:"밤에 헤어질 때 쓴다. 아침에는 「おはようございます」."}
         ]
       }
-    ],
-    glossary:[
-      {key:'sumimasen',meaning:'실례합니다, 저기요',note:'사람을 부르거나 말을 시작할 때 쓴다. 사과할 때와 가벼운 감사에도 쓰인다.'},
-      {key:'yoyaku',meaning:'예약',note:'「予約があります」는 예약이 있다고 알리는 말이다. 프런트에서 가장 먼저 쓴다.'},
-      {key:'onamae',meaning:'성함',note:'상대의 이름을 물을 때 「お」를 붙여 「お名前は何ですか」라고 한다. 자기 이름을 말할 때는 「名前」이다.'},
-      {key:'pasupooto',meaning:'여권',note:'체크인과 입국심사에서 「パスポートはありますか」라고 묻는다.'},
-      {key:'kankou',meaning:'관광',note:'방문 목적은 한 단어로 답해도 된다. 「観光です」면 충분하다.'},
-      {key:'kagi',meaning:'열쇠',note:'「部屋の鍵」는 방 열쇠. 「の」로 무엇의 열쇠인지 밝힌다.'},
-      {key:'heya',meaning:'방',note:'「この部屋」는 이 방, 「部屋に」는 방에. 직원은 손님의 방을 「お部屋」라고 부른다.'},
-      {key:'hiroi',meaning:'넓다',note:'い형용사. 반대말은 「狭い」. 명사를 꾸밀 때는 그대로 「広い部屋」.'},
-      {key:'shizuka',meaning:'조용하다',note:'な형용사. 「静かです」, 명사 앞에서는 「静かな部屋」처럼 「な」를 붙인다.'},
-      {key:'atarashii',meaning:'새롭다',note:'반대말은 「古い」. 건물이나 물건의 상태를 말할 때 자주 쓴다.'},
-      {key:'arimasu',meaning:'있습니다',note:'화장실·예약·지도처럼 사물이나 사실의 존재에는 「あります」. 없으면 「ありません」.'},
-      {key:'imasu',meaning:'있습니다 (사람·동물)',note:'친구·아이·개처럼 사람과 동물에는 「います」를 쓴다. 「友達も日本にいます」.'},
-      {key:'toire',meaning:'화장실',note:'일상적인 말이다. 안내판에는 「お手洗い」라는 표기도 자주 보인다.'},
-      {key:'eakon',meaning:'에어컨',note:'방 설비를 물을 때 「エアコンもありますか」처럼 「も」로 하나씩 덧붙인다.'},
-      {key:'beddo',meaning:'침대',note:'「ベッドも大きいです」처럼 형용사와 묶어 방을 설명한다.'},
-      {key:'tsukue',meaning:'책상',note:'「机はありますか」. 있는 곳을 답할 때는 「あそこにあります」.'},
-      {key:'mado',meaning:'창문',note:'「窓も大きいです」. 방의 밝기를 말할 때 먼저 나오는 말이다.'},
-      {key:'kochira',meaning:'이쪽, 이것 (공손)',note:'「こちら」는 이쪽. 물건을 건네며 「こちらです」라고도 한다.'},
-      {key:'achira',meaning:'저쪽',note:'사람이나 장소를 가리켜 안내할 때 쓴다. 「あちらです」.'},
-      {key:'dochira',meaning:'어느 쪽',note:'「どこ」보다 공손하다. 「入口はどちらですか」.'},
-      {key:'eki',meaning:'역',note:'「駅の右」처럼 「の + 위치말」로 기준을 잡아 설명한다.'},
-      {key:'tatemono',meaning:'건물',note:'「大きい建物」, 「あの建物の左」. 길을 묻고 답할 때 기준이 된다.'},
-      {key:'migi',meaning:'오른쪽',note:'「銀行はコンビニの右です」. 「~の右」로 무엇의 오른쪽인지 밝힌다.'},
-      {key:'hidari',meaning:'왼쪽',note:'「交番の左です」. 「右」와 짝으로 외운다.'},
-      {key:'konbini',meaning:'편의점',note:'여행 중 가장 자주 찾는 곳이다. 위치를 묻는 연습에 좋다.'},
-      {key:'ginkou',meaning:'은행',note:'환전할 곳을 찾을 때 쓴다.'},
-      {key:'yuubinkyoku',meaning:'우체국',note:'엽서를 보낼 때 찾는다. 「郵便局はあちらです」.'},
-      {key:'kouban',meaning:'파출소',note:'길을 잃거나 물건을 잃었을 때 찾는 곳이다. 동네 어디에나 있어 위치의 기준이 된다.'},
-      {key:'kouen',meaning:'공원',note:'「あちらに公園があります」. 있는 곳에는 「に」, 있는 대상에는 「が」.'},
-      {key:'kodomo',meaning:'아이',note:'사람이므로 「子供がたくさんいます」처럼 「います」를 쓴다.'},
-      {key:'inu',meaning:'개',note:'동물도 「います」. 「あの犬は私の犬です」.'},
-      {key:'machi',meaning:'동네, 마을',note:'「静かな町」, 「有名な町」. な형용사가 꾸미는 자리를 확인할 수 있다.'},
-      {key:'chizu',meaning:'지도',note:'「町の地図はありますか」는 숙소에서 그대로 쓸 수 있다.'},
-      {key:'chikatetsu',meaning:'지하철',note:'「地下鉄がとても便利です」. 교통편을 추천받을 때 나온다.'},
-      {key:'iriguchi',meaning:'입구',note:'반대말은 「出口」. 「入口は右にあります」.'},
-      {key:'kippu',meaning:'표',note:'「切符は高いですか」처럼 값을 형용사로 물을 수 있다. 숫자를 몰라도 된다.'},
-      {key:'takai',meaning:'비싸다, 높다',note:'부정은 「高くないです」. 값과 높이에 모두 쓴다.'},
-      {key:'yasui',meaning:'싸다',note:'「とても安いです」. 「高い」의 반대말이다.'},
-      {key:'tenki',meaning:'날씨',note:'「明日の天気はどうですか」로 묻고, 「いい天気です」로 답한다.'},
-      {key:'atsui',meaning:'덥다',note:'부정은 「暑くないです」. 반대말은 「寒い」.'},
-      {key:'jikan',meaning:'시간',note:'「時間がありますか」는 약속을 잡을 때 쓴다. 없으면 「時間がありません」.'},
-      {key:'hima',meaning:'한가하다',note:'な형용사. 반대말은 「忙しい」. 「明日は暇です」.'},
-      {key:'yasumi',meaning:'쉬는 날, 휴무',note:'가게의 휴무와 사람의 휴일에 모두 쓴다. 「今日は休みです」.'},
-      {key:'kaisha',meaning:'회사',note:'「今、会社ですか」처럼 있는 곳을 명사문으로 물을 수 있다.'},
-      {key:'tomodachi',meaning:'친구',note:'「友達も一緒です」. 사람이므로 존재는 「います」로 말한다.'},
-      {key:'ryokou',meaning:'여행',note:'「楽しい旅行ですね」. 「長い旅行」, 「短い旅行」처럼 형용사로 꾸민다.'},
-      {key:'tabemono',meaning:'음식',note:'「おいしい食べ物」. 형용사가 명사를 꾸미는 기본 꼴이다.'},
-      {key:'yuumei',meaning:'유명하다',note:'な형용사. 「有名なホテル」, 「有名な町」.'},
-      {key:'benri',meaning:'편리하다',note:'な형용사. 교통편을 말할 때 자주 쓴다.'},
-      {key:'tanoshii',meaning:'즐겁다',note:'い형용사. 「楽しい旅行」. 과거는 「楽しかったです」.'},
-      {key:'takusan',meaning:'많이',note:'「たくさんあります」, 「たくさんいます」. 「少し」와 짝으로 외운다.'},
-      {key:'jaa',meaning:'그럼',note:'이야기를 마무리하거나 화제를 옮길 때 쓴다. 정중한 자리에서는 「では」.'},
-      {key:'shitsurei',meaning:'실례하겠습니다',note:'방에 들어갈 때, 먼저 자리를 뜰 때, 전화를 끊을 때 모두 쓴다.'},
-      {key:'arigatou',meaning:'감사합니다',note:'대화 어디에서나 쓴다. 답으로는 「いいえ」라고 가볍게 받는다.'}
-    ],
-    expressions:[
-      {jp:'ですね',ko:'~네요, ~시군요',note:'상대의 말을 확인하거나 감상을 부드럽게 덧붙인다. 「キムさんですね」, 「きれいな部屋ですね」.'},
-      {jp:'お{願|ねが}いします',ko:'부탁드립니다',note:'무엇을 부탁할 때 통째로 쓴다. 「を」를 쓰는 말투는 9단계에서 배운다.'},
-      {jp:'もしもし',ko:'여보세요',note:'전화를 걸거나 받을 때 첫마디다. 전화 말고는 쓰지 않는다.'},
-      {jp:'{一緒|いっしょ}に',ko:'함께',note:'「明日は一緒に観光ですね」처럼 같이 하는 일을 말한다. 계산할 때는 「一緒で」.'},
-      {jp:'{楽|たの}しみです',ko:'기대됩니다',note:'앞일을 기다리는 마음을 한마디로 전한다. 「楽しい」와 형태가 비슷하지만 뜻이 다르다.'},
-      {jp:'{分|わ}かりました',ko:'알겠습니다',note:'설명을 들은 뒤 이해했다고 답하는 말이다. 동사의 과거형은 9단계 뒤에 배운다.'},
-      {jp:'ゆっくりどうぞ',ko:'편히 쉬세요',note:'직원이 손님을 방에 남기고 나갈 때 쓴다. 「ゆっくり」는 천천히·여유롭게라는 뜻이다.'},
-      {jp:'かわいいですね',ko:'귀엽네요',note:'아이·동물·물건에 두루 쓴다. い형용사이므로 부정은 「かわいくないです」.'},
-      {jp:'{朝|あさ}ごはん',ko:'아침 식사',note:'「昼ごはん」, 「晩ごはん」도 같은 꼴이다. 숙소에서 자리를 물을 때 쓴다.'},
-      {jp:'おやすみなさい',ko:'안녕히 주무세요',note:'밤에 헤어질 때 쓴다. 아침에는 「おはようございます」.'}
-    ],
-    culture:[
-      {title:'말을 걸 때',text:'직원이나 지나가는 사람에게 질문을 시작할 때 「すみません」이라고 부르면 된다. 이 말은 상황에 따라 사과나 가벼운 감사에도 쓰인다.',source:'일본정부관광국(JNTO)',url:'https://www.japan.travel/en/guide/japanese-manners-dos-and-donts/'},
-      {title:'화장실 표기',text:'일본어 안내판에는 「お手洗い」나 「化粧室」라고 적힌 곳도 있다. 대화에서는 「トイレ」라고 물어도 된다.',source:'국제교류기금 『이로도리』',url:'https://www.irodori.jpf.go.jp/assets/data/starter/pdf/X_L15.pdf'},
-      {title:'전화는 자리를 옮겨서',text:'전철과 버스 안에서는 목소리 크기와 상관없이 통화를 삼가는 것이 일반적이다. 대화도 작은 목소리로 한다. 친구에게 전화를 걸 때는 숙소 방처럼 조용한 자리가 좋다.',source:'일본정부관광국(JNTO)',url:'https://www.japan.travel/en/guide/japanese-manners-dos-and-donts/'}
     ]
   }
 };
@@ -9300,41 +9340,46 @@ function buildDialogue(){
   $('#rnd').textContent='';
   $('#cnt').textContent='—'; $('#tot').textContent='—'; $('#gauge').style.width='0';
   const who=t=>`<span class="dspeaker" aria-label="${esc(d.speakers[t.who])}">${esc(t.who)}</span>`;
-  const cast=c=>(c.cast||Object.keys(d.speakers)).map(k=>`${k} · ${esc(d.speakers[k])}`).join(' &nbsp; ');
+  const note=(jp,ko,tx)=>`<div class="dgword"><span class="term" lang="ja">${ruby(jp)}</span>`+
+    `<span class="meaning">${esc(ko)}</span><p>${esc(tx)}</p></div>`;
   let ai=-1;                                   /* 음성 단추의 통짜 번호 */
-  const turns=d.chapters.map((c,ci)=>
-    `<div class="dchap"><h3>#${ci+1} ${esc(c.title)}</h3>`+
-    `<p>${esc(c.scene)}</p><div class="dpeople">${cast(c)}</div></div>`+
-    `<section class="dcard" aria-label="${ci+1}장 ${esc(c.title)} 일본어 대화">`+
-    c.turns.map(t=>{
+  /* 장 하나가 통째로 접힌다. 안에 그 장의 일본어·번역·단어장이 모두 들어 있어
+     한 장면을 끝내고 다음 장을 여는 식으로 읽는다. 모두 닫힌 채로 시작한다 */
+  const chapters=d.chapters.map((c,ci)=>{
+    const turns=c.turns.map(t=>{
       ai++;
       return `<div class="dturn">${who(t)}`+
         `<div class="djp" lang="ja">${ruby(t.jp)}</div>`+
         `<button class="dspk" data-i="${ai}" aria-label="${ai+1}번째 일본어 발음 듣기">${ICO.sp}</button></div>`;
-    }).join('')+'</section>').join('');
-  const translation=d.chapters.map((c,ci)=>
-    `<h4 class="dchapko">#${ci+1} ${esc(c.title)}</h4>`+
-    c.turns.map(t=>
-      `<div class="dturn dko">${who(t)}<div lang="ko">${esc(t.ko)}</div></div>`).join('')).join('');
-  const words=d.glossary.map(g=>{
-    const w=WORDS[g.key];
-    return `<div class="dgword"><span class="term" lang="ja">${ruby(w?w.t:g.key)}</span>`+
-      `<span class="meaning">${esc(g.meaning)}</span><p>${esc(g.note)}</p></div>`;
+    }).join('');
+    const ko=c.turns.map(t=>
+      `<div class="dturn dko">${who(t)}<div lang="ko">${esc(t.ko)}</div></div>`).join('');
+    const words=c.glossary.map(g=>{
+      const w=WORDS[g.key];
+      return note(w?w.t:g.key,g.meaning,g.note);
+    }).join('');
+    const preview=(c.expressions||[]).map(x=>note(x.jp,x.ko,x.note)).join('');
+    const culture=(c.culture||[]).map(x=>
+      `<div class="dculture"><b>${esc(x.title)}</b><p>${esc(x.text)}</p>`+
+      `<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">자료: ${esc(x.source)}</a></div>`).join('');
+    const cast=(c.cast||Object.keys(d.speakers)).map(k=>`${k} · ${esc(d.speakers[k])}`).join(' &nbsp; ');
+    return `<details class="dchapsec"><summary><span class="dno">#${ci+1}</span>`+
+      `<span class="dchaptitle">${esc(c.title)}</span>`+
+      `<span class="dchapcount">${c.turns.length}발화</span></summary>`+
+      `<div class="dchapbody"><p class="dscene">${esc(c.scene)}</p>`+
+      `<div class="dpeople">${cast}</div>`+
+      `<section class="dcard" aria-label="${esc(c.title)} 일본어 대화">${turns}</section>`+
+      `<details class="dsec"><summary>한국어 번역</summary><div class="dkolist">${ko}</div></details>`+
+      `<details class="dsec"><summary>이 장면의 단어·표현</summary><div class="dnotes">`+
+      `<h3>대화에 나온 말 · 더 배워보기</h3>${words}`+
+      (preview?`<h3>미리 보는 표현</h3>${preview}`:'')+
+      (culture?`<h3>대화 예절·문화</h3>${culture}`:'')+
+      `</div></details></div></details>`;
   }).join('');
-  const preview=d.expressions.map(x=>
-    `<div class="dgword"><span class="term" lang="ja">${ruby(x.jp)}</span>`+
-    `<span class="meaning">${esc(x.ko)}</span><p>${esc(x.note)}</p></div>`).join('');
-  const culture=d.culture.map(x=>
-    `<div class="dculture"><b>${esc(x.title)}</b><p>${esc(x.text)}</p>`+
-    `<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">자료: ${esc(x.source)}</a></div>`).join('');
   list.innerHTML=`<article class="dialogue"><div class="dintro"><h2>${esc(d.title)}</h2>`+
-    `<p>${esc(d.scene)}</p><div class="dpeople">${Object.keys(d.speakers).map(k=>`${k} · ${esc(d.speakers[k])}`).join(' &nbsp; ')}</div></div>`+
-    turns+
-    `<details class="dsec"><summary>한국어 번역</summary><div class="dkolist">${translation}</div></details>`+
-    `<details class="dsec"><summary>대화 속 단어·표현</summary><div class="dnotes">`+
-    `<h3>대화에 나온 말 · 더 배워보기</h3>${words}`+
-    `<h3>미리 보는 표현</h3>${preview}`+
-    `<h3>대화 예절·문화</h3>${culture}</div></details>`+
+    `<p>${esc(d.scene)}</p><div class="dpeople">${Object.keys(d.speakers).map(k=>`${k} · ${esc(d.speakers[k])}`).join(' &nbsp; ')}</div>`+
+    `<p class="dhint">장(#)을 눌러 한 장면씩 엽니다. 번역과 단어장은 그 장 안에 있습니다.</p></div>`+
+    chapters+
     `<div class="dactions"><button class="dread" id="dDone">대화 읽음 표시</button>`+
     `<button class="dnext" id="dNext">6단계로 가기</button></div></article>`;
   paintDialogue();
