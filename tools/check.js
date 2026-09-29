@@ -103,23 +103,38 @@ if(gOnce>6) console.log('  한 번만 쓰인 이름이 '+gOnce+'개다. 합칠 �
 eval(fs.readFileSync(dir+'dialogues.js','utf8'));
 const D=window.DIALOGUES.R1;
 const plain=t=>t.replace(/\{([^|{}]+)\|([^|{}]+)\}/g,'$1');
-if(!D||D.turns.length<8||D.turns.length>12) err.push('R1  발화가 8~12개가 아님');
+const CH=D&&D.chapters;
+if(!CH||!CH.length) err.push('R1  장(chapters)이 없음');
 else{
-  D.turns.forEach((t,i)=>{
-    if(!D.speakers[t.who]||!t.jp||!t.ko) err.push(`R1-${i+1}  화자·일본어·번역 누락`);
+  const turns=CH.reduce((all,c)=>all.concat(c.turns),[]);
+  if(turns.length<40) err.push('R1  발화가 40개보다 적다 — 1~5단계를 회수하기 어렵다');
+  CH.forEach((c,ci)=>{
+    if(!c.title||!c.scene) err.push(`R1-#${ci+1}  장 제목이나 상황 누락`);
+    if(c.turns.length<6) err.push(`R1-#${ci+1}  한 장의 발화가 6개보다 적다`);
+    (c.cast||[]).forEach(k=>{ if(!D.speakers[k]) err.push(`R1-#${ci+1}  이름 없는 화자: ${k}`); });
+    c.turns.forEach((t,i)=>{
+      if(!D.speakers[t.who]||!t.jp||!t.ko) err.push(`R1-#${ci+1}-${i+1}  화자·일본어·번역 누락`);
+      if(c.cast&&!c.cast.includes(t.who)) err.push(`R1-#${ci+1}-${i+1}  장의 인물 소개에 없는 화자: ${t.who}`);
+    });
   });
-  const jp=D.turns.map(t=>plain(t.jp)).join('');
+  const jp=turns.map(t=>plain(t.jp)).join('');
   const used=new Set();
   D.glossary.forEach(g=>{
     const w=W[g.key], term=w&&plain(w.t);
-    if(!w||!term||!jp.includes(term)) err.push(`R1  대화에 없는 단어: ${g.key}`);
+    /* 「暑い」가 「暑くないです」로 나오기도 한다. 활용 어미를 떼고 찾는다 */
+    const stem=term&&term.replace(/(い|な|です|ます)$/,'');
+    if(!w||!term||!jp.includes(stem)) err.push(`R1  대화에 없는 단어: ${g.key}`);
     if(used.has(g.key)) err.push(`R1  단어 중복: ${g.key}`);
     if(!g.meaning||!g.note) err.push(`R1  단어 설명 누락: ${g.key}`);
     used.add(g.key);
   });
+  D.expressions.forEach(x=>{
+    if(!x.jp||!x.ko||!x.note) err.push('R1  미리 보는 표현 설명 누락');
+  });
   if(!D.culture.length||D.culture.some(x=>!x.text||!x.source||!/^https:\/\//.test(x.url)))
     err.push('R1  예절·문화 설명이나 출처 누락');
-  console.log('R1 대화 : '+D.turns.length+'발화 · '+D.glossary.length+'단어·표현');
+  console.log('R1 대화 : '+CH.length+'장 · '+turns.length+'발화 · '
+    +D.glossary.length+'단어 · '+D.expressions.length+'미리 보는 표현');
 }
 
 console.log(err.length?'\n[문제]\n'+err.join('\n'):'\n문제 없음');

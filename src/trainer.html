@@ -606,6 +606,13 @@ body.hidehira .kcell .hi{color:transparent;background:var(--green-l);border-radi
 .dintro p{margin:0;color:var(--ink2);font-size:13px;line-height:1.75;}
 .dpeople{margin-top:9px;color:var(--ink3);font-size:12px;}
 .dcard,.dsec{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;}
+.dchap{padding:22px 2px 11px;}
+.dchap h3{margin:0 0 4px;font-size:15px;color:var(--acc);}
+.dchap p{margin:0;color:var(--ink2);font-size:13px;line-height:1.7;}
+/* 장 제목은 대화 카드와 붙어 보여야 한 장면으로 읽힌다 */
+.dchapko{margin:16px 0 2px;padding:0 17px;font-size:13px;color:var(--acc);}
+.dkolist>.dchapko:first-child{margin-top:12px;}
+.dkolist{padding-bottom:6px;}
 .dturn{display:grid;grid-template-columns:30px minmax(0,1fr) 34px;gap:10px;align-items:start;
   padding:14px 15px;border-bottom:1px solid var(--line);}
 .dturn:last-child{border-bottom:0;}
@@ -1137,19 +1144,34 @@ function paintDialogueNav(){
     el.setAttribute('aria-label',read?'R1 대화 복습, 읽음':'R1 대화 복습');
   });
 }
+/* 장(#)마다 발화를 나눠 두었지만 음성 재생은 대화 전체를 한 줄로 이어 센다.
+   장 순서가 바뀌어도 data-i 하나로 찾을 수 있게 납작한 배열을 쓴다 */
+function dialogueTurns(d){
+  return d.chapters.reduce((all,c)=>all.concat(c.turns),[]);
+}
 function buildDialogue(){
   const d=window.DIALOGUES.R1;
   $('#stg').textContent=R1;
   $('#ttl').textContent=d.title;
   $('#rnd').textContent='';
   $('#cnt').textContent='—'; $('#tot').textContent='—'; $('#gauge').style.width='0';
-  const turns=d.turns.map((t,i)=>
-    `<div class="dturn"><span class="dspeaker" aria-label="${esc(d.speakers[t.who])}">${esc(t.who)}</span>`+
-    `<div class="djp" lang="ja">${ruby(t.jp)}</div>`+
-    `<button class="dspk" data-i="${i}" aria-label="${i+1}번째 일본어 발음 듣기">${ICO.sp}</button></div>`).join('');
-  const translation=d.turns.map(t=>
-    `<div class="dturn dko"><span class="dspeaker" aria-label="${esc(d.speakers[t.who])}">${esc(t.who)}</span>`+
-    `<div lang="ko">${esc(t.ko)}</div></div>`).join('');
+  const who=t=>`<span class="dspeaker" aria-label="${esc(d.speakers[t.who])}">${esc(t.who)}</span>`;
+  const cast=c=>(c.cast||Object.keys(d.speakers)).map(k=>`${k} · ${esc(d.speakers[k])}`).join(' &nbsp; ');
+  let ai=-1;                                   /* 음성 단추의 통짜 번호 */
+  const turns=d.chapters.map((c,ci)=>
+    `<div class="dchap"><h3>#${ci+1} ${esc(c.title)}</h3>`+
+    `<p>${esc(c.scene)}</p><div class="dpeople">${cast(c)}</div></div>`+
+    `<section class="dcard" aria-label="${ci+1}장 ${esc(c.title)} 일본어 대화">`+
+    c.turns.map(t=>{
+      ai++;
+      return `<div class="dturn">${who(t)}`+
+        `<div class="djp" lang="ja">${ruby(t.jp)}</div>`+
+        `<button class="dspk" data-i="${ai}" aria-label="${ai+1}번째 일본어 발음 듣기">${ICO.sp}</button></div>`;
+    }).join('')+'</section>').join('');
+  const translation=d.chapters.map((c,ci)=>
+    `<h4 class="dchapko">#${ci+1} ${esc(c.title)}</h4>`+
+    c.turns.map(t=>
+      `<div class="dturn dko">${who(t)}<div lang="ko">${esc(t.ko)}</div></div>`).join('')).join('');
   const words=d.glossary.map(g=>{
     const w=WORDS[g.key];
     return `<div class="dgword"><span class="term" lang="ja">${ruby(w?w.t:g.key)}</span>`+
@@ -1162,9 +1184,9 @@ function buildDialogue(){
     `<div class="dculture"><b>${esc(x.title)}</b><p>${esc(x.text)}</p>`+
     `<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">자료: ${esc(x.source)}</a></div>`).join('');
   list.innerHTML=`<article class="dialogue"><div class="dintro"><h2>${esc(d.title)}</h2>`+
-    `<p>${esc(d.scene)}</p><div class="dpeople">A · ${esc(d.speakers.A)} &nbsp; B · ${esc(d.speakers.B)}</div></div>`+
-    `<section class="dcard" aria-label="일본어 대화">${turns}</section>`+
-    `<details class="dsec"><summary>한국어 번역</summary><div>${translation}</div></details>`+
+    `<p>${esc(d.scene)}</p><div class="dpeople">${Object.keys(d.speakers).map(k=>`${k} · ${esc(d.speakers[k])}`).join(' &nbsp; ')}</div></div>`+
+    turns+
+    `<details class="dsec"><summary>한국어 번역</summary><div class="dkolist">${translation}</div></details>`+
     `<details class="dsec"><summary>대화 속 단어·표현</summary><div class="dnotes">`+
     `<h3>대화에 나온 말 · 더 배워보기</h3>${words}`+
     `<h3>미리 보는 표현</h3>${preview}`+
@@ -1543,7 +1565,7 @@ list.addEventListener('click',e=>{
     if(e.target.closest('#dNext')){ goStage(6); return; }
     const audio=e.target.closest('.dspk');
     if(audio){
-      const t=window.DIALOGUES.R1.turns[+audio.dataset.i];
+      const t=dialogueTurns(window.DIALOGUES.R1)[+audio.dataset.i];
       if(t) speakText(t.jp.replace(/\{([^|{}]+)\|[^|{}]+\}/g,'$1'));
     }
     return;
