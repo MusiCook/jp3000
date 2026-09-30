@@ -52,6 +52,10 @@ function boot(){
      것은 모두 만들어져 있으므로 그대로 둔다 */
   load().forEach(src=>{ try{ vm.runInContext(src, box); }catch(e){} });
   if(typeof ctx.quizOpts !== 'function') throw new Error('quizOpts 를 찾지 못했습니다');
+  /* quiz.js 의 const 는 vm 안에서 전역 속성이 되지 않는다 (function 만 된다).
+     손으로 적어 둔 보기 표를 꺼내 두어야 「사람이 쓴 말」로 셀 수 있다 */
+  ctx.KO_FIXED_ALTS = vm.runInContext(
+    'typeof KO_FIXED_ALTS!=="undefined"?KO_FIXED_ALTS:{}', box);
   return ctx;
 }
 
@@ -88,6 +92,26 @@ function cutWord(v){
 function audit(ctx){
   const {WORDS, SENT, chunkJP, chunkKO, seedOf, quizOpts} = ctx;
   const found = [];
+  /* 사람이 쓴 한국어 — 문장의 서술 표면형과, 손으로 적어 둔 보기.
+     이 밖의 말이 보기로 나오면 코드가 활용형을 만들어 냈다는 뜻이다 */
+  const REAL = new Set(), BOX = {};
+  for(const lv in SENT){
+    if(+lv === ctx.RV) continue;
+    SENT[lv].s.forEach(s=>{
+      chunkKO(s.k).forEach(c=>{
+        if(c.plain||!/^[cva]$/.test(c.toks[0][1])) return;
+        const t=c.toks.map(x=>x[0]).join('').trim();
+        if(!t) return;
+        REAL.add(t);
+        const k=ctx.koForm(t)+'|'+c.toks[0][1];
+        (BOX[k]=BOX[k]||new Set()).add(t);
+      });
+      if(s.q&&s.q.k) Object.keys(s.q.k).forEach(a=>
+        [].concat(s.q.k[a]).forEach(v=>REAL.add(String(v).trim())));
+    });
+  }
+  Object.keys(ctx.KO_FIXED_ALTS||{}).forEach(a=>
+    ctx.KO_FIXED_ALTS[a].forEach(v=>REAL.add(String(v).trim())));
   const note = (where, kind, detail, opts) => found.push({where, kind, detail, opts});
 
   for(const lv in SENT){
@@ -109,13 +133,16 @@ function audit(ctx){
         if(c.plain) return;
         try{
           const q = quizOpts('k', {ci, sent:s, seed:seedOf(sid+'-k'+ci)});
-          check(sid+' 뜻', q, 'k', c.toks[0][1]);
+          /* 뒤에 조사가 붙은 덩어리는 서술이 아니다. quiz.js 와 같게 센다 */
+          let part=c.toks.slice(1).map(x=>x[0].trim()).join('');
+          if(/^(까|요|네|죠|군요|는데요)$/.test(part)) part='';
+          check(sid+' 뜻', q, 'k', c.toks[0][1], !part);
         }catch(e){ note(sid+' 뜻', '터짐', e.message, []); }
       });
     });
   }
 
-  function check(where, q, type, pos){
+  function check(where, q, type, pos, pred){
     const jp   = type==='j';
     const list = q.opts.map(o=> jp ? bare(o.html) : o.v);
     const face = q.opts.map(o=> jp ? kanji(o.html) : o.v);
@@ -152,6 +179,24 @@ function audit(ctx){
       if(cutWord(t) && !cutWord(String(q.ans)))
         note(where,'잘린 말','「'+t+'」 — 어미가 끊겼다',list);
     });
+
+    /* 서술 자리의 보기는 넷의 **어미가 같은 칸**이어야 한다.
+       어미가 섞이면 (즐겁습니다 / 즐겁었습니다) 어미만 보고 고를 수 있고,
+       무엇보다 만들어 낸 활용형은 거의 틀린 말이다. 그래서 서술 보기는
+       문장에 사람이 써 놓은 표면형이어야 한다 — 그것도 여기서 본다 */
+    if(!jp && pred && /^[cva]$/.test(String(pos)) && typeof ctx.koForm==='function'){
+      const box=ctx.koForm(q.ans);
+      /* 그 칸에 정답 말고 셋이 더 있으면 어미를 고정할 수 있었다는 뜻이다.
+         「주세요」처럼 문장 전체에 같은 꼴이 둘뿐인 칸은 빌려 올 수밖에 없다 */
+      const enough=(BOX[box+'|'+pos]||new Set()).size>=4;
+      list.forEach(t=>{
+        if(ctx.koForm(t)!==box){
+          if(enough) note(where,'어미가 다른 보기',
+            '「'+t+'」 — 정답 「'+q.ans+'」는 '+box+' 칸이고 재료도 있다',list);
+        }else if(!REAL.has(t))
+          note(where,'문장에 없는 꼴','「'+t+'」 — 만들어 낸 활용형으로 보인다',list);
+      });
+    }
 
     /* 정답과 뜻이 같은 보기는 그것도 맞는 답이 된다.
        명사 자리에서만 본다. 서술 자리의 「있습니다 / 있습니까」는

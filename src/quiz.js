@@ -53,66 +53,57 @@ function fitJosa(word,josa){
   if(!pair) return j;
   return hasBat(word)?pair[0]:pair[1];
 }
-/* 서술은 어미만 갈아 끼워 보기를 만든다.
-   「않습니다」 → 않았습니다 / 않겠습니다 / 않을 겁니다
-   불규칙이 많으므로 안전한 꼴만 쓰고, 애매하면 만들지 않는다 */
-const ENDRULE=[
-  /* 끝말 그대로를 갈아 끼우는 짝. 앞의 것이 길수록 먼저 맞춘다.
-     「겠·았·었」이 이미 붙은 말은 여기서 먼저 걸러야 한다. 그러지 않으면
-     아래 '습니다' 규칙이 어간을 「실례하겠」으로 잘라, 거기에 어미를 또
-     붙여 「실례하겠겠습니다」 같은 말을 만들어 낸다 */
-  ['겠습니다',   ['겠습니까','지 않겠습니다']],
-  ['했습니다',   ['하겠습니다','합니다','하지 않았습니다']],
-  ['였습니다',   ['였습니까','겠습니다','지 않았습니다']],
-  ['았습니다',   ['았습니까','겠습니다','지 않았습니다']],
-  ['었습니다',   ['었습니까','겠습니다','지 않았습니다']],
-  ['있습니다',   ['있었습니다','있겠습니다','있을 겁니다','없습니다']],
-  ['없습니다',   ['없었습니다','없겠습니다','없을 겁니다','있습니다']],
-  ['합니다',     ['했습니다','하겠습니다','할 겁니다','하지 않습니다']],
-  ['입니다',     ['이었습니다','일 겁니다','이 아닙니다','입니까']],
-  ['않습니다',   ['않았습니다','않겠습니다','않을 겁니다','않습니까']],
-  ['합니까',     ['합니다','했습니다','하지 않습니다']],
-  ['습니다',     ['었습니다','겠습니다','을 겁니다','습니까']],
-  ['습니까',     ['었습니까','겠습니까','습니다']],
-  ['주세요',     ['주시겠습니까','주셨습니다','주지 마세요']],
-  ['세요',       ['셨습니다','시겠습니까','지 마세요']],
-  ['마세요',     ['마셨습니다','말아 주세요','하세요']],
-  ['입니',       ['이었습니','일 겁니']],
-  ['있습니',     ['있었습니','있겠습니']],
-  ['습니',       ['었습니','겠습니']]
-];
-/* 만들어 놓고 말이 안 되는 꼴은 버린다.
-   한국어 어미는 불규칙이 많아, 규칙을 더 정교하게 짜는 것보다
-   만들어 본 뒤 걸러 내는 편이 안전하다 */
-const BADEND=[
-  /겠겠|았았|었었|겠었|었겠|았겠|겠았|않않/,   /* 어미가 겹쳤다 */
-  /(겠|았|었)을 겁니다/,                        /* 어미 뒤에 또 미래 */
-  /지 않[^]*지 않/,                             /* 부정이 두 번 */
-  /하었|하았|되었었|이었었/
-];
-const okEnd = v => !BADEND.some(re=>re.test(v));
+/* 서술(동사·형용사·です) 자리의 오답은 **만들지 않고 고른다.**
 
-/* 「았」이냐 「었」이냐는 앞 소리로 갈린다. 잡+았습니다 / 먹+었습니다.
-   한글 낱자에서 가운뎃소리를 꺼내 ㅏ·ㅗ 면 「았」으로 바꾼다 */
-function fitPast(stem, alt){
-  if(alt.indexOf('었')!==0) return alt;
-  const c=stem.charCodeAt(stem.length-1);
-  if(!(c>=0xAC00&&c<=0xD7A3)) return alt;
-  const v=Math.floor((c-0xAC00)/28)%21;
-  return (v===0||v===8) ? '았'+alt.slice(1) : alt;      /* ㅏ=0, ㅗ=8 */
+   예전에는 「어간 + 어미」로 조립했다. 한국어 어미는 불규칙이 많아 이 길은
+   반드시 틀린 말을 낳는다 — 즐겁 + 었습니다 → 즐겁었습니다 (즐거웠습니다).
+   받침만 보고 가려낼 수도 없다. 좁다·갈아입다는 받침이 같아도 규칙이다.
+   규칙을 더 정교하게 짜는 대신 조립 자체를 버렸다.
+
+   대신 3,000문장에 사람이 써 놓은 표면형에서 고른다. 고를 때는
+   **어미를 정답과 같은 칸으로 묶고 낱말만 바꾼다.**
+
+       즐겁습니다(정답)  어렵습니다  맛있습니다  조용합니다
+
+   보기 넷의 어미가 모두 같으니 어미가 단서가 되지 않고 뜻을 묻게 된다.
+   일본어 쪽이 이미 이렇게 동작하며 결과가 자연스럽다
+   (楽しかったです ↔ 面白かったです / 忙しかったです / 暑かったです).
+   시제·의문은 일본어 문제(楽しいです ↔ 楽しかったです)에서 따로 묻는다. */
+
+/* 끝소리의 받침 번호. 없으면 0, 한글이 아니면 -1 */
+function jong(ch){
+  const c=String(ch||'').charCodeAt(0);
+  return (c>=0xAC00&&c<=0xD7A3) ? (c-0xAC00)%28 : -1;
 }
-
-function endingAlts(word){
-  const w=String(word).trim(), out=[];
-  for(const [tail,alts] of ENDRULE){
-    if(!w.endsWith(tail)) continue;
-    const stem=w.slice(0,w.length-tail.length);
-    /* 어간이 비면(=끝말이 전부) 그대로, 아니면 어간+새 어미 */
-    alts.forEach(a=>{ const v=stem+fitPast(stem,a);
-      if(v!==w&&okEnd(v)&&out.indexOf(v)<0) out.push(v); });
-    break;                       /* 가장 긴 짝 하나만 쓴다 */
+/* 어미의 칸을 **표면 글자만 보고** 나눈다. 어간을 자르지 않으므로
+   불규칙에 걸리지 않는다. 과거는 「니다」 앞의 받침 ㅆ 하나로 잡힌다
+   (즐거웠습니다 · 했습니다 · 있었습니다) */
+/* 「습니다·합니다」의 정중한 끝인가. 「먹으니까」처럼 이유를 말하는 「니까」와
+   갈라야 한다. 정중한 꼴은 「습니」거나 앞 음절에 받침 ㅂ 이 있다 (합니다·입니까) */
+function polite(w){
+  if(/습니(다|까)$/.test(w)) return true;
+  return /니(다|까)$/.test(w) && jong(w.slice(-3,-2))===17;   /* 받침 ㅂ */
+}
+/* 혼자서는 말이 안 되는 어미 조각. 문장 토큰이 갈려 생긴다 */
+const KFRAG=/^(습니|습니다|습니까|않습니다|않습니까|습니다요|네요|다|까|요|라고|이라고)$/;
+function koForm(v){
+  const w=String(v).trim();
+  if(/고 나서$/.test(w)) return '순서';
+  if(/(다고|라고)$/.test(w)) return '전달';
+  if(/(지 않|지 마)/.test(w)) return '부정';
+  if(/겠습니(다|까)$/.test(w)) return '추측';
+  if(/ 겁니(다|까)$/.test(w)) return '미래';
+  if(/(세요|십시오)$/.test(w)) return '요청';
+  if(polite(w)){
+    const t=w.replace(/니(다|까)$/,'').replace(/습$/,'');
+    const past=jong(t.slice(-1))===20;                  /* 받침 ㅆ */
+    return (past?'과거':'현재')+(/니까$/.test(w)?'의문':'평서');
   }
-  return out;
+  if(/다$/.test(w)) return '보통형';
+  /* 명사를 꾸미는 꼴. 조용한 · 넓은 · 맛있는 · 매운 */
+  if(jong(w.slice(-1))===4||/(은|는)$/.test(w)) return '관형';
+  if(/요$/.test(w)) return '요체';
+  return '기타';
 }
 function kNorm(t){
   const s=String(t).trim();
@@ -139,8 +130,15 @@ function isAskId(k){ const w=WORDS[k];
 
 let CHUNKPOOL=null;
 function buildChunkPool(){
-  CHUNKPOOL={byHead:{}, byGroup:{}, all:[], jpByHead:{}, jpAll:[]};
+  CHUNKPOOL={byHead:{}, byGroup:{}, all:[], jpByHead:{}, jpAll:[], pred:{}};
   const add=(o,k,v)=>{ if(!k||!v)return; (o[k]=o[k]||[]); if(o[k].indexOf(v)<0) o[k].push(v); };
+  /* 서술 표면형은 어미의 칸·품사별로 따로 담는다. 낱말(jkey)과 뜻갈래를
+     같이 적어 두어, 고를 때 같은 말과 같은 뜻을 빼낼 수 있게 한다.
+     한국어 토큰이 「그렇 + 습니다」처럼 갈려 있는 자리가 있어, 덩어리
+     하나가 어미만이거나 어간만인 조각일 수 있다. 조각은 혼자 쓰면 말이
+     안 되므로 담지 않는다 — 뒤 덩어리가 빈칸 없이 붙어 오면 어간 조각이다 */
+  const addPred=(key,v)=>{ const l=(CHUNKPOOL.pred[key]=CHUNKPOOL.pred[key]||[]);
+    if(!l.some(x=>x.t===v.t)) l.push(v); };
   for(const lv in SENT){
     if(+lv===RV) continue;
     SENT[lv].s.forEach(s=>{
@@ -152,10 +150,18 @@ function buildChunkPool(){
         if(CHUNKPOOL.jpAll.indexOf(key)<0) CHUNKPOOL.jpAll.push(key);
       });
       kc.forEach((c,i)=>{
-        if(c.plain||c.toks.length<2) return;
+        if(c.plain) return;
         const txt=c.toks.map(x=>x[0]).join('').trim();
         const head=c.toks[0][0].trim();
-        if(!txt||txt===head) return;
+        const pos=c.toks[0][1];
+        const nx=kc[i+1];
+        const glued=!!(nx&&!nx.plain&&!/^\s/.test(nx.toks[0][0]));
+        if(txt&&/^[cva]$/.test(pos)&&!glued&&!KFRAG.test(txt)){
+          const jk=(jc[i]&&jc[i].ids)?jc[i].ids[0]:null;
+          addPred(koForm(txt)+'|'+pos,
+            {t:txt, k:jk, g:(jk&&WORDS[jk])?WORDS[jk].g:null});
+        }
+        if(c.toks.length<2||!txt||txt===head) return;
         add(CHUNKPOOL.byHead,head,txt);
         const j=jc[i];
         if(j&&j.ids&&WORDS[j.ids[0]]) add(CHUNKPOOL.byGroup,WORDS[j.ids[0]].g,txt);
@@ -374,6 +380,7 @@ function quizOpts(type, o){
        의문사로 시작하는 덩어리가 섞여 들어온다 */
     const askAns=isAskKO(ans);
     const cand=[];
+    let predDone=false;              /* 서술 자리를 서술 모음으로 채웠나 */
     fixedAlts('k',ans,s).forEach(v=>{
       if(cand.length<3&&v!==ans&&cand.indexOf(v)<0) cand.push(v); });
     if(part){
@@ -412,9 +419,36 @@ function quizOpts(type, o){
       const c=w.charCodeAt(w.length-2);
       return (c>=0xAC00&&c<=0xD7A3) && ((c-0xAC00)%28)===17;   /* 받침 ㅂ */
     };
-    /* 서술·동사는 어미를 갈아 끼운 보기를 먼저 쓴다 */
-    if(!part&&/^[cva]$/.test(toks[0][1])){
-      endingAlts(ans).forEach(v=>{ if(cand.length<3&&cand.indexOf(v)<0&&v!==ans) cand.push(v); });
+    /* 서술은 어미가 같은 칸에서 낱말만 바꾼 보기를 쓴다.
+       같은 낱말(정답의 jkey)과 같은 뜻으로 인정한 짝은 오답이 될 수 없다 */
+    const pos0=toks[0][1];
+    if(!part&&/^[cva]$/.test(pos0)){
+      if(!CHUNKPOOL) buildChunkPool();
+      const box=koForm(ans);
+      const same=k=>!!(k&&jkey&&(k===jkey||(typeof eqOf==='function'&&eqOf(jkey,k)!=null)));
+      const score=x=>({v:x.t, s:sim(ans,x.t)+(g&&x.g===g?1.2:0)+0.4});
+      /* 정답 자체가 조각인 자리에서는 조각도 보기가 된다 (그렇 + 습니다) */
+      const okFrag=KFRAG.test(ans);
+      const take=list=>pick3(list.filter(x=>x.t!==ans&&!same(x.k)
+        &&(okFrag||!KFRAG.test(x.t))
+        &&(askAns||!isAskKO(x.t))&&cand.indexOf(x.t)<0).map(score),seed)
+        .forEach(v=>{ if(cand.length<3&&cand.indexOf(v)<0&&v!==ans) cand.push(v); });
+      take(CHUNKPOOL.pred[box+'|'+pos0]||[]);
+      /* 같은 품사로 셋이 안 되면 같은 칸의 다른 품사까지 본다 */
+      if(cand.length<3) take([].concat(...'cva'.split('')
+        .filter(q=>q!==pos0).map(q=>CHUNKPOOL.pred[box+'|'+q]||[])));
+      /* 그래도 모자라면 다른 칸에서 빌린다. 「주세요」 같은 자리는 문장
+         전체에 같은 꼴이 둘뿐이라 어미를 고정할 재료가 아예 없다.
+         빌려 오더라도 **문장에 사람이 써 놓은 말**만 쓴다. 지어내지 않는다.
+         칸마다 따로 고르면 큰 칸이 먼저 차 버리므로 한데 모아 견준다 */
+      /* 빌릴 때도 정중한 어미 칸에서만 빌린다. 「기타」·「보통형」 칸에는
+         반말과 て형이 섞여 있어 정중한 말 옆에 두면 말투가 튄다 */
+      const LEND=['현재평서','과거평서','현재의문','과거의문','추측','미래','부정','요청'];
+      if(cand.length<3&&LEND.indexOf(box)>=0)
+        take([].concat(...Object.keys(CHUNKPOOL.pred)
+          .filter(k=>k!==box+'|'+pos0&&LEND.indexOf(k.split('|')[0])>=0)
+          .map(k=>CHUNKPOOL.pred[k])));
+      predDone=true;                 /* 아래 일반 모음은 건너뛴다 */
     }
     /* 뜻이 같은 말을 거르는 것은 명사 자리에서만 한다.
        서술 자리에서는 「있습니까」의 보기로 「있습니다」가 나오는 것이
@@ -429,7 +463,9 @@ function quizOpts(type, o){
       .filter(v=>askAns||!isAskKO(v))              /* 평서문 자리에 의문사 금지 */
       .filter(v=>cutAns||!CUTEND(v))
       .filter(v=>!part||(!NOSUF.test(v)&&!HASJOSA.test(v)&&!CUTEND(v)&&v.length>=hw.length-1));
-    if(!part){
+    /* 서술 자리는 위에서 이미 채웠다. 일반 모음에는 사전의 기본형(「싸다」)과
+       어미가 잘린 말(「됩니」)이 섞여 있어, 서술 보기로 내면 꼴이 어긋난다 */
+    if(!part&&!predDone){
       pick3(pool.map(v=>({v,s:sim(hw,v)+0.4})),seed).forEach(v=>{
         if(cand.length<3&&cand.indexOf(v)<0&&v!==ans) cand.push(v); });
     }
