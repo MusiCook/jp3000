@@ -57,6 +57,12 @@ assert.ok(/addEventListener\('toggle'[\s\S]{0,400}dchapsec[\s\S]{0,300}o\.open=f
   '장 하나를 열면 나머지를 닫는 코드가 없다');
 assert.ok(html.includes("list.addEventListener('toggle'")&&/},true\);/.test(html),
   'toggle 은 버블링하지 않으므로 캡처로 받아야 한다');
+/* 펼친 장은 **제목**을 기준으로 세운다. 머리띠 높이를 재서 비켜 세우는지 본다 */
+assert.ok(/getBoundingClientRect\(\)\.top[\s\S]{0,120}offsetHeight/.test(html)
+  &&/window\.scrollTo\(\{top:Math\.max\(0,y\)\}\)/.test(html),
+  '장을 열 때 제목을 머리띠 아래로 세우는 코드가 없다');
+assert.ok(!/d\.scrollIntoView\(/.test(html),
+  '장을 통째로 화면에 넣으면(scrollIntoView) 긴 장에서 제목이 밀려난다');
 
 /* ── 화면 ──────────────────────────────── */
 const render=html.slice(html.indexOf('function paintDialogue(){'),html.indexOf('function buildKana(){'));
