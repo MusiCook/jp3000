@@ -77,7 +77,7 @@ function device(local){
 
   /* PC: 같은 계정인데 2단계를 풀었고, a 를 2회차에서도 맞혔다 */
   const pc = device({
-    'jp3000v2': JSON.stringify({v:3,lv:1,pg:1,r:{2:1},done:{1:{2:[7,8]},2:{1:[1]},3:{}},star:{},bm:{2:9},at:{1:20}}),
+    'jp3000v2': JSON.stringify({v:3,lv:1,pg:1,r:{2:1},done:{1:{2:[7,8]},2:{1:[1]},3:{}},star:{},bm:{2:9},at:{1:20},read:{R3:1}}),
     'jp3000-solved': JSON.stringify({'a':2,'c':1}),
     'jp3000-quiz'  : JSON.stringify({'a':{o:1,x:5,lv:1,due:1000}})
   });
@@ -94,6 +94,7 @@ function device(local){
   t('2회차 진도 유지 [1]',             JSON.stringify(st.done[2][1])==='[1]');
   t('별 합쳐짐',                        st.star[1]===1);
   t('R1 읽음은 별과 별도로 합쳐짐',       st.read.R1===1&&!st.star.R1);
+  t('복습이 여러 개여도 합집합 R1+R3',   st.read.R1===1&&st.read.R3===1&&!st.read.R2);
   t('회차 큰 쪽 r={1:2,2:1}',          st.r[1]===2&&st.r[2]===1);
   t('북마크는 이 기기 것 우선',         st.bm[2]===9&&st.bm[1]===2);
   t('맞힌 자리 OR  a=1|2=3',           dn.a===3);

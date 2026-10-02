@@ -590,7 +590,7 @@ body.hidehira .kcell .hi{color:transparent;background:var(--green-l);border-radi
   font-family:inherit;font-size:13px;padding:11px;border-radius:999px;cursor:pointer;}
 .pgbtn:disabled{border-color:var(--line);color:var(--ink3);cursor:default;}
 .pgnow{flex:0 0 auto;font-family:var(--sr);font-size:12px;color:var(--ink2);letter-spacing:.06em;}
-/* R1은 문제·회차가 없는 읽기 화면이다. 긴 번역과 단어장은 문서 흐름에 둔다. */
+/* 대화 복습(R1·R2·R3)은 문제·회차가 없는 읽기 화면이다. 단어장은 문서 흐름에 둔다. */
 .dialogue-view .gauge,.dialogue-view #rnd,.dialogue-view .done-meta,
 .dialogue-view #bColor,.dialogue-view #bEye,.dialogue-view #bJump,
 .dialogue-view .afterlist,.dialogue-view #bReset{display:none;}
@@ -911,11 +911,18 @@ const TITLES=[
 "쇼핑과 면세","잡담과 인사",
 "안내방송과 공지 읽기","표지판 읽기",
 "축약 구어체","종합 마무리"];
-/* R1은 번호 있는 단계 사이에 놓이지만 단계 번호·문장 키는 차지하지 않는다. */
-const R1='R1';
+/* 대화 복습은 번호 있는 단계 사이에 놓이지만 단계 번호·문장 키는 차지하지 않는다.
+   어느 단계 뒤에 끼울지는 이 표 한 줄만 고친다. 목록 순서·이동·진도 코드·
+   축하 화면이 모두 이 표를 보고 움직인다 */
+const RSTG=[['R1',5],['R2',10],['R3',15]];
+const isR=v=>RSTG.some(([id])=>id===v);
+/* 그 복습이 어느 단계 뒤에 있나. ST.lv 는 늘 이 번호로 남겨 둔다 */
+const rLv=v=>{ const h=RSTG.find(([id])=>id===v); return h?h[1]:0; };
+const rOf=lv=>{ const h=RSTG.find(([,n])=>n===lv); return h?h[0]:null; };
 const NAV_ORDER=Array.from({length:61},(_,i)=>i);
-NAV_ORDER.splice(6,0,R1);
-const activeStage=()=>ST.view===R1?R1:ST.lv;
+/* 뒤에서부터 끼워야 앞 자리의 번호가 밀리지 않는다 */
+RSTG.slice().reverse().forEach(([id,after])=>NAV_ORDER.splice(after+1,0,id));
+const activeStage=()=>isR(ST.view)?ST.view:ST.lv;
 const nextStage=n=>NAV_ORDER[NAV_ORDER.indexOf(n)+1];
 
 const $=s=>document.querySelector(s), list=$('#list'), side=$('#side'), pop=$('#pop'), qpop=$('#qpop'), mpop=$('#mpop'), npop=$('#npop'), cpop=$('#cpop'), cel=$('#cel'), bd=$('#bd'), toast=$('#toast'), sheet=$('#sheet');
@@ -1013,7 +1020,7 @@ try{
 if(!ST.done||!ST.done[1]) ST.done={1:{},2:{},3:{}};
 if(!ST.r) ST.r={}; if(!ST.star) ST.star={};
 if(!ST.read) ST.read={};
-if(ST.view!==R1||ST.lv!==5) delete ST.view;
+if(!isR(ST.view)||ST.lv!==rLv(ST.view)) delete ST.view;
 /* 그 단계가 지금 도는 회차 */
 function curR(lv){ const r=+ST.r[lv]||1; return r<1?1:(r>RN?RN:r); }
 /* 회차 하나를 비트 하나에 담는다. 1회차=1, 2회차=2, 3회차=4 */
@@ -1151,21 +1158,22 @@ function centerLv(){
   if(sb&&sb.offsetParent&&sb.scrollIntoView) sb.scrollIntoView({block:'nearest'});
 }
 function paintDialogue(){
-  const read=!!ST.read.R1;
+  const id=ST.view;
+  const read=!!ST.read[id];
   const b=$('#dDone');
   if(b){ b.disabled=read; b.textContent=read?'✓ 읽음 완료':'대화 읽음 표시'; }
   paintDialogueNav();
   document.querySelectorAll('.lv,.sideb').forEach(el=>{
-    el.setAttribute('aria-current',el.dataset.n===R1);
+    el.setAttribute('aria-current',el.dataset.n===id);
   });
   $('#lvKana').setAttribute('aria-current','false');
   paintRv();
 }
 function paintDialogueNav(){
-  const read=!!ST.read.R1;
   document.querySelectorAll('.lv.rstage,.sideb.rstage').forEach(el=>{
+    const id=el.dataset.n, read=!!ST.read[id];
     el.classList.toggle('read',read);
-    el.setAttribute('aria-label',read?'R1 대화 복습, 읽음':'R1 대화 복습');
+    el.setAttribute('aria-label',id+(read?' 대화 복습, 읽음':' 대화 복습'));
   });
 }
 /* 장(#)마다 발화를 나눠 두었지만 음성 재생은 대화 전체를 한 줄로 이어 센다.
@@ -1174,8 +1182,8 @@ function dialogueTurns(d){
   return d.chapters.reduce((all,c)=>all.concat(c.turns),[]);
 }
 function buildDialogue(){
-  const d=window.DIALOGUES.R1;
-  $('#stg').textContent=R1;
+  const id=ST.view, d=window.DIALOGUES[id];
+  $('#stg').textContent=id;
   $('#ttl').textContent=d.title;
   $('#rnd').textContent='';
   $('#cnt').textContent='—'; $('#tot').textContent='—'; $('#gauge').style.width='0';
@@ -1222,7 +1230,7 @@ function buildDialogue(){
     `일본어를 누르면 그 줄의 뜻이 바로 아래에 펼쳐집니다.</p></div>`+
     chapters+
     `<div class="dactions"><button class="dread" id="dDone">대화 읽음 표시</button>`+
-    `<button class="dnext" id="dNext">6단계로 가기</button></div></article>`;
+    `<button class="dnext" id="dNext">${rLv(id)+1}단계로 가기</button></div></article>`;
   paintDialogue();
 }
 function buildKana(){
@@ -1255,9 +1263,9 @@ function buildKana(){
 }
 let kanaTab='sei';
 function build(){
-  document.body.classList.toggle('dialogue-view',ST.view===R1);
+  document.body.classList.toggle('dialogue-view',isR(ST.view));
   paintDialogueNav();
-  if(ST.view===R1){ buildDialogue(); return; }
+  if(isR(ST.view)){ buildDialogue(); return; }
   if(ST.lv===0){ buildKana(); return; }
   if(ST.lv===RV){ buildReview(); return; }
   const L=SENT[ST.lv];
@@ -1295,14 +1303,14 @@ function build(){
   paint();
 }
 function goPage(d){
-  if(ST.view===R1) return;
+  if(isR(ST.view)) return;
   const L=SENT[ST.lv]; if(!L) return;
   const max=Math.ceil(L.s.length/25)-1;
   ST.pg=Math.max(0,Math.min(max,(ST.pg||0)+d));
   save(); build(); scrollTo({top:0});
 }
 function paint(){
-  if(ST.view===R1){ paintDialogue(); return; }
+  if(isR(ST.view)){ paintDialogue(); return; }
   if(ST.lv===0||ST.lv===RV) return;
   const L=SENT[ST.lv]; if(!L) return;
   paintDialogueNav();
@@ -1316,7 +1324,7 @@ function paint(){
     if(rb) rb.querySelector('.bmk').setAttribute('aria-pressed',b===n);
   });
   document.querySelectorAll('.lv').forEach(el=>{
-    if(el.dataset.n===R1){ el.setAttribute('aria-current','false'); return; }
+    if(isR(el.dataset.n)){ el.setAttribute('aria-current','false'); return; }
     const n=+el.dataset.n, dd=doneList(n).length, tt=SENT[n]?SENT[n].s.length:0;
     el.classList.toggle('part',dd>0&&dd<tt);
     el.classList.toggle('full',tt>0&&dd===tt);
@@ -1432,7 +1440,7 @@ function enterReview(){ if(!RVtot||RVdone) startReview(); }
    그 자리로 돌아가야 하기 때문이다. 앱을 닫았다 열어도 살아 있도록
    ST 에 얹어 둔다. 오답노트 안에서 또 부르면 적어 둔 자리를 덮지 않는다 */
 function openReview(){
-  if(ST.lv!==RV) ST.rv={lv:ST.lv, pg:ST.pg||0, view:ST.view===R1?R1:null};
+  if(ST.lv!==RV) ST.rv={lv:ST.lv, pg:ST.pg||0, view:isR(ST.view)?ST.view:null};
   delete ST.view;
   ST.lv=RV; ST.pg=0; enterReview();
 }
@@ -1442,7 +1450,7 @@ function openReview(){
 function leaveReview(){
   const f=ST.rv||{};
   ST.lv=(f.lv!=null&&(f.lv===0||SENT[f.lv]))?f.lv:1;
-  if(f.view===R1&&ST.lv===5) ST.view=R1;
+  if(isR(f.view)&&ST.lv===rLv(f.view)) ST.view=f.view;
   else delete ST.view;
   ST.pg=+f.pg||0;
   save(); build(); centerLv();
@@ -1526,22 +1534,22 @@ function buildReview(){
   list.dataset.rvans=askJP?k:(w.m||'').split(',')[0].trim();
 }
 /* ── 단계 내비 ────────────────────────────── */
-nav.innerHTML=NAV_ORDER.slice(1).map(n=>n===R1
-  ? `<button class="lv rstage" data-n="${R1}" title="대화 복습 R1">R1</button>`
+nav.innerHTML=NAV_ORDER.slice(1).map(n=>isR(n)
+  ? `<button class="lv rstage" data-n="${n}" title="대화 복습 ${n}">${n}</button>`
   : `<button class="lv" data-n="${n}" title="${TITLES[n-1]}" ${SENT[n]?'':'disabled'}>`+
     `<span class="crown" data-s="0"><i>${ICO.star}</i><i>${ICO.star}</i><i>${ICO.star}</i></span>${n}</button>`).join('');
 side.innerHTML='<h4>STAGES</h4>'+
   '<button class="sideb" data-n="0"><span class="no" style="font-family:var(--jp)">あ</span><span class="tt">가나 표</span></button>'+
-  NAV_ORDER.slice(1).map(n=>n===R1
-    ? `<button class="sideb rstage" data-n="${R1}"><span class="no">R1</span>`+
-      `<span class="tt">대화 복습 · 숙소</span></button>`
+  NAV_ORDER.slice(1).map(n=>isR(n)
+    ? `<button class="sideb rstage" data-n="${n}"><span class="no">${n}</span>`+
+      `<span class="tt">대화 복습 · ${(window.DIALOGUES[n]||{}).nav||''}</span></button>`
     : `<button class="sideb" data-n="${n}" ${SENT[n]?'':'disabled'}>`+
       `<span class="no">${n}</span><span class="tt">${TITLES[n-1]}</span>`+
       `<span class="crown sidecrown" data-s="0"><i>${ICO.star}</i><i>${ICO.star}</i><i>${ICO.star}</i></span></button>`).join('');
 side.addEventListener('click',e=>{const b=e.target.closest('.sideb'); if(!b||b.disabled)return;
-  goStage(b.dataset.n===R1?R1:+b.dataset.n);});
+  goStage(isR(b.dataset.n)?b.dataset.n:+b.dataset.n);});
 nav.addEventListener('click',e=>{const b=e.target.closest('.lv'); if(!b||b.disabled||navMoved)return;
-  goStage(b.dataset.n===R1?R1:+b.dataset.n);});
+  goStage(isR(b.dataset.n)?b.dataset.n:+b.dataset.n);});
 /* 세로 휠을 가로 이동으로 */
 nav.addEventListener('wheel',e=>{ if(Math.abs(e.deltaY)<=Math.abs(e.deltaX))return;
   e.preventDefault(); nav.scrollLeft+=e.deltaY; },{passive:false});
@@ -1600,9 +1608,10 @@ list.addEventListener('toggle',e=>{
 
 list.addEventListener('click',e=>{
   if(dg&&dg.ax==='x')return;
-  if(ST.view===R1){
-    if(e.target.closest('#dDone')){ ST.read.R1=1; save(); say('R1 대화를 읽음으로 표시했습니다'); return; }
-    if(e.target.closest('#dNext')){ goStage(6); return; }
+  if(isR(ST.view)){
+    if(e.target.closest('#dDone')){ ST.read[ST.view]=1; save();
+      say(ST.view+' 대화를 읽음으로 표시했습니다'); return; }
+    if(e.target.closest('#dNext')){ goStage(rLv(ST.view)+1); return; }
     /* 일본어 줄을 누르면 그 줄의 뜻만 여닫는다 */
     const line=e.target.closest('.djp');
     if(line){
@@ -1612,7 +1621,7 @@ list.addEventListener('click',e=>{
     }
     const audio=e.target.closest('.dspk');
     if(audio){
-      const t=dialogueTurns(window.DIALOGUES.R1)[+audio.dataset.i];
+      const t=dialogueTurns(window.DIALOGUES[ST.view])[+audio.dataset.i];
       if(t) speakText(t.jp.replace(/\{([^|{}]+)\|[^|{}]+\}/g,'$1'));
     }
     return;
@@ -2117,7 +2126,7 @@ addEventListener('keydown',e=>{
     const o=document.querySelectorAll('.rvopt')[+k-1]; if(o) o.click(); e.preventDefault(); return; }
   if(k==='ArrowRight'||k==='ArrowLeft'){
     const i=NAV_ORDER.indexOf(activeStage()), n=NAV_ORDER[i+(k==='ArrowRight'?1:-1)];
-    if(i>=0&&n!=null&&(n===R1||n===0||SENT[n])) goStage(n);
+    if(i>=0&&n!=null&&(isR(n)||n===0||SENT[n])) goStage(n);
     e.preventDefault(); return; }
   if(k==='['||k===']'){ goPage(k===']'?1:-1); e.preventDefault(); return; }
 });
@@ -2157,7 +2166,7 @@ function jump(){const b=ST.bm[ST.lv]; if(b==null)return;
    회차를 마칠 때 ST.at 을 지우므로 끝낸 단계는 첫 쪽에서 시작한다.
    쪽을 옮기는 일은 resume() 이 하니 여기서는 부르기만 한다 */
 function goStage(n){
-  if(n===R1){ ST.view=R1; ST.lv=5; }
+  if(isR(n)){ ST.view=n; ST.lv=rLv(n); }
   else { delete ST.view; ST.lv=n; }
   ST.pg=0;
   if(n===RV) enterReview();
@@ -2165,7 +2174,7 @@ function goStage(n){
   resume();
 }
 function resume(){
-  if(ST.view===R1) return false;
+  if(isR(ST.view)) return false;
   const n=(ST.at||{})[ST.lv];
   if(n==null) return false;
   const L=SENT[ST.lv]; if(!L) return false;
@@ -2228,9 +2237,16 @@ function decMap(str){ const o={};
   return o; }
 function encST(){
   return 'J3|'+ST.lv+'|'+encDone(ST.done[1])+'|'+encDone(ST.done[2])+'|'+encDone(ST.done[3])
-    +'|'+encMap(ST.bm)+'|'+encMap(ST.star)+'|'+encMap(ST.r)+'|'+(ST.read.R1?'R1':'');
+    +'|'+encMap(ST.bm)+'|'+encMap(ST.star)+'|'+encMap(ST.r)
+    +'|'+RSTG.filter(([id])=>ST.read[id]).map(([id])=>id).join(',');
 }
 /* 옛 J2 코드도 읽는다. 그때는 회차가 없었으므로 1회차 진도로 넣는다 */
+/* 「R1,R3」처럼 쉼표로 이어 온다. 옛 코드의 한 칸짜리 'R1' 도 그대로 읽힌다 */
+function decRead(v){
+  const out={};
+  String(v||'').split(',').forEach(x=>{ const id=x.trim(); if(isR(id)) out[id]=1; });
+  return out;
+}
 function decST(s){
   const p=String(s).trim().split('|');
   if(p[0]==='J2'){
@@ -2245,10 +2261,10 @@ function decST(s){
   return {v:3,lv:(p[1]===''||p[1]==null)?1:+p[1],pg:0,
     done:{1:decDone(p[2]),2:decDone(p[3]),3:decDone(p[4])},
     bm:decMap(p[5]), star:decMap(p[6]), r:decMap(p[7]),
-    read:p[8]==='R1'?{R1:1}:{}};
+    read:decRead(p[8])};
 }
 function renderStat(){
-  if(ST.view===R1){ $('#qstat').textContent='R1은 문제풀이가 없는 대화 복습입니다.'; return; }
+  if(isR(ST.view)){ $('#qstat').textContent=ST.view+'은 문제풀이가 없는 대화 복습입니다.'; return; }
   const solved=Object.keys(QDONE).filter(k=>k.indexOf(ST.lv+'-')===0).length;
   const es=Object.entries(QSTAT).filter(([k])=>WORDS[k]);
   if(!es.length){ $('#qstat').innerHTML='<span style="color:#A79E93">아직 푼 문제가 없습니다.</span>'; return; }
@@ -2411,7 +2427,8 @@ $('#bQLoad').onclick=()=>{
 $('#bCopy').onclick=()=>{const t=$('#code'); t.select(); t.setSelectionRange(0,99999);
   (navigator.clipboard?navigator.clipboard.writeText(t.value):Promise.reject()).then(()=>say('복사했습니다'),()=>{document.execCommand('copy');say('복사했습니다');});};
 $('#bLoad').onclick=()=>{ try{ const imported=decST($('#code').value);
-    if(ST.read.R1) imported.read.R1=1; /* 예전 코드에 이 필드가 없어도 읽음 기록은 남긴다 */
+    /* 예전 코드에 이 칸이 없어도 이미 읽은 기록은 지우지 않는다 */
+    RSTG.forEach(([id])=>{ if(ST.read[id]) imported.read[id]=1; });
     ST=imported;
     save(); build(); centerLv(); closeSheet(); say('진도를 불러왔습니다');
   }catch(e){ say('코드를 읽을 수 없습니다'); }};
@@ -2575,7 +2592,7 @@ function celMsg3(lv){
   const now=TITLES[lv-1]||'', nx=TITLES[lv]||'';
   const head=lv+'단계를 모두 완료하셨습니다';
   const learned='이번 단계에서는 <b>'+now+'</b>'+eul(now)+' 배웠습니다.';
-  if(lv===5) return [head,learned+'<br>다음은 <b>R1 대화 복습</b>입니다.'];
+  if(rOf(lv)) return [head,learned+'<br>다음은 <b>'+rOf(lv)+' 대화 복습</b>입니다.'];
   if(!SENT[lv+1]) return [head,learned+'<br>여기까지가 지금 준비된 마지막 단계입니다.'];
   return [head, learned+'<br>이제 다음 단계에서는 <b>'+nx+'</b>'+eul(nx)+' 배우게 됩니다.<br>'+
     CHEER[Math.floor(Math.random()*CHEER.length)]];
@@ -2586,7 +2603,7 @@ function celebrate(r){
   /* 별이 날아와 박힐 때까지 그 자리는 비워 둔다 */
   const cr=crownEl(CELLV);
   if(cr) cr.dataset.hold=CELIX;
-  const n=nextStage(CELLV), hasNext=n===R1||!!SENT[n];
+  const n=nextStage(CELLV), hasNext=isR(n)||!!SENT[n];
   const last=r>=RN;
   const m=last?celMsg3(CELLV):CELMSG[r];
   const badN=last?reviewQueue().length:0;
@@ -2626,7 +2643,7 @@ function celDone(next){
   cel.classList.remove('on'); bd.classList.remove('on');
   flyStar(a);
   /* 별이 왕관에 앉은 뒤에 화면을 바꾼다 */
-  if(next) setTimeout(()=>{ const n=nextStage(CELLV); if(n!==R1&&!SENT[n]) return;
+  if(next) setTimeout(()=>{ const n=nextStage(CELLV); if(!isR(n)&&!SENT[n]) return;
     goStage(n); },700);
 }
 /* 별이 박히는 왕관. PC 는 왼쪽 목록, 그보다 좁으면 가로 내비를 쓴다.

@@ -141,7 +141,9 @@ function mergeST(a,b){
      다른 기기의 화면으로 끌려가지 않게 이 기기 것을 남긴다. */
   o.lv = a.lv!=null ? +a.lv : (b.lv!=null ? +b.lv : 1);
   o.pg = +a.pg||0;                         /* 보던 쪽은 이 기기 것 */
-  if(a.view==='R1'&&o.lv===5) o.view='R1';
+  /* 대화 복습 화면도 기기별로 남긴다. 어느 단계 뒤인지는 이 파일이 모르므로
+     이 기기의 단계 번호와 짝이 맞을 때만 그대로 둔다 */
+  if(/^R\d+$/.test(a.view||'')&&a.lv!=null&&+a.lv===o.lv) o.view=a.view;
   else delete o.view;                     /* 대화 화면 위치도 기기별로 남긴다 */
   o.done = {1:{},2:{},3:{}};
   for(let r=1;r<=3;r++){
@@ -152,8 +154,10 @@ function mergeST(a,b){
   }
   o.r={}; maxInto(o.r, a.r, b.r);          /* 회차는 더 나간 쪽 */
   o.star={}; maxInto(o.star, a.star, b.star);
+  /* 대화 읽음은 별과 별개다. 읽은 쪽이 있으면 읽은 것으로 — 복습이 몇 개든 따라온다 */
   o.read={};
-  if((a.read||{}).R1||(b.read||{}).R1) o.read.R1=1; /* 대화 읽음은 별과 별개 */
+  keys(a.read||{}, b.read||{}).forEach(k=>{
+    if((a.read||{})[k]||(b.read||{})[k]) o.read[k]=1; });
   /* 북마크와 마지막에 보던 자리는 단계마다 하나뿐이라 합칠 수 없다.
      단계별로 이 기기 것을 남기고, 이 기기에 없는 단계만 저쪽 것을 받는다 */
   o.bm = Object.assign({}, b.bm||{}, a.bm||{});

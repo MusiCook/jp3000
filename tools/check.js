@@ -101,18 +101,28 @@ if(gOnce>6) console.log('  한 번만 쓰인 이름이 '+gOnce+'개다. 합칠 �
 
 /* 번호 없는 대화 복습은 문장 검사와 별도로 대응·단어 출처를 확인한다. */
 eval(fs.readFileSync(dir+'dialogues.js','utf8'));
-const D=window.DIALOGUES.R1;
 const plain=t=>t.replace(/\{([^|{}]+)\|([^|{}]+)\}/g,'$1');
-const CH=D&&D.chapters;
-if(!CH||!CH.length) err.push('R1  장(chapters)이 없음');
-else{
+/* 「行きます」가 「行きません」으로, 「並びます」가 「並んでいます」로 나온다.
+   활용하는 꼬리를 떼고 어간으로 찾는다. 한자가 있으면 뒤의 가나까지 떼어 낸다 */
+const stemOf=t=>{
+  let w=plain(t).replace(/(い|な|です|ます)$/,'');
+  if(/[一-鿿々]/.test(w)) w=w.replace(/[ぁ-ん]+$/,'');
+  return w||plain(t);
+};
+const RIDS=Object.keys(window.DIALOGUES);
+if(!RIDS.length) err.push('대화 복습이 하나도 없음');
+RIDS.forEach(id=>{
+  const D=window.DIALOGUES[id], CH=D&&D.chapters;
+  if(!CH||!CH.length){ err.push(id+'  장(chapters)이 없음'); return; }
+  if(!D.nav) err.push(id+'  목록에 쓸 이름(nav)이 없음');
   const turns=CH.reduce((all,c)=>all.concat(c.turns),[]);
-  if(turns.length<40) err.push('R1  발화가 40개보다 적다 — 1~5단계를 회수하기 어렵다');
-  /* 단어장은 장마다 따로 두되, 장을 건너뛰며 같은 말을 또 싣지 않는다 */
+  if(turns.length<40) err.push(id+'  발화가 40개보다 적다 — 배운 것을 회수하기 어렵다');
+  /* 단어장은 장마다 따로 두되, 한 복습 안에서 같은 말을 또 싣지 않는다.
+     복습끼리는 겹쳐도 된다 — 열 단계 뒤에 다시 짚어 주는 편이 낫다 */
   const used=new Set();
   let nw=0, ne=0, nc=0;
   CH.forEach((c,ci)=>{
-    const tag=`R1-#${ci+1}`;
+    const tag=id+`-#${ci+1}`;
     if(!c.title||!c.scene) err.push(`${tag}  장 제목이나 상황 누락`);
     if(c.turns.length<6) err.push(`${tag}  한 장의 발화가 6개보다 적다`);
     (c.cast||[]).forEach(k=>{ if(!D.speakers[k]) err.push(`${tag}  이름 없는 화자: ${k}`); });
@@ -123,16 +133,17 @@ else{
     const jp=c.turns.map(t=>plain(t.jp)).join('');
     if(!c.glossary||!c.glossary.length) err.push(`${tag}  단어장이 없음`);
     (c.glossary||[]).forEach(g=>{
-      const w=W[g.key], term=w&&plain(w.t);
-      /* 「暑い」가 「暑くないです」로 나오기도 한다. 활용 어미를 떼고 찾는다 */
-      const stem=term&&term.replace(/(い|な|です|ます)$/,'');
-      if(!w||!term||!jp.includes(stem)) err.push(`${tag}  이 장에 없는 단어: ${g.key}`);
-      if(used.has(g.key)) err.push(`R1  단어 중복: ${g.key}`);
+      const w=W[g.key];
+      if(!w){ err.push(`${tag}  사전에 없는 단어 키: ${g.key}`); return; }
+      if(!jp.includes(stemOf(w.t))) err.push(`${tag}  이 장에 없는 단어: ${g.key} (${plain(w.t)})`);
+      if(used.has(g.key)) err.push(`${id}  단어 중복: ${g.key}`);
       if(!g.meaning||!g.note) err.push(`${tag}  단어 설명 누락: ${g.key}`);
       used.add(g.key); nw++;
     });
     (c.expressions||[]).forEach(x=>{
       if(!x.jp||!x.ko||!x.note) err.push(`${tag}  미리 보는 표현 설명 누락`);
+      /* 미리 보는 표현도 대화에 실제로 나와야 한다. 설명만 남은 것을 한 번 놓쳤다 */
+      if(!jp.includes(stemOf(x.jp))) err.push(`${tag}  이 장에 없는 표현: ${plain(x.jp)}`);
       ne++;
     });
     (c.culture||[]).forEach(x=>{
@@ -140,9 +151,9 @@ else{
       nc++;
     });
   });
-  if(!nc) err.push('R1  예절·문화 메모가 하나도 없음');
-  console.log('R1 대화 : '+CH.length+'장 · '+turns.length+'발화 · '
+  if(!nc) err.push(id+'  예절·문화 메모가 하나도 없음');
+  console.log(id+' 대화 : '+CH.length+'장 · '+turns.length+'발화 · '
     +nw+'단어 · '+ne+'미리 보는 표현 · '+nc+'문화 메모');
-}
+});
 
 console.log(err.length?'\n[문제]\n'+err.join('\n'):'\n문제 없음');
