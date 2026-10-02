@@ -28,6 +28,12 @@ const old=vm.runInContext('decST(code)',ctx);
 assert.deepEqual(Object.keys(old.read),[],'기존 J3 코드도 읽는다');
 assert.deepEqual(Array.from(old.done[1][5]),[1,2]);
 
+/* 장을 여닫는 동작은 가짜 DOM 으로 흉내 낼 수 없다. 코드가 있는지만 본다 */
+assert.ok(/addEventListener\('toggle'[\s\S]{0,400}dchapsec[\s\S]{0,300}o\.open=false/.test(html),
+  '장 하나를 열면 나머지를 닫는 코드가 없다');
+assert.ok(html.includes("list.addEventListener('toggle'")&&/},true\);/.test(html),
+  'toggle 은 버블링하지 않으므로 캡처로 받아야 한다');
+
 const render=html.slice(html.indexOf('function paintDialogue(){'),html.indexOf('function buildKana(){'));
 assert(render.startsWith('function paintDialogue(){'),'R1 화면 코드를 찾지 못했습니다');
 const elements={};
@@ -51,7 +57,11 @@ assert.equal(elements['#stg'].textContent,'R1');
 assert.ok(d.chapters.length>=2,'R1은 여러 장으로 나눈다');
 assert.ok(total>=40,'다섯 단계를 회수하려면 발화가 넉넉해야 한다');
 assert.equal((page.match(/<div class="dturn">/g)||[]).length,total);
-assert.equal((page.match(/<div class="dturn dko">/g)||[]).length,total);
+/* 뜻은 발화 안에 접힌 채로 하나씩 들어 있다 — 따로 모아 두지 않는다 */
+assert.equal((page.match(/<div class="dko" lang="ko">/g)||[]).length,total);
+assert.ok(!page.includes('한국어 번역'),'번역을 따로 모은 접기는 없앴다');
+assert.equal((page.match(/aria-expanded="false"/g)||[]).length,total,
+  '모든 뜻은 접힌 채로 시작한다');
 
 /* 장 하나가 통째로 접힌다. 열려 있는 채로 그려지는 장이 없어야 한다 */
 assert.equal((page.match(/<details class="dchapsec">/g)||[]).length,d.chapters.length,
@@ -66,9 +76,11 @@ secs.forEach((sec,i)=>{
   const body=sec.split('<div class="dactions">')[0];
   assert.ok(body.includes(esc(c.title)),`#${i+1} 장 제목이 없다`);
   assert.ok(body.includes(esc(c.scene)),`#${i+1} 장 상황이 없다`);
-  assert.ok(body.includes(esc(c.turns[0].ko)),`#${i+1} 번역이 그 장 안에 없다`);
-  assert.ok(body.includes('한국어 번역')&&body.includes('단어·표현'),
-    `#${i+1} 장 안에 번역·단어 접기가 둘 다 있어야 한다`);
+  assert.ok(body.includes(esc(c.turns[0].ko)),`#${i+1} 뜻이 그 장 안에 없다`);
+  /* 그 장의 뜻은 그 장의 발화 수만큼 */
+  assert.equal((body.match(/<div class="dko" lang="ko">/g)||[]).length,c.turns.length,
+    `#${i+1} 발화마다 뜻이 하나씩 붙어야 한다`);
+  assert.ok(body.includes('단어·표현'),`#${i+1} 장 안에 단어 접기가 있어야 한다`);
   const mine=(body.match(/<div class="dturn">/g)||[]).length;
   assert.equal(mine,c.turns.length,`#${i+1} 발화 수가 다르다`);
   (c.glossary||[]).forEach(g=>{

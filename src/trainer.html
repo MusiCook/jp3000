@@ -628,15 +628,18 @@ body.hidehira .kcell .hi{color:transparent;background:var(--green-l);border-radi
 .dchapbody .dturn{padding-left:2px;padding-right:2px;}
 .dchapbody .dsec{background:var(--sub);}
 .dchapbody .dsec summary{padding:13px 15px;font-size:13.5px;}
-.dkolist{padding-bottom:6px;}
-.dkolist .dturn{padding-left:15px;padding-right:15px;}
 .dnotes .dgword:last-of-type{border-bottom:0;}
 .dturn{display:grid;grid-template-columns:30px minmax(0,1fr) 34px;gap:10px;align-items:start;
   padding:14px 15px;border-bottom:1px solid var(--line);}
 .dturn:last-child{border-bottom:0;}
 .dspeaker{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
   background:var(--sub);color:var(--acc);font-family:var(--sr);font-weight:700;font-size:12px;}
-.djp{min-width:0;font-family:var(--jp);font-size:21px;line-height:2;overflow-wrap:anywhere;}
+/* 일본어 줄은 눌러서 뜻을 펼치는 단추다. 글처럼 보이게 꾸밈을 지운다 */
+.djp{min-width:0;width:100%;margin:0;padding:0;border:0;background:none;text-align:left;
+  color:var(--ink);font-family:var(--jp);font-size:21px;line-height:2;overflow-wrap:anywhere;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.djp[aria-expanded="true"]{color:var(--acc);}
+.djp:focus-visible{outline:2px solid var(--acc);outline-offset:3px;border-radius:4px;}
 .djp rt{font-size:.43em;opacity:.8;}
 .dspk{width:32px;height:32px;border:1px solid var(--line);border-radius:50%;background:var(--card);
   color:var(--ink2);display:flex;align-items:center;justify-content:center;cursor:pointer;}
@@ -649,7 +652,10 @@ body.notts .dspk{display:none;}
 .dsec summary::after{content:"⌄";float:right;color:var(--ink2);font-size:20px;line-height:19px;}
 .dsec[open] summary{border-bottom:1px solid var(--line);}
 .dsec[open] summary::after{transform:rotate(180deg);}
-.dko{grid-template-columns:30px minmax(0,1fr);font-size:14px;line-height:1.8;color:var(--ink2);}
+/* 뜻은 일본어 바로 아래 칸(둘째 줄, 가운데 열)에 들어간다 */
+.dko{display:none;grid-column:2;padding-top:7px;border-top:1px dashed var(--line);
+  font-size:14px;line-height:1.8;color:var(--ink2);}
+.dturn.open .dko{display:block;}
 .dnotes{padding:4px 17px 16px;}
 .dnotes h3{margin:18px 0 6px;font-size:13px;color:var(--acc);}
 .dgword{padding:10px 0;border-bottom:1px solid var(--line);}
@@ -1180,14 +1186,15 @@ function buildDialogue(){
   /* 장 하나가 통째로 접힌다. 안에 그 장의 일본어·번역·단어장이 모두 들어 있어
      한 장면을 끝내고 다음 장을 여는 식으로 읽는다. 모두 닫힌 채로 시작한다 */
   const chapters=d.chapters.map((c,ci)=>{
+    /* 일본어를 누르면 그 발화의 뜻만 아래로 펼쳐진다. 번역을 따로 모아 두면
+       모르는 말 하나를 볼 때마다 대화 전체를 지나 내려가야 했다 */
     const turns=c.turns.map(t=>{
       ai++;
       return `<div class="dturn">${who(t)}`+
-        `<div class="djp" lang="ja">${ruby(t.jp)}</div>`+
-        `<button class="dspk" data-i="${ai}" aria-label="${ai+1}번째 일본어 발음 듣기">${ICO.sp}</button></div>`;
+        `<button type="button" class="djp" lang="ja" aria-expanded="false">${ruby(t.jp)}</button>`+
+        `<button class="dspk" data-i="${ai}" aria-label="${ai+1}번째 일본어 발음 듣기">${ICO.sp}</button>`+
+        `<div class="dko" lang="ko">${esc(t.ko)}</div></div>`;
     }).join('');
-    const ko=c.turns.map(t=>
-      `<div class="dturn dko">${who(t)}<div lang="ko">${esc(t.ko)}</div></div>`).join('');
     const words=c.glossary.map(g=>{
       const w=WORDS[g.key];
       return note(w?w.t:g.key,g.meaning,g.note);
@@ -1203,7 +1210,6 @@ function buildDialogue(){
       `<div class="dchapbody"><p class="dscene">${esc(c.scene)}</p>`+
       `<div class="dpeople">${cast}</div>`+
       `<section class="dcard" aria-label="${esc(c.title)} 일본어 대화">${turns}</section>`+
-      `<details class="dsec"><summary>한국어 번역</summary><div class="dkolist">${ko}</div></details>`+
       `<details class="dsec"><summary>이 장면의 단어·표현</summary><div class="dnotes">`+
       `<h3>대화에 나온 말 · 더 배워보기</h3>${words}`+
       (preview?`<h3>미리 보는 표현</h3>${preview}`:'')+
@@ -1212,7 +1218,8 @@ function buildDialogue(){
   }).join('');
   list.innerHTML=`<article class="dialogue"><div class="dintro"><h2>${esc(d.title)}</h2>`+
     `<p>${esc(d.scene)}</p><div class="dpeople">${Object.keys(d.speakers).map(k=>`${k} · ${esc(d.speakers[k])}`).join(' &nbsp; ')}</div>`+
-    `<p class="dhint">장(#)을 눌러 한 장면씩 엽니다. 번역과 단어장은 그 장 안에 있습니다.</p></div>`+
+    `<p class="dhint">장(#)을 눌러 한 장면씩 엽니다. 한 장을 열면 앞 장은 접힙니다.<br>`+
+    `일본어를 누르면 그 줄의 뜻이 바로 아래에 펼쳐집니다.</p></div>`+
     chapters+
     `<div class="dactions"><button class="dread" id="dDone">대화 읽음 표시</button>`+
     `<button class="dnext" id="dNext">6단계로 가기</button></div></article>`;
@@ -1581,11 +1588,28 @@ function endDrag(){
 }
 ['pointerup','pointercancel','pointerleave'].forEach(ev=>list.addEventListener(ev,endDrag));
 
+/* 장을 열면 나머지 장은 닫는다. 다섯 장이 다 펼쳐져 있으면 아래 장을 찾아가는
+   스크롤이 길어진다. toggle 은 버블링하지 않으므로 캡처 단계에서 받는다 */
+list.addEventListener('toggle',e=>{
+  const d=e.target;
+  if(!d.classList||!d.classList.contains('dchapsec')||!d.open) return;
+  list.querySelectorAll('details.dchapsec[open]').forEach(o=>{ if(o!==d) o.open=false; });
+  /* 앞 장이 접히면 누른 자리가 위로 올라간다. 눌린 장의 머리를 다시 보이게 한다 */
+  if(d.scrollIntoView) d.scrollIntoView({block:'nearest'});
+},true);
+
 list.addEventListener('click',e=>{
   if(dg&&dg.ax==='x')return;
   if(ST.view===R1){
     if(e.target.closest('#dDone')){ ST.read.R1=1; save(); say('R1 대화를 읽음으로 표시했습니다'); return; }
     if(e.target.closest('#dNext')){ goStage(6); return; }
+    /* 일본어 줄을 누르면 그 줄의 뜻만 여닫는다 */
+    const line=e.target.closest('.djp');
+    if(line){
+      const on=line.closest('.dturn').classList.toggle('open');
+      line.setAttribute('aria-expanded',on?'true':'false');
+      return;
+    }
     const audio=e.target.closest('.dspk');
     if(audio){
       const t=dialogueTurns(window.DIALOGUES.R1)[+audio.dataset.i];
