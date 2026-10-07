@@ -92,6 +92,18 @@ function cutWord(v){
 function audit(ctx){
   const {WORDS, SENT, chunkJP, chunkKO, seedOf, quizOpts} = ctx;
   const found = [];
+
+  /* 어미 칸 분류기 자체를 먼저 본다. 분류가 틀리면 보기도 검사도 같이 틀려
+     아무것도 걸리지 않는다 — 「맛있습니까」가 과거로 분류되어 실제로 그랬다 */
+  const FORMS = [
+    ['맛있습니까','현재의문'], ['있습니다','현재평서'], ['없습니다','현재평서'],
+    ['재미있습니다','현재평서'], ['있었습니다','과거평서'], ['맛있었습니까','과거의문'],
+    ['즐거웠습니다','과거평서'], ['했습니다','과거평서'], ['갔습니다','과거평서'],
+    ['바빴습니다','과거평서'], ['합니까','현재의문'], ['먹으니까','기타']
+  ];
+  FORMS.forEach(([w,want])=>{ const got=ctx.koForm(w);
+    if(got!==want) found.push({where:'koForm', kind:'분류기 오류',
+      detail:'「'+w+'」를 '+got+'(으)로 본다. '+want+'이어야 한다', opts:[]}); });
   /* 사람이 쓴 한국어 — 문장의 서술 표면형과, 손으로 적어 둔 보기.
      이 밖의 말이 보기로 나오면 코드가 활용형을 만들어 냈다는 뜻이다 */
   const REAL = new Set(), BOX = {};
@@ -147,6 +159,15 @@ function audit(ctx){
     const list = q.opts.map(o=> jp ? bare(o.html) : o.v);
     const face = q.opts.map(o=> jp ? kanji(o.html) : o.v);
 
+    /* 「~ないです」는 형용사의 く꼴 뒤에만 온다. 田中ないです · 机なかったです */
+    if(jp) q.opts.forEach((o,i)=>{
+      const id=String(o.v).split('|'), at=id.findIndex(x=>/^(naidesu|nakattadesu)$/.test(x));
+      if(at<1) return;
+      const h=WORDS[id[at-1]], ht=h?String(h.t).replace(/\{([^|{}]+)\|[^|{}]+\}/g,'$1'):'';
+      if(!h||h.p!=='a'||!/く$/.test(ht))
+        note(where,'있을 수 없는 말','「'+list[i]+'」 — ないです 앞이 형용사 く꼴이 아니다',list);
+    });
+
     /* 겹치는 보기. 일본어는 후리가나를 빼고 견준다.
        똑같은 것뿐 아니라 何 / 何か 처럼 거의 같아 보이는 것도 본다 */
     /* 다만 「十番」과 「十番の」처럼 조사만 다른 것은 걸러선 안 된다.
@@ -168,6 +189,9 @@ function audit(ctx){
     list.forEach(t=>{
       if(jp){
         if(IMPOSS.test(t)) note(where,'있을 수 없는 말','「'+t+'」 — 서술 뒤에 격조사',list);
+        /* 형용사 활용형 뒤의 です. 難しくです · 暇なです · 暑かったですです */
+        if(/(く|な)です(か)?$|ですです/.test(t))
+          note(where,'있을 수 없는 말','「'+t+'」 — 활용형 뒤에 です',list);
         return;
       }
       for(const [re,why] of BADKO)

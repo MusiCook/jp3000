@@ -807,7 +807,7 @@ body.notts .dspk{display:none;}
     <button class="btn" id="bUpd">최신으로 받기</button>
   </div>
   <p style="margin:9px 0 0;font-size:11.5px;color:var(--ink3);text-align:center">
-    지금 판 <span id="ver">2026-10-02 10:06</span></p>
+    지금 판 <span id="ver">2026-10-07 10:10</span></p>
 
   <h3 style="margin-top:26px">초기화</h3>
   <p>진도·북마크·퀴즈 기록을 모두 지웁니다. 되돌릴 수 없습니다.</p>
@@ -11353,6 +11353,18 @@ function jong(ch){
   const c=String(ch||'').charCodeAt(0);
   return (c>=0xAC00&&c<=0xD7A3) ? (c-0xAC00)%28 : -1;
 }
+/* 가운뎃소리 번호. ㅏ0 ㅐ1 ㅓ4 ㅔ5 ㅕ6 ㅘ9 ㅙ10 ㅝ14 ㅞ15 ㅣ20 */
+function jung(ch){
+  const c=String(ch||'').charCodeAt(0);
+  return (c>=0xAC00&&c<=0xD7A3) ? Math.floor((c-0xAC00)/28)%21 : -1;
+}
+/* 과거 어미는 「았·었·였·왔·웠·했」처럼 받침이 ㅆ 인 음절로 드러난다.
+   그런데 받침만 보면 「맛있습니까」의 「있」도 걸려 현재가 과거로 바뀐다.
+   실제로 그런 일이 있었다 — 03-019 의 보기가 「넓었습니까」·「있었습니까」로 나왔다.
+   그래서 가운뎃소리까지 본다. 과거 어미의 소리는 ㅏㅐㅓㅔㅕㅘㅙㅝㅞ 뿐이고,
+   「있」의 ㅣ 는 거기에 없다 */
+const PASTV=[0,1,4,5,6,9,10,14,15];
+const isPast=ch=>jong(ch)===20&&PASTV.indexOf(jung(ch))>=0;
 /* 어미의 칸을 **표면 글자만 보고** 나눈다. 어간을 자르지 않으므로
    불규칙에 걸리지 않는다. 과거는 「니다」 앞의 받침 ㅆ 하나로 잡힌다
    (즐거웠습니다 · 했습니다 · 있었습니다) */
@@ -11374,7 +11386,7 @@ function koForm(v){
   if(/(세요|십시오)$/.test(w)) return '요청';
   if(polite(w)){
     const t=w.replace(/니(다|까)$/,'').replace(/습$/,'');
-    const past=jong(t.slice(-1))===20;                  /* 받침 ㅆ */
+    const past=isPast(t.slice(-1));
     return (past?'과거':'현재')+(/니까$/.test(w)?'의문':'평서');
   }
   if(/다$/.test(w)) return '보통형';
@@ -11383,9 +11395,12 @@ function koForm(v){
   if(/요$/.test(w)) return '요체';
   return '기타';
 }
-function kNorm(t){
+/* pos 를 주면 **조사 자리에서만** 「은/는」처럼 쌍으로 묶는다.
+   03-019 의 「이 레스토랑」에서 지시어 「이」가 조사로 묶여 「이/가」가 되고,
+   그것이 자기 자리의 오답으로 되돌아왔다. 뜻이 겹쳐 보기가 둘이 되는 셈이다 */
+function kNorm(t,pos){
   const s=String(t).trim();
-  const hit=KPAIR.find(p=>p.indexOf(s)>=0);
+  const hit=(pos==null||pos==='p')?KPAIR.find(p=>p.indexOf(s)>=0):null;
   if(hit) return hit.join('/');
   /* 사전의 「그 ~」는 뒤에 말이 온다는 표기이지 한국어가 아니다.
      보기로 내놓을 때는 떼어 「그」로 쓴다. 문장 쪽에는 물결표가
@@ -11453,7 +11468,7 @@ function buildKoPool(){
   KOPOOL={byP:{},byG:{}};
   const push=(o,k,v)=>{ if(!k||!v)return; (o[k]=o[k]||[]).push(v); };
   for(const lv in SENT) SENT[lv].s.forEach(s=>s.k.forEach(([w,c],i)=>{
-    const t=kNorm(w); if(!t||/^[,.?!]$/.test(t)) return;
+    const t=kNorm(w,c); if(!t||/^[,.?!]$/.test(t)) return;
     push(KOPOOL.byP,c,t);
     if(s.j.length===s.k.length && WORDS[s.j[i]]) push(KOPOOL.byG,WORDS[s.j[i]].g,{t,p:c});
   }));
@@ -11461,7 +11476,7 @@ function buildKoPool(){
     if(!w.m) return;
     w.m.split(',').forEach(x=>{ const t=x.trim();
       if(!t||/^~/.test(t)) return;
-      const n=kNorm(t); push(KOPOOL.byP,w.p,n); push(KOPOOL.byG,w.g,{t:n,p:w.p}); });
+      const n=kNorm(t,w.p); push(KOPOOL.byP,w.p,n); push(KOPOOL.byG,w.g,{t:n,p:w.p}); });
   });
   for(const k in KOPOOL.byP) KOPOOL.byP[k]=[...new Set(KOPOOL.byP[k])];
   for(const k in KOPOOL.byG){                       /* 같은 말이 겹치면 하나만 */
@@ -11511,9 +11526,36 @@ function alike(a,b){
    붙는 것은 정해져 있다.  ますから ○  ますが ○  ますは ×  ますの × */
 const VERBOK=['kara','ga','ka','node','kedo','shi'];
 function canAttach(head,pk){
-  const p=WORDS[head]&&WORDS[head].p;
+  const w=WORDS[head], p=w&&w.p;
+  /* 「~ないです」·「~なかったです」는 형용사의 く꼴 뒤에만 붙는다 (高くないです).
+     명사·부사도 통과시켰더니 「田中ないです」·「机なかったです」가 보기로 나왔다 */
+  if(/^(naidesu|nakattadesu)$/.test(pk))
+    return p==='a'&&/く$/.test(String(w.t).replace(/\{([^|{}]+)\|[^|{}]+\}/g,'$1'));
   if(p==='n'||p==='d') return true;
+  /* 「じゃないです」는 な형용사의 기본형 뒤에 붙는다 (静かじゃないです).
+     い형용사(高い)나 활용형(難しく)에는 붙지 않는다 */
+  if(p==='a'&&/^(janaidesu|janakattadesu|janai|janakatta)$/.test(pk))
+    return !/(い|く|な|て|で|た|です|でした)$/.test(String(w.t).replace(/\{([^|{}]+)\|[^|{}]+\}/g,'$1'));
+  /* 형용사 뒤에는 です가 붙는다 (おいしいです・静かです). 이것을 막아 두었더니
+     「おいしいですか」의 보기에서 형용사가 모두 빠지고 명사만 남았다 */
+  /* 다만 사전에는 활용형도 형용사로 들어 있다. 「難しく」·「暇な」 뒤에는 です가
+     붙지 않고, 「暑かったです」는 이미 です를 품고 있다 */
+  if(p==='a'&&pk==='desu'){
+    const t=String(WORDS[head].t).replace(/\{([^|{}]+)\|[^|{}]+\}/g,'$1');
+    return !/(く|な|て|で|です|でした)$/.test(t);
+  }
   return VERBOK.indexOf(pk)>=0;
+}
+
+/* 형용사 사전 키의 꼴. 사전에는 「静かじゃない」·「高かった」 같은 활용형도
+   형용사로 들어 있어, 품사만으로는 기본형과 가를 수 없다.
+   「危ない」·「つまらない」는 기본형이므로 「くない」·「じゃない」만 부정으로 본다 */
+function jpForm(k){
+  const t=String((WORDS[k]||{}).t||'').replace(/\{([^|{}]+)\|[^|{}]+\}/g,'$1');
+  if(/(くない|じゃない|くなかった|じゃなかった)$/.test(t)) return '부정';
+  if(/(かった|だった)$/.test(t)) return '과거';
+  if(/たい$/.test(t)) return '희망';
+  return '기본';
 }
 
 /* 보기 만들기 — 낱말 단위 */
@@ -11627,8 +11669,33 @@ function quizOpts(type, o){
     if(cand.length<3&&!isUnit){
       /* 동사에 격조사를 붙이면 「来られますは」 같은 말이 나온다.
          붙을 수 있는 말만 남기고, 그만큼 후보를 더 넓게 본다 */
-      pick3(jpCands(head).filter(c=>c.v!==head&&
-             (!tail.length||tail.every(t=>canAttach(c.v,t)))),seed).forEach(k=>{
+      let pool=jpCands(head).filter(c=>c.v!==head&&
+             (!tail.length||tail.every(t=>canAttach(c.v,t))));
+      /* 「~です」로 끝나는 서술 자리는 같은 품사끼리 견준다. 03-019 의
+         「おいしいですか」 보기로 「車内ですか」·「だいたいですか」가 나왔다 —
+         형용사 자리에 명사와 부사가 섞이면 품사만 보고 지울 수 있고,
+         부사에 です를 붙인 말은 그 자체로 어색하다. 한국어 쪽 서술 보기를
+         「어미는 같게, 낱말만 다르게」로 잡은 것과 같은 원칙이다.
+         같은 품사가 셋이 안 되면 부사만 빼고 넓힌다 */
+      if(tail.some(t=>/^(desu|naidesu|nakattadesu|janaidesu|janakattadesu)$/.test(t))&&headP){
+        /* 같은 낱말의 다른 꼴(静かです ↔ 静かじゃないです)도 뺀다. 같은 말이
+           두 번 보이면 반복이 단서가 된다. 활용형 키는 기본형과 뜻(m)이 같다 */
+        const lemma=WORDS[head]&&WORDS[head].m;
+        /* 꼴도 정답과 같아야 한다. 「難しいですか」 옆에 「静かじゃないですか」가
+           오면 부정형만 보고 지울 수 있다 */
+        const form=jpForm(head);
+        let same=pool.filter(c=>c.s>=0&&WORDS[c.v]&&WORDS[c.v].p===headP
+          &&WORDS[c.v].m!==lemma&&jpForm(c.v)===form);
+        /* 의문사 자리는 품사가 아니라 의문사끼리 견준다. 「いつですか」가 부사로
+           잡혀 「早くですか」·「全然ですか」가 보기로 나왔다 */
+        if(isAskId(head)){
+          const asks=pool.filter(c=>c.s>=0&&isAskId(c.v)&&WORDS[c.v].m!==lemma);
+          if(asks.length>=3) same=asks;
+        }
+        pool=same.length>=3 ? same
+          : pool.filter(c=>!(WORDS[c.v]&&WORDS[c.v].p==='d'));
+      }
+      pick3(pool,seed).forEach(k=>{
         const v=k+(tail.length?'|'+tail.join('|'):'');
         if(cand.length<3&&cand.indexOf(v)<0&&v!==ans) cand.push(v); });
     }
